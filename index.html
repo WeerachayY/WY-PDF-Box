@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WY Pdf Box</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+:root{
+  --bg:#F6F7F9;
+  --panel:#FFFFFF;
+  --ink:#1B1F24;
+  --muted:#697077;
+  --line:#E4E7EB;
+  --accent:#2563EB;
+  --accent-soft:#EBF1FE;
+  --danger:#D64545;
+  --viewer:#ECEEF2;
+  --r:8px;
+  --topH:52px;
+  --toolH:50px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Leelawadee UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;
+  display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+button:disabled{opacity:.35;cursor:default}
+svg{display:block}
+
+/* ---------- Header ---------- */
+header{
+  height:var(--topH);flex:0 0 auto;background:var(--panel);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:.2px}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.brand small{font-weight:400;color:var(--muted);font-size:12px}
+.spacer{flex:1}
+.fname{color:var(--muted);font-size:12px;max-width:26vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--panel);font-weight:500;
+}
+.btn:hover:not(:disabled){border-color:#C9CED6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover:not(:disabled){background:#1D53CE}
+#btnThumbs{display:none}
+
+/* ---------- Toolbar ---------- */
+.toolbar{
+  min-height:var(--toolH);flex:0 0 auto;background:var(--panel);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;padding:6px 12px;overflow-x:auto;scrollbar-width:thin;
+}
+.tgroup{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
+.tbtn{
+  width:34px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);
+}
+.tbtn:hover:not(:disabled){background:var(--bg);color:var(--ink)}
+.tbtn.on{background:var(--accent-soft);color:var(--accent)}
+.tbtn.warn:hover:not(:disabled){background:#FDF0F0;color:var(--danger)}
+.sep{width:1px;height:24px;background:var(--line);flex:0 0 auto}
+.swatches{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;padding:0;position:relative}
+.sw.on{border-color:var(--ink)}
+.sw.on::after{content:"";position:absolute;inset:2px;border:2px solid #fff;border-radius:50%}
+.sizes{display:flex;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
+.szbtn{height:32px;padding:0 10px;border-radius:6px;color:var(--muted);font-size:12px;font-weight:600}
+.szbtn.on{background:var(--accent-soft);color:var(--accent)}
+.zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto;margin-left:auto}
+#zoomPct{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tlabel{font-size:11px;color:var(--muted);flex:0 0 auto;padding:0 2px}
+
+/* ---------- Layout ---------- */
+main{flex:1;display:flex;min-height:0;position:relative}
+aside{
+  width:172px;flex:0 0 auto;background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;
+}
+.thumbHead{
+  flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
+  font-size:11px;color:var(--muted);
+}
+.thumbHead button{font-size:11px;color:var(--accent);font-weight:600}
+#thumbList{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+
+.thumb{
+  border:1px solid var(--line);border-radius:var(--r);background:var(--panel);position:relative;
+  padding:6px 6px 4px;cursor:pointer;flex:0 0 auto;
+}
+.thumb.cur{border-color:var(--accent);outline:1px solid var(--accent)}
+.thumb.sel{background:var(--accent-soft)}
+.thumb.dragover{border-style:dashed;border-color:var(--accent)}
+.thumb canvas{width:100%;display:block;border:1px solid var(--line);border-radius:4px;background:#fff;pointer-events:none}
+.thumb .meta{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.thumb .pno{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.thumb .rowbtns{display:flex;gap:2px}
+.thumb .rowbtns button{width:22px;height:20px;border-radius:4px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.thumb .rowbtns button:hover:not(:disabled){background:var(--bg);color:var(--ink)}
+.thumb .chk{
+  position:absolute;top:10px;left:10px;width:18px;height:18px;border-radius:4px;border:1.5px solid #B9BFC7;
+  background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;
+}
+.thumb.sel .chk{background:var(--accent);border-color:var(--accent)}
+
+/* ---------- Viewer ---------- */
+#viewer{flex:1;overflow:auto;background:var(--viewer);position:relative}
+#stage{min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:20px}
+#pageWrap{position:relative;flex:0 0 auto;background:#fff;border:1px solid var(--line)}
+#pdfCanvas{display:block}
+#ovCanvas{position:absolute;inset:0;mix-blend-mode:multiply}
+#txtIn{
+  position:absolute;display:none;border:1px dashed var(--accent);background:rgba(255,255,255,.9);
+  padding:1px 4px;border-radius:4px;outline:none;font-family:inherit;min-width:60px;z-index:5;
+}
+#pager{
+  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:3px;z-index:6;
+}
+#pager button{width:30px;height:28px;border-radius:999px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+#pager button:hover:not(:disabled){background:var(--bg);color:var(--ink)}
+#pager span{font-size:12px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums}
+
+/* ---------- Empty state ---------- */
+#empty{
+  position:absolute;inset:0;background:var(--bg);z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+#drop{
+  width:min(460px,100%);border:1.5px dashed #C9CED6;border-radius:14px;background:var(--panel);
+  padding:40px 28px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+#drop.over{border-color:var(--accent);background:var(--accent-soft)}
+#drop h1{font-size:18px;font-weight:700}
+#drop p{color:var(--muted);font-size:13px;line-height:1.7}
+#drop .feat{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+#drop .feat span{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+
+/* ---------- Toast / loading ---------- */
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);transition:transform .25s;
+  background:var(--ink);color:#fff;font-size:13px;padding:9px 16px;border-radius:999px;z-index:60;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#backdrop{display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:29}
+
+/* ---------- Mobile ---------- */
+@media (max-width:820px){
+  #btnThumbs{display:inline-flex}
+  .fname{display:none}
+  .btn .lbl{display:none}
+  .btn{padding:0 10px}
+  aside{
+    position:fixed;top:0;left:0;bottom:0;z-index:30;width:196px;
+    transform:translateX(-102%);transition:transform .22s;box-shadow:none;
+  }
+  body.thumbsOpen aside{transform:translateX(0);box-shadow:0 0 0 1px var(--line)}
+  body.thumbsOpen #backdrop{display:block}
+  #stage{padding:12px}
+  .tlabel{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="btn" id="btnThumbs" title="หน้า (Thumbnail)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2" width="5" height="5" rx="1"/><rect x="9.5" y="2" width="5" height="5" rx="1"/><rect x="1.5" y="9" width="5" height="5" rx="1"/><rect x="9.5" y="9" width="5" height="5" rx="1"/></svg>
+  </button>
+  <div class="brand"><span class="dot"></span>WY Pdf Box <small>จัดหน้า · ขีดเขียน</small></div>
+  <div class="spacer"></div>
+  <span class="fname" id="fname"></span>
+  <button class="btn" id="btnOpen">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>
+    <span class="lbl">เปิดไฟล์</span>
+  </button>
+  <button class="btn primary" id="btnSave" disabled>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
+    <span class="lbl">บันทึก PDF</span>
+  </button>
+</header>
+
+<div class="toolbar" id="toolbar">
+  <div class="tgroup" id="toolGroup">
+    <button class="tbtn on" data-tool="pan" title="เลื่อนดู / เลือก">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7.5V3.2a1 1 0 0 1 2 0v3.6m0-2.3a1 1 0 0 1 2 0v2.6m0-1.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5c-2 0-3-.8-3.9-2.3L2.3 9.7a1 1 0 0 1 1.6-1.2L6 10.5"/></svg>
+    </button>
+    <button class="tbtn" data-tool="pen" title="ปากกา">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9.7 3.3 3 3L6 13l-3.6.6L3 10l6.7-6.7Z"/><path d="m8.5 4.5 3 3"/></svg>
+    </button>
+    <button class="tbtn" data-tool="hl" title="ไฮไลต์">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m10 2.8 3.2 3.2-5.6 5.6L4.4 8.4 10 2.8Z"/><path d="M4.4 8.4 3 12l3.6-1.4M2 14.5h12"/></svg>
+    </button>
+    <button class="tbtn" data-tool="text" title="เพิ่มข้อความ">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4V2.8h10V4M8 2.8v10.4M6 13.2h4"/></svg>
+    </button>
+    <button class="tbtn" data-tool="eraser" title="ยางลบ (แตะเส้นที่ต้องการลบ)">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2.8 13.7 7a1 1 0 0 1 0 1.4l-4.3 4.3H6l-3.2-3.2a1 1 0 0 1 0-1.4l5.3-5.3a1 1 0 0 1 1.4 0Z"/><path d="M5.5 6.8 9.7 11M6 12.7h8"/></svg>
+    </button>
+  </div>
+
+  <div class="swatches" id="swatches"></div>
+
+  <div class="sizes" id="sizes">
+    <button class="szbtn" data-sz="0">S</button>
+    <button class="szbtn on" data-sz="1">M</button>
+    <button class="szbtn" data-sz="2">L</button>
+  </div>
+
+  <button class="tbtn" id="btnUndo" title="ย้อนกลับ (หน้าปัจจุบัน)">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
+  </button>
+
+  <div class="sep"></div>
+  <span class="tlabel" id="targetLabel">หน้าปัจจุบัน:</span>
+
+  <div class="tgroup">
+    <button class="tbtn" id="btnRotL" title="หมุนซ้าย 90°">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 5.5H3V2"/><path d="M3 5.5A5.5 5.5 0 1 1 2.6 9"/></svg>
+    </button>
+    <button class="tbtn" id="btnRotR" title="หมุนขวา 90°">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 5.5H13V2"/><path d="M13 5.5A5.5 5.5 0 1 0 13.4 9"/></svg>
+    </button>
+    <button class="tbtn" id="btnRotAll" title="หมุนทุกหน้า 90°" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">ทั้งหมด ⟳</button>
+    <button class="tbtn warn" id="btnDel" title="ลบหน้า">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M6.5 4.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1M4.5 4.5 5 13a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l.5-8.5M6.7 7v4.5M9.3 7v4.5"/></svg>
+    </button>
+  </div>
+
+  <div class="zoombox">
+    <button class="tbtn" id="btnZoomOut" title="ซูมออก"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
+    <span id="zoomPct">100%</span>
+    <button class="tbtn" id="btnZoomIn" title="ซูมเข้า"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+    <button class="tbtn" id="btnFit" title="พอดีความกว้าง" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
+  </div>
+</div>
+
+<main>
+  <aside id="sidebar">
+    <div class="thumbHead">
+      <span id="selInfo">หน้า</span>
+      <span class="spacer"></span>
+      <button id="btnSelAll">เลือกทั้งหมด</button>
+      <button id="btnSelNone" style="display:none">ยกเลิก</button>
+    </div>
+    <div id="thumbList"></div>
+  </aside>
+  <div id="backdrop"></div>
+
+  <section id="viewer">
+    <div id="stage">
+      <div id="pageWrap" style="display:none">
+        <canvas id="pdfCanvas"></canvas>
+        <canvas id="ovCanvas"></canvas>
+        <input id="txtIn" placeholder="พิมพ์ข้อความ…">
+      </div>
+    </div>
+    <div id="pager" style="display:none">
+      <button id="pgPrev"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
+      <span id="pgInfo">–</span>
+      <button id="pgNext"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
+    </div>
+
+    <div id="empty">
+      <div id="drop">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.4"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M13 3v6h6"/><path d="M9 14h6M9 17h4"/></svg>
+        <h1>เปิดไฟล์ PDF เพื่อเริ่มต้น</h1>
+        <p>ลากไฟล์มาวางที่นี่ หรือกดปุ่มด้านล่าง<br>ไฟล์ถูกประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการอัปโหลด</p>
+        <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF</button>
+        <div class="feat">
+          <span>ลบหน้า</span><span>สลับลำดับหน้า</span><span>หมุนหน้า</span>
+          <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>บันทึกเป็นไฟล์ใหม่</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
+<div id="toast"></div>
+
+<script>
+'use strict';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ---------------- state ---------------- */
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+let srcBytes = null;        // Uint8Array สำหรับ pdf-lib
+let pdfDoc = null;          // pdf.js document
+let baseName = 'document';
+let pages = [];             // {srcIndex,intrinsic,rot,baseW,baseH,annots[],undo[]}
+let current = 0;
+let selected = new Set();   // page objects
+let zoom = 1, fitMode = true;
+let tool = 'pan', colorIdx = 0, sizeIdx = 1;
+let renderSeq = 0;
+
+const COLORS = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
+const PEN_W  = [1.5, 3, 6];
+const HL_W   = [8, 14, 22];
+const TXT_S  = [12, 16, 22];
+
+const $ = id => document.getElementById(id);
+const viewerEl=$('viewer'), stage=$('stage'), wrap=$('pageWrap'),
+      pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'),
+      txtIn=$('txtIn'), thumbList=$('thumbList');
+
+/* ---------------- helpers ---------------- */
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400); }
+const norm = d => ((d % 360) + 360) % 360;
+const totalRot = p => norm(p.intrinsic + p.rot);
+function dispSize(p){ return totalRot(p)%180 ? {w:p.baseH,h:p.baseW} : {w:p.baseW,h:p.baseH}; }
+function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); }
+
+/* ---------------- open file ---------------- */
+$('btnOpen').onclick = ()=>$('fileIn').click();
+$('btnOpen2').onclick = ()=>$('fileIn').click();
+$('fileIn').onchange = e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); e.target.value=''; };
+
+const dropEl=$('drop');
+['dragover','dragenter'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===document.documentElement)dropEl.classList.remove('over');}));
+window.addEventListener('drop',e=>{
+  const f=[...(e.dataTransfer?.files||[])].find(f=>/pdf$/i.test(f.name)||f.type==='application/pdf');
+  if(f) loadFile(f);
+});
+
+async function loadFile(file){
+  try{
+    toast('กำลังเปิดไฟล์…');
+    const buf = new Uint8Array(await file.arrayBuffer());
+    srcBytes = buf.slice();                       // เก็บสำเนาไว้ให้ pdf-lib
+    pdfDoc = await pdfjsLib.getDocument({data:buf}).promise;
+    baseName = file.name.replace(/\.pdf$/i,'') || 'document';
+    $('fname').textContent = file.name;
+
+    pages=[]; selected.clear(); current=0;
+    for(let i=0;i<pdfDoc.numPages;i++){
+      const pg = await pdfDoc.getPage(i+1);
+      const vp0 = pg.getViewport({scale:1, rotation:0});
+      pages.push({srcIndex:i, intrinsic:norm(pg.rotate||0), rot:0,
+                  baseW:vp0.width, baseH:vp0.height, annots:[], undo:[]});
+    }
+    $('empty').style.display='none';
+    wrap.style.display='block';
+    $('pager').style.display='flex';
+    $('btnSave').disabled=false;
+    fitMode=true;
+    rebuildThumbs();
+    await showPage(0);
+    toast(`เปิดแล้ว · ${pages.length} หน้า`);
+  }catch(err){
+    console.error(err);
+    toast('เปิดไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
+  }
+}
+
+/* ---------------- thumbnails ---------------- */
+function rebuildThumbs(){
+  thumbList.innerHTML='';
+  pages.forEach((p,i)=>{
+    const el=document.createElement('div');
+    el.className='thumb'+(i===current?' cur':'')+(selected.has(p)?' sel':'');
+    el.draggable=true;
+    el.dataset.i=i;
+
+    const chk=document.createElement('button');
+    chk.className='chk'; chk.title='เลือกหน้า';
+    chk.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m3 8.5 3.5 3.5L13 4.5"/></svg>';
+    chk.onclick=e=>{e.stopPropagation(); selected.has(p)?selected.delete(p):selected.add(p); refreshThumbClasses();};
+
+    const cv=document.createElement('canvas');
+    const meta=document.createElement('div'); meta.className='meta';
+    const pno=document.createElement('span'); pno.className='pno'; pno.textContent=i+1;
+    const rb=document.createElement('div'); rb.className='rowbtns';
+    const up=document.createElement('button'); up.title='เลื่อนขึ้น'; up.disabled=i===0;
+    up.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 10 4.5-4.5L12.5 10"/></svg>';
+    up.onclick=e=>{e.stopPropagation(); movePage(i,i-1);};
+    const dn=document.createElement('button'); dn.title='เลื่อนลง'; dn.disabled=i===pages.length-1;
+    dn.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg>';
+    dn.onclick=e=>{e.stopPropagation(); movePage(i,i+1);};
+    rb.append(up,dn); meta.append(pno,rb);
+    el.append(chk,cv,meta);
+
+    el.onclick=()=>{ current=i; refreshThumbClasses(); showPage(i);
+      if(window.innerWidth<=820) closeThumbs(); };
+
+    /* drag reorder (desktop) */
+    el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',i); e.dataTransfer.effectAllowed='move';});
+    el.addEventListener('dragover',e=>{e.preventDefault(); el.classList.add('dragover');});
+    el.addEventListener('dragleave',()=>el.classList.remove('dragover'));
+    el.addEventListener('drop',e=>{
+      e.preventDefault(); el.classList.remove('dragover');
+      const from=+e.dataTransfer.getData('text/plain');
+      if(!Number.isNaN(from)&&from!==i) movePage(from,i);
+    });
+
+    thumbList.appendChild(el);
+    renderThumb(p,cv);
+  });
+  refreshSelInfo();
+}
+function refreshThumbClasses(){
+  [...thumbList.children].forEach((el,i)=>{
+    el.classList.toggle('cur',i===current);
+    el.classList.toggle('sel',selected.has(pages[i]));
+  });
+  refreshSelInfo();
+}
+function refreshSelInfo(){
+  const n=selected.size;
+  $('selInfo').textContent = n? `เลือก ${n} หน้า` : `${pages.length} หน้า`;
+  $('btnSelNone').style.display = n? '' : 'none';
+  $('btnSelAll').style.display  = n===pages.length? 'none':'';
+  $('targetLabel').textContent = n? `หน้าที่เลือก (${n}):` : 'หน้าปัจจุบัน:';
+}
+async function renderThumb(p,cv){
+  try{
+    const page=await pdfDoc.getPage(p.srcIndex+1);
+    const vp1=page.getViewport({scale:1, rotation:totalRot(p)});
+    const scale=150/vp1.width;
+    const vp=page.getViewport({scale, rotation:totalRot(p)});
+    cv.width=vp.width; cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+    const c=cv.getContext('2d');
+    c.save(); c.scale(scale,scale); c.globalAlpha=.9; drawAnnots(c,p.annots); c.restore();
+  }catch(e){}
+}
+function refreshThumbCanvas(i){
+  const el=thumbList.children[i]; if(!el) return;
+  renderThumb(pages[i], el.querySelector('canvas'));
+}
+$('btnSelAll').onclick=()=>{pages.forEach(p=>selected.add(p)); refreshThumbClasses();};
+$('btnSelNone').onclick=()=>{selected.clear(); refreshThumbClasses();};
+
+function movePage(from,to){
+  if(to<0||to>=pages.length) return;
+  const cur=pages[current];
+  const [m]=pages.splice(from,1);
+  pages.splice(to,0,m);
+  current=pages.indexOf(cur);
+  rebuildThumbs(); updatePager();
+}
+
+/* ---------------- main preview ---------------- */
+async function showPage(i){
+  if(!pages.length) return;
+  current=Math.max(0,Math.min(i,pages.length-1));
+  const p=pages[current], seq=++renderSeq;
+  const page=await pdfDoc.getPage(p.srcIndex+1);
+  if(seq!==renderSeq) return;
+
+  const d=dispSize(p);
+  if(fitMode){
+    const avail=viewerEl.clientWidth-(window.innerWidth<=820?26:42);
+    zoom=Math.max(.2,Math.min(4, avail/d.w));
+  }
+  $('zoomPct').textContent=Math.round(zoom*100)+'%';
+
+  const vp=page.getViewport({scale:zoom*DPR, rotation:totalRot(p)});
+  pdfCv.width=vp.width; pdfCv.height=vp.height;
+  pdfCv.style.width=(vp.width/DPR)+'px'; pdfCv.style.height=(vp.height/DPR)+'px';
+  ovCv.width=vp.width; ovCv.height=vp.height;
+  ovCv.style.width=pdfCv.style.width; ovCv.style.height=pdfCv.style.height;
+
+  await page.render({canvasContext:pdfCv.getContext('2d'), viewport:vp}).promise;
+  if(seq!==renderSeq) return;
+  redrawOverlay();
+  updatePager();
+  refreshThumbClasses();
+}
+function redrawOverlay(){
+  const p=pages[current]; if(!p) return;
+  octx.save(); octx.setTransform(1,0,0,1,0,0);
+  octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
+  octx.setTransform(zoom*DPR,0,0,zoom*DPR,0,0);
+  drawAnnots(octx,p.annots);
+}
+function updatePager(){
+  $('pgInfo').textContent=`${current+1} / ${pages.length}`;
+  $('pgPrev').disabled=current===0;
+  $('pgNext').disabled=current===pages.length-1;
+}
+$('pgPrev').onclick=()=>showPage(current-1);
+$('pgNext').onclick=()=>showPage(current+1);
+
+/* ---------------- annotation drawing ---------------- */
+function drawAnnots(ctx,annots){
+  for(const a of annots){
+    if(a.type==='pen'||a.type==='hl'){
+      ctx.save();
+      ctx.strokeStyle=a.color; ctx.fillStyle=a.color;
+      ctx.lineWidth=a.width; ctx.lineCap='round'; ctx.lineJoin='round';
+      if(a.type==='hl') ctx.globalAlpha=.45;
+      if(a.pts.length===1){
+        ctx.beginPath(); ctx.arc(a.pts[0].x,a.pts[0].y,a.width/2,0,7); ctx.fill();
+      }else{
+        ctx.beginPath(); ctx.moveTo(a.pts[0].x,a.pts[0].y);
+        for(let i=1;i<a.pts.length;i++) ctx.lineTo(a.pts[i].x,a.pts[i].y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }else if(a.type==='text'){
+      ctx.save();
+      ctx.fillStyle=a.color;
+      ctx.font=`${a.size}px system-ui,-apple-system,"Segoe UI","Noto Sans Thai",sans-serif`;
+      ctx.fillText(a.text,a.x,a.y);
+      ctx.restore();
+    }
+  }
+}
+
+/* pointer input on overlay */
+let drawing=null;
+function evPos(e){
+  const r=ovCv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/zoom, y:(e.clientY-r.top)/zoom};
+}
+ovCv.addEventListener('pointerdown',e=>{
+  if(!pages.length||tool==='pan') return;
+  e.preventDefault();
+  const p=pages[current], pos=evPos(e);
+  if(tool==='pen'||tool==='hl'){
+    pushUndo(p);
+    drawing={type:tool, color:COLORS[colorIdx],
+             width: tool==='pen'?PEN_W[sizeIdx]:HL_W[sizeIdx], pts:[pos]};
+    p.annots.push(drawing);
+    ovCv.setPointerCapture(e.pointerId);
+    redrawOverlay();
+  }else if(tool==='eraser'){
+    drawing={type:'erase',hit:false,snapshot:JSON.stringify(p.annots)};
+    eraseAt(p,pos);
+    ovCv.setPointerCapture(e.pointerId);
+  }else if(tool==='text'){
+    openTextInput(pos);
+  }
+});
+ovCv.addEventListener('pointermove',e=>{
+  if(!drawing) return;
+  const p=pages[current], pos=evPos(e);
+  if(drawing.type==='erase'){ eraseAt(p,pos); return; }
+  const last=drawing.pts[drawing.pts.length-1];
+  if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6){ drawing.pts.push(pos); redrawOverlay(); }
+});
+function endStroke(){
+  if(!drawing) return;
+  if(drawing.type==='erase'&&drawing.hit){
+    const p=pages[current];
+    p.undo.push(drawing.snapshot); if(p.undo.length>30)p.undo.shift();
+  }
+  drawing=null;
+  refreshThumbCanvas(current);
+}
+ovCv.addEventListener('pointerup',endStroke);
+ovCv.addEventListener('pointercancel',endStroke);
+
+function distSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;
+  let t=L2? ((px-ax)*dx+(py-ay)*dy)/L2 : 0; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(ax+t*dx), py-(ay+t*dy));
+}
+function eraseAt(p,pos){
+  const R=9/Math.max(zoom,.5)+4;
+  const keep=p.annots.filter(a=>{
+    if(a.type==='text'){
+      const w=Math.max(30,a.text.length*a.size*.6);
+      return !(pos.x>=a.x-6&&pos.x<=a.x+w&&pos.y>=a.y-a.size&&pos.y<=a.y+6);
+    }
+    const th=R+a.width/2;
+    if(a.pts.length===1) return Math.hypot(pos.x-a.pts[0].x,pos.y-a.pts[0].y)>th;
+    for(let i=1;i<a.pts.length;i++)
+      if(distSeg(pos.x,pos.y,a.pts[i-1].x,a.pts[i-1].y,a.pts[i].x,a.pts[i].y)<th) return false;
+    return true;
+  });
+  if(keep.length!==p.annots.length){
+    if(drawing&&drawing.type==='erase') drawing.hit=true;
+    p.annots=keep; redrawOverlay();
+  }
+}
+
+/* text tool */
+let txtPos=null;
+function openTextInput(pos){
+  txtPos=pos;
+  const size=TXT_S[sizeIdx];
+  txtIn.style.display='block';
+  txtIn.style.left=(pos.x*zoom)+'px';
+  txtIn.style.top=((pos.y-size)*zoom-4)+'px';
+  txtIn.style.font=`${size*zoom}px system-ui,"Noto Sans Thai",sans-serif`;
+  txtIn.style.color=COLORS[colorIdx];
+  txtIn.value='';
+  setTimeout(()=>txtIn.focus(),10);
+}
+function commitText(){
+  const v=txtIn.value.trim();
+  txtIn.style.display='none';
+  if(!v||!txtPos) { txtPos=null; return; }
+  const p=pages[current];
+  pushUndo(p);
+  p.annots.push({type:'text',x:txtPos.x,y:txtPos.y,size:TXT_S[sizeIdx],color:COLORS[colorIdx],text:v});
+  txtPos=null; redrawOverlay(); refreshThumbCanvas(current);
+}
+txtIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();commitText();}
+                                      if(e.key==='Escape'){txtIn.value='';commitText();} });
+txtIn.addEventListener('blur',commitText);
+
+/* undo */
+$('btnUndo').onclick=()=>{
+  const p=pages[current]; if(!p||!p.undo.length) return;
+  p.annots=JSON.parse(p.undo.pop());
+  redrawOverlay(); refreshThumbCanvas(current);
+};
+
+/* ---------------- tools UI ---------------- */
+document.querySelectorAll('#toolGroup .tbtn').forEach(b=>{
+  b.onclick=()=>{
+    tool=b.dataset.tool;
+    document.querySelectorAll('#toolGroup .tbtn').forEach(x=>x.classList.toggle('on',x===b));
+    ovCv.style.touchAction = tool==='pan' ? 'auto':'none';
+    ovCv.style.cursor = tool==='pan' ? 'grab' : (tool==='text'?'text':'crosshair');
+  };
+});
+ovCv.style.touchAction='auto';
+
+const swBox=$('swatches');
+COLORS.forEach((c,i)=>{
+  const b=document.createElement('button');
+  b.className='sw'+(i===0?' on':''); b.style.background=c; b.title='สี';
+  b.onclick=()=>{colorIdx=i;[...swBox.children].forEach((x,j)=>x.classList.toggle('on',j===i));};
+  swBox.appendChild(b);
+});
+document.querySelectorAll('.szbtn').forEach(b=>{
+  b.onclick=()=>{sizeIdx=+b.dataset.sz;
+    document.querySelectorAll('.szbtn').forEach(x=>x.classList.toggle('on',x===b));};
+});
+
+/* ---------------- rotate / delete ---------------- */
+function targets(){ return selected.size? pages.filter(p=>selected.has(p)) : (pages[current]?[pages[current]]:[]); }
+function rotAnnots(p,cw){
+  const d=dispSize(p);                    // ขนาดก่อนหมุน
+  const tf=cw? pt=>({x:d.h-pt.y,y:pt.x}) : pt=>({x:pt.y,y:d.w-pt.x});
+  for(const a of p.annots){
+    if(a.type==='text'){const n=tf({x:a.x,y:a.y}); a.x=n.x; a.y=n.y;}
+    else a.pts=a.pts.map(tf);
+  }
+}
+function rotate(list,cw){
+  if(!list.length) return;
+  list.forEach(p=>{ rotAnnots(p,cw); p.rot=norm(p.rot+(cw?90:-90)); });
+  pages.forEach((p,i)=>{ if(list.includes(p)) refreshThumbCanvas(i); });
+  showPage(current);
+}
+$('btnRotR').onclick=()=>rotate(targets(),true);
+$('btnRotL').onclick=()=>rotate(targets(),false);
+$('btnRotAll').onclick=()=>rotate([...pages],true);
+
+$('btnDel').onclick=()=>{
+  const t=targets(); if(!t.length) return;
+  if(t.length>=pages.length){ toast('ต้องเหลืออย่างน้อย 1 หน้า'); return; }
+  if(!confirm(`ลบ ${t.length} หน้า?`)) return;
+  const cur=pages[current];
+  pages=pages.filter(p=>!t.includes(p));
+  t.forEach(p=>selected.delete(p));
+  current=t.includes(cur)? Math.min(current,pages.length-1) : pages.indexOf(cur);
+  rebuildThumbs(); showPage(current);
+  toast(`ลบแล้ว ${t.length} หน้า`);
+};
+
+/* ---------------- zoom ---------------- */
+function setZoom(z){ fitMode=false; zoom=Math.max(.2,Math.min(5,z)); showPage(current); }
+$('btnZoomIn').onclick=()=>setZoom(zoom*1.25);
+$('btnZoomOut').onclick=()=>setZoom(zoom/1.25);
+$('btnFit').onclick=()=>{fitMode=true; showPage(current);};
+let rzT; window.addEventListener('resize',()=>{ if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
+
+/* ---------------- save ---------------- */
+$('btnSave').onclick=async ()=>{
+  if(!srcBytes) return;
+  const btn=$('btnSave'), old=btn.innerHTML;
+  btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
+  try{
+    const src=await PDFLib.PDFDocument.load(srcBytes,{ignoreEncryption:true});
+    const out=await PDFLib.PDFDocument.create();
+    const copied=await out.copyPages(src, pages.map(p=>p.srcIndex));
+    for(let i=0;i<pages.length;i++){
+      const p=pages[i], pg=copied[i];
+      out.addPage(pg);
+      const R=totalRot(p);
+      pg.setRotation(PDFLib.degrees(R));
+      if(p.annots.length){
+        const d=dispSize(p), Q=2;
+        const cv=document.createElement('canvas');
+        cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
+        const c=cv.getContext('2d'); c.scale(Q,Q);
+        drawAnnots(c,p.annots);
+        const img=await out.embedPng(cv.toDataURL('image/png'));
+        let opt;
+        if(R===0)        opt={x:0,     y:0,     rotate:PDFLib.degrees(0)};
+        else if(R===90)  opt={x:d.h,   y:0,     rotate:PDFLib.degrees(90)};
+        else if(R===180) opt={x:d.w,   y:d.h,   rotate:PDFLib.degrees(180)};
+        else             opt={x:0,     y:d.w,   rotate:PDFLib.degrees(270)};
+        pg.drawImage(img,{...opt,width:d.w,height:d.h});
+      }
+    }
+    const bytes=await out.save();
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=baseName+'-edited.pdf';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('บันทึกไฟล์แล้ว ✓');
+  }catch(err){
+    console.error(err);
+    toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ');
+  }finally{
+    btn.disabled=false; btn.innerHTML=old;
+  }
+};
+
+/* ---------------- mobile sidebar ---------------- */
+$('btnThumbs').onclick=()=>document.body.classList.toggle('thumbsOpen');
+function closeThumbs(){document.body.classList.remove('thumbsOpen');}
+$('backdrop').onclick=closeThumbs;
+</script>
+</body>
+</html>
