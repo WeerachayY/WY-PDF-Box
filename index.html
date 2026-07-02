@@ -183,6 +183,10 @@ aside{
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>
     <span class="lbl">เปิดไฟล์</span>
   </button>
+  <button class="btn" id="btnAdd" disabled title="เพิ่มไฟล์ PDF เข้าเอกสารนี้ (แทรก/ต่อท้าย)">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 6V4.8L9.5 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5H8"/><path d="M9 1.5V5h3.5M12 9.5v5M9.5 12h5"/></svg>
+    <span class="lbl">เพิ่มไฟล์</span>
+  </button>
   <button class="btn primary" id="btnSave" disabled>
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
     <span class="lbl">บันทึก PDF</span>
@@ -286,6 +290,17 @@ aside{
 </main>
 
 <input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
+
+<div id="insModal" style="display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:50;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);border-radius:12px;padding:18px;width:min(340px,100%);display:flex;flex-direction:column;gap:8px">
+    <b id="insTitle" style="font-size:13px;word-break:break-all"></b>
+    <span style="font-size:12px;color:var(--muted);margin-bottom:4px">ต้องการวางหน้าจากไฟล์นี้ไว้ตรงไหน</span>
+    <button class="btn" id="insFront" style="justify-content:center">ไว้หน้าแรกสุด</button>
+    <button class="btn" id="insAfter" style="justify-content:center">แทรกหลังหน้าปัจจุบัน</button>
+    <button class="btn primary" id="insEnd" style="justify-content:center">ต่อท้ายไฟล์</button>
+    <button class="btn" id="insCancel" style="justify-content:center;border:none;color:var(--muted)">ยกเลิก</button>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
@@ -295,8 +310,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 /* ---------------- state ---------------- */
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
-let srcBytes = null;        // Uint8Array สำหรับ pdf-lib
-let pdfDoc = null;          // pdf.js document
+let docs = [];              // เอกสารต้นทางทั้งหมด [{pdf, bytes}]
+let addMode = false, pendFile = null;
 let baseName = 'document';
 let pages = [];             // {srcIndex,intrinsic,rot,baseW,baseH,annots[],undo[]}
 let current = 0;
@@ -324,38 +339,55 @@ function dispSize(p){ return totalRot(p)%180 ? {w:p.baseH,h:p.baseW} : {w:p.base
 function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); }
 
 /* ---------------- open file ---------------- */
-$('btnOpen').onclick = ()=>$('fileIn').click();
-$('btnOpen2').onclick = ()=>$('fileIn').click();
-$('fileIn').onchange = e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); e.target.value=''; };
+$('btnOpen').onclick = ()=>{ addMode=false; $('fileIn').click(); };
+$('btnOpen2').onclick = ()=>{ addMode=false; $('fileIn').click(); };
+$('btnAdd').onclick  = ()=>{ addMode=true;  $('fileIn').click(); };
+$('fileIn').onchange = e=>{
+  const f=e.target.files[0];
+  if(f){ (addMode && docs.length) ? openInsertModal(f) : loadFile(f); }
+  e.target.value='';
+};
+function openInsertModal(f){ pendFile=f; $('insTitle').textContent=f.name; $('insModal').style.display='flex'; }
+function closeIns(){ $('insModal').style.display='none'; pendFile=null; }
+$('insFront').onclick =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'front'); };
+$('insAfter').onclick =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'after'); };
+$('insEnd').onclick   =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'end'); };
+$('insCancel').onclick=closeIns;
 
 const dropEl=$('drop');
 ['dragover','dragenter'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===document.documentElement)dropEl.classList.remove('over');}));
 window.addEventListener('drop',e=>{
   const f=[...(e.dataTransfer?.files||[])].find(f=>/pdf$/i.test(f.name)||f.type==='application/pdf');
-  if(f) loadFile(f);
+  if(f){ docs.length ? openInsertModal(f) : loadFile(f); }
 });
 
+async function parsePdf(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const bytes = buf.slice();                      // เก็บสำเนาไว้ให้ pdf-lib
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  const di = docs.length, list = [];
+  for(let i=0;i<pdf.numPages;i++){
+    const pg = await pdf.getPage(i+1);
+    const vp0 = pg.getViewport({scale:1, rotation:0});
+    list.push({doc:di, srcIndex:i, intrinsic:norm(pg.rotate||0), rot:0,
+               baseW:vp0.width, baseH:vp0.height, annots:[], undo:[]});
+  }
+  docs.push({pdf, bytes});
+  return list;
+}
 async function loadFile(file){
   try{
     toast('กำลังเปิดไฟล์…');
-    const buf = new Uint8Array(await file.arrayBuffer());
-    srcBytes = buf.slice();                       // เก็บสำเนาไว้ให้ pdf-lib
-    pdfDoc = await pdfjsLib.getDocument({data:buf}).promise;
+    docs=[]; selected.clear(); current=0;
+    pages = await parsePdf(file);
     baseName = file.name.replace(/\.pdf$/i,'') || 'document';
     $('fname').textContent = file.name;
-
-    pages=[]; selected.clear(); current=0;
-    for(let i=0;i<pdfDoc.numPages;i++){
-      const pg = await pdfDoc.getPage(i+1);
-      const vp0 = pg.getViewport({scale:1, rotation:0});
-      pages.push({srcIndex:i, intrinsic:norm(pg.rotate||0), rot:0,
-                  baseW:vp0.width, baseH:vp0.height, annots:[], undo:[]});
-    }
     $('empty').style.display='none';
     wrap.style.display='block';
     $('pager').style.display='flex';
     $('btnSave').disabled=false;
+    $('btnAdd').disabled=false;
     fitMode=true;
     rebuildThumbs();
     await showPage(0);
@@ -363,6 +395,22 @@ async function loadFile(file){
   }catch(err){
     console.error(err);
     toast('เปิดไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
+  }
+}
+async function insertFileAt(file, where){
+  try{
+    toast('กำลังเพิ่มไฟล์…');
+    const list = await parsePdf(file);
+    const at = where==='front' ? 0 : where==='after' ? current+1 : pages.length;
+    pages.splice(at, 0, ...list);
+    selected.clear();
+    current = at;
+    rebuildThumbs();
+    await showPage(at);
+    toast(`เพิ่มแล้ว ${list.length} หน้า`);
+  }catch(err){
+    console.error(err);
+    toast('เพิ่มไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
   }
 }
 
@@ -427,7 +475,7 @@ function refreshSelInfo(){
 }
 async function renderThumb(p,cv){
   try{
-    const page=await pdfDoc.getPage(p.srcIndex+1);
+    const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
     const vp1=page.getViewport({scale:1, rotation:totalRot(p)});
     const scale=150/vp1.width;
     const vp=page.getViewport({scale, rotation:totalRot(p)});
@@ -458,7 +506,7 @@ async function showPage(i){
   if(!pages.length) return;
   current=Math.max(0,Math.min(i,pages.length-1));
   const p=pages[current], seq=++renderSeq;
-  const page=await pdfDoc.getPage(p.srcIndex+1);
+  const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
   if(seq!==renderSeq) return;
 
   const d=dispSize(p);
@@ -686,15 +734,16 @@ let rzT; window.addEventListener('resize',()=>{ if(fitMode&&pages.length){clearT
 
 /* ---------------- save ---------------- */
 $('btnSave').onclick=async ()=>{
-  if(!srcBytes) return;
+  if(!docs.length) return;
   const btn=$('btnSave'), old=btn.innerHTML;
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
-    const src=await PDFLib.PDFDocument.load(srcBytes,{ignoreEncryption:true});
+    const srcLibs=[];
+    for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
     const out=await PDFLib.PDFDocument.create();
-    const copied=await out.copyPages(src, pages.map(p=>p.srcIndex));
     for(let i=0;i<pages.length;i++){
-      const p=pages[i], pg=copied[i];
+      const p=pages[i];
+      const [pg]=await out.copyPages(srcLibs[p.doc],[p.srcIndex]);
       out.addPage(pg);
       const R=totalRot(p);
       pg.setRotation(PDFLib.degrees(R));
