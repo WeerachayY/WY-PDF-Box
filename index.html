@@ -76,7 +76,7 @@ header{
 .sizes{display:flex;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
 .szbtn{height:32px;padding:0 10px;border-radius:6px;color:var(--muted);font-size:12px;font-weight:600}
 .szbtn.on{background:var(--accent-soft);color:var(--accent)}
-.zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto;margin-left:auto}
+.zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
 #zoomPct{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .tlabel{font-size:11px;color:var(--muted);flex:0 0 auto;padding:0 2px}
 
@@ -122,14 +122,8 @@ aside{
   position:absolute;display:none;border:1px dashed var(--accent);background:rgba(255,255,255,.9);
   padding:1px 4px;border-radius:4px;outline:none;font-family:inherit;min-width:60px;z-index:5;
 }
-#pager{
-  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
-  display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);
-  border-radius:999px;padding:3px;z-index:6;
-}
-#pager button{width:30px;height:28px;border-radius:999px;color:var(--muted);display:flex;align-items:center;justify-content:center}
-#pager button:hover:not(:disabled){background:var(--bg);color:var(--ink)}
-#pager span{font-size:12px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums}
+#pager{margin-left:auto}
+#pager span{font-size:12px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums;min-width:50px;text-align:center}
 
 /* ---------- Empty state ---------- */
 #empty{
@@ -240,6 +234,12 @@ aside{
     </button>
   </div>
 
+  <div class="tgroup" id="pager">
+    <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
+    <span id="pgInfo">–</span>
+    <button class="tbtn" id="pgNext" title="หน้าถัดไป" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
+  </div>
+
   <div class="zoombox">
     <button class="tbtn" id="btnZoomOut" title="ซูมออก"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
     <span id="zoomPct">100%</span>
@@ -268,12 +268,6 @@ aside{
         <input id="txtIn" placeholder="พิมพ์ข้อความ…">
       </div>
     </div>
-    <div id="pager" style="display:none">
-      <button id="pgPrev"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
-      <span id="pgInfo">–</span>
-      <button id="pgNext"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
-    </div>
-
     <div id="empty">
       <div id="drop">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.4"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M13 3v6h6"/><path d="M9 14h6M9 17h4"/></svg>
@@ -385,7 +379,6 @@ async function loadFile(file){
     $('fname').textContent = file.name;
     $('empty').style.display='none';
     wrap.style.display='block';
-    $('pager').style.display='flex';
     $('btnSave').disabled=false;
     $('btnAdd').disabled=false;
     fitMode=true;
