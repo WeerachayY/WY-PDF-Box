@@ -181,6 +181,10 @@ aside{
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 6V4.8L9.5 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5H8"/><path d="M9 1.5V5h3.5M12 9.5v5M9.5 12h5"/></svg>
     <span class="lbl">เพิ่มไฟล์</span>
   </button>
+  <button class="btn" id="btnCompress" disabled title="บีบอัดไฟล์ (เหมาะกับเอกสารสแกน)">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1.5v4m0 0L6 3.7M8 5.5l2-1.8M8 14.5v-4m0 0-2 1.8m2-1.8 2 1.8M1.5 8h4m5 0h4"/></svg>
+    <span class="lbl">บีบอัด</span>
+  </button>
   <button class="btn primary" id="btnSave" disabled>
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
     <span class="lbl">บันทึก PDF</span>
@@ -285,6 +289,21 @@ aside{
 
 <input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
 
+<div id="cmpModal" style="display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:50;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);border-radius:12px;padding:18px;width:min(380px,100%);display:flex;flex-direction:column;gap:8px">
+    <b style="font-size:14px">บีบอัดไฟล์ PDF</b>
+    <span style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px">
+      เหมาะกับเอกสารสแกน ทุกหน้าจะถูกแปลงเป็นรูปภาพใหม่ที่ความละเอียดต่ำลง
+      (รอยขีดเขียน/การหมุน/ลำดับหน้า ถูกรวมลงไปด้วย)<br>
+      ⚠️ ข้อความที่ค้นหา/คัดลอกได้ในไฟล์ (ถ้ามี) จะหายไป
+    </span>
+    <button class="btn" data-dpi="200" data-q="0.85" style="justify-content:space-between">คมชัดสูง <small style="color:var(--muted)">200 DPI · ลดขนาดพอประมาณ</small></button>
+    <button class="btn primary" data-dpi="150" data-q="0.80" style="justify-content:space-between">สมดุล (แนะนำ) <small style="opacity:.8">150 DPI · อ่านบนจอคมชัด</small></button>
+    <button class="btn" data-dpi="110" data-q="0.70" style="justify-content:space-between">เล็กที่สุด <small style="color:var(--muted)">110 DPI · เน้นส่งไฟล์</small></button>
+    <button class="btn" id="cmpCancel" style="justify-content:center;border:none;color:var(--muted)">ยกเลิก</button>
+  </div>
+</div>
+
 <div id="insModal" style="display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:50;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--panel);border-radius:12px;padding:18px;width:min(340px,100%);display:flex;flex-direction:column;gap:8px">
     <b id="insTitle" style="font-size:13px;word-break:break-all"></b>
@@ -381,6 +400,7 @@ async function loadFile(file){
     wrap.style.display='block';
     $('btnSave').disabled=false;
     $('btnAdd').disabled=false;
+    $('btnCompress').disabled=false;
     fitMode=true;
     rebuildThumbs();
     await showPage(0);
@@ -770,6 +790,51 @@ $('btnSave').onclick=async ()=>{
     btn.disabled=false; btn.innerHTML=old;
   }
 };
+
+/* ---------------- compress ---------------- */
+$('btnCompress').onclick=()=>{ if(docs.length) $('cmpModal').style.display='flex'; };
+$('cmpCancel').onclick=()=>{ $('cmpModal').style.display='none'; };
+document.querySelectorAll('#cmpModal [data-dpi]').forEach(b=>{
+  b.onclick=()=>{ $('cmpModal').style.display='none'; compressSave(+b.dataset.dpi, +b.dataset.q); };
+});
+async function compressSave(dpi, q){
+  try{
+    const out=await PDFLib.PDFDocument.create();
+    for(let i=0;i<pages.length;i++){
+      toast(`กำลังบีบอัด… หน้า ${i+1}/${pages.length}`);
+      await new Promise(r=>setTimeout(r,0));           // ให้ UI ขยับ
+      const p=pages[i];
+      const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
+      const scale=dpi/72;
+      const vp=page.getViewport({scale, rotation: totalRot(p)});
+      const cv=document.createElement('canvas');
+      cv.width=Math.round(vp.width); cv.height=Math.round(vp.height);
+      const c=cv.getContext('2d');
+      c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+      await page.render({canvasContext:c, viewport:vp}).promise;
+      c.setTransform(scale,0,0,scale,0,0);
+      drawAnnots(c, p.annots);
+      const img=await out.embedJpg(cv.toDataURL('image/jpeg', q));
+      const d=dispSize(p);
+      const pg=out.addPage([d.w, d.h]);
+      pg.drawImage(img,{x:0, y:0, width:d.w, height:d.h});
+      cv.width=cv.height=0;                            // คืนหน่วยความจำ
+    }
+    const bytes=await out.save();
+    const orig=docs.reduce((s,d)=>s+d.bytes.length,0);
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=baseName+'-compressed.pdf';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    const mb=x=>(x/1048576).toFixed(2);
+    toast(`เสร็จแล้ว ✓ ${mb(orig)} MB → ${mb(bytes.length)} MB`);
+  }catch(err){
+    console.error(err);
+    toast('บีบอัดไม่สำเร็จ');
+  }
+}
 
 /* ---------------- mobile sidebar ---------------- */
 $('btnThumbs').onclick=()=>document.body.classList.toggle('thumbsOpen');
