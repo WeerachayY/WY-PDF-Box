@@ -94,6 +94,7 @@ header{
 .szdotBox{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 #szDot{border-radius:50%;background:#1B1F24}
 #sizeRange{width:96px;accent-color:var(--accent)}
+#fontSel{height:32px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:0 4px;max-width:132px}
 #sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
 #zoomPct{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -250,6 +251,11 @@ aside{
     <span id="sizeVal">3</span>
   </div>
 
+  <div class="tgroup" id="textOpts" style="display:none">
+    <select id="fontSel" title="ฟอนต์" aria-label="ฟอนต์"></select>
+    <button class="tbtn" id="btnBold" title="ตัวหนา"><b style="font-size:14px">B</b></button>
+  </div>
+
   <button class="tbtn" id="btnUndo" title="ย้อนกลับ — รอยขีดเขียน, ลบ/ย้าย/เพิ่มหน้า (Ctrl+Z)">
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
   </button>
@@ -382,6 +388,15 @@ let tool = 'pan', lastDrawTool = 'pen';
 let color = '#1B1F24';
 let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
 let sizes = {pen:3, hl:14, text:16};
+let textFont = 'sys', textBold = false;
+/* text is drawn as part of the overlay image, so any web font works in the saved PDF too;
+   Thai Google Fonts load on first use and the service worker keeps them for offline use */
+const FONTS = {
+  sys:     {label:'ค่าเริ่มต้น', css:'system-ui,-apple-system,"Segoe UI","Noto Sans Thai",sans-serif', bold:700},
+  sarabun: {label:'Sarabun',   css:'"Sarabun",sans-serif', bold:700, web:true},
+  kanit:   {label:'Kanit',     css:'"Kanit",sans-serif',   bold:600, web:true},
+  charm:   {label:'Charm (ลายมือ)', css:'"Charm",cursive',  bold:700, web:true},
+};
 (function loadSettings(){
   try{
     const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
@@ -390,11 +405,13 @@ let sizes = {pen:3, hl:14, text:16};
     if(Array.isArray(s.recent) && s.recent.length) recent = s.recent.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,5);
     for(const k of Object.keys(sizes)) if(Number.isFinite(s.sizes?.[k])) sizes[k] = s.sizes[k];
     if(['pan','pen','hl','text','eraser'].includes(s.tool)) tool = s.tool;
+    if(FONTS[s.textFont]) textFont = s.textFont;
+    textBold = !!s.textBold;
     if(['pen','hl','text','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
   }catch(e){}
 })();
 function saveSettings(){
-  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes})); }catch(e){}
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold})); }catch(e){}
 }
 
 const $ = id => document.getElementById(id);
@@ -640,6 +657,7 @@ function redrawOverlay(){
   octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
   octx.setTransform(rs,0,0,rs,0,0);
   drawAnnots(octx,p.annots);
+  drawSelection(octx);
 }
 function updatePager(){
   $('pgInfo').textContent=`${current+1} / ${pages.length}`;
@@ -650,6 +668,49 @@ $('pgPrev').onclick=()=>showPage(current-1);
 $('pgNext').onclick=()=>showPage(current+1);
 
 /* ---------------- annotation drawing ---------------- */
+const hiddenText=new WeakSet(), mctx=document.createElement('canvas').getContext('2d');
+let fontsLinked=false;
+function fontCss(a,px){ const f=FONTS[a.font]||FONTS.sys; return `${a.bold?f.bold:400} ${px}px ${f.css}`; }
+function linkFonts(){
+  if(fontsLinked) return; fontsLinked=true;
+  const l=document.createElement('link'); l.rel='stylesheet'; l.crossOrigin='anonymous';
+  l.href='https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Kanit:wght@400;600&family=Sarabun:wght@400;700&display=swap';
+  document.head.appendChild(l);
+}
+function loadFont(a){                               // resolves once the face can be drawn on a canvas
+  if(!(FONTS[a.font]||{}).web) return Promise.resolve();
+  linkFonts();
+  return document.fonts.load(fontCss(a,16),'กขA').catch(()=>{});
+}
+function textBox(a){                                // page units, generous enough for Thai marks
+  mctx.font=fontCss(a,a.size);
+  const w=mctx.measureText(a.text).width;
+  return {x:a.x-4, y:a.y-a.size*1.1, w:w+8, h:a.size*1.5};
+}
+function hitText(p,pos){
+  for(let i=p.annots.length-1;i>=0;i--){
+    const a=p.annots[i]; if(a.type!=='text') continue;
+    const b=textBox(a);
+    if(pos.x>=b.x&&pos.x<=b.x+b.w&&pos.y>=b.y&&pos.y<=b.y+b.h) return a;
+  }
+  return null;
+}
+let selText=null;                                   // placed text that is selected (text tool)
+function delHandle(a){ const b=textBox(a), r=10/zoom; return {x:b.x+b.w, y:b.y, r}; }
+function drawSelection(ctx){
+  const p=pages[current];
+  if(!selText||!p||!p.annots.includes(selText)){ selText=null; return; }
+  if(hiddenText.has(selText)) return;
+  const b=textBox(selText), k=1/zoom, d=delHandle(selText);
+  ctx.save();
+  ctx.strokeStyle='#2563EB'; ctx.lineWidth=1.5*k; ctx.setLineDash([5*k,4*k]);
+  ctx.strokeRect(b.x,b.y,b.w,b.h);
+  ctx.setLineDash([]); ctx.fillStyle='#DC2626';
+  ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
+  ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
+  ctx.restore();
+}
 function drawAnnots(ctx,annots){
   for(const a of annots){
     if(a.type==='pen'||a.type==='hl'){
@@ -666,9 +727,10 @@ function drawAnnots(ctx,annots){
       }
       ctx.restore();
     }else if(a.type==='text'){
+      if(hiddenText.has(a)) continue;               // being edited: the input box shows it
       ctx.save();
       ctx.fillStyle=a.color;
-      ctx.font=`${a.size}px system-ui,-apple-system,"Segoe UI","Noto Sans Thai",sans-serif`;
+      ctx.font=fontCss(a,a.size);
       ctx.fillText(a.text,a.x,a.y);
       ctx.restore();
     }
@@ -698,7 +760,18 @@ function startDraw(e,t){
     drawing={type:'erase',hit:false,snapshot:JSON.stringify(p.annots)};
     eraseAt(p,pos);
   }else if(t==='text'){
-    openTextInput(pos); return false;
+    if(selText){                                    // the red × deletes the selected text
+      const d=delHandle(selText);
+      if(Math.hypot(pos.x-d.x,pos.y-d.y)<=d.r*1.3){ deleteSelText(); return false; }
+    }
+    const hit=hitText(p,pos);
+    if(!hit){
+      if(selText){ selText=null; redrawOverlay(); updateTextUI(); return false; }   // first tap outside just deselects
+      openTextInput(pos); return false;
+    }
+    const wasSel=hit===selText;
+    selText=hit; redrawOverlay(); updateTextUI();
+    drawing={type:'move', a:hit, sx:pos.x, sy:pos.y, ox:hit.x, oy:hit.y, moved:false, wasSel, sid:e.pointerId};
   }
   drawPid=e.pointerId; return true;
 }
@@ -706,11 +779,18 @@ function cancelStroke(){               // a second finger landed: the stroke was
   if(!drawing) return;
   const p=pages[current];
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
+  else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); history.pop(); } }
   else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); history.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
 function endStroke(){
   if(!drawing) return;
+  if(drawing.type==='move'){
+    const m=drawing; drawing=null; drawPid=null;
+    if(m.moved) refreshThumbCanvas(current);
+    else if(m.wasSel) openTextInput({x:m.a.x,y:m.a.y}, m.a);    // tap on selected text = edit it
+    return;
+  }
   if(drawing.type==='erase'&&drawing.hit){
     const p=pages[current];
     p.undo.push(drawing.snapshot); if(p.undo.length>30)p.undo.shift();
@@ -758,6 +838,7 @@ function startPinch(){
 
 viewerEl.addEventListener('pointerdown',e=>{
   if(!pages.length||e.target===txtIn||!stage.contains(e.target)) return;
+  if(txtIn.style.display==='block'){ commitText(); e.preventDefault(); return; }
   if(e.pointerType==='pen') penSeen=true;
   if(e.pointerType==='touch'){
     touchPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -788,6 +869,11 @@ viewerEl.addEventListener('pointermove',e=>{
     if(e.pointerId!==drawPid) return;
     const p=pages[current], pos=evPos(e);
     if(drawing.type==='erase'){ eraseAt(p,pos); return; }
+    if(drawing.type==='move'){
+      const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
+      if(!m.moved){ if(Math.hypot(dx,dy)*zoom<4) return; pushUndo(p); m.moved=true; }
+      m.a.x=m.ox+dx; m.a.y=m.oy+dy; redrawOverlay(); return;
+    }
     const last=drawing.pts[drawing.pts.length-1];
     if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6/Math.max(zoom,.5)){ drawing.pts.push(pos); redrawOverlay(); }
     return;
@@ -820,8 +906,8 @@ function eraseAt(p,pos){
   const R=9/Math.max(zoom,.5)+4;
   const keep=p.annots.filter(a=>{
     if(a.type==='text'){
-      const w=Math.max(30,a.text.length*a.size*.6);
-      return !(pos.x>=a.x-6&&pos.x<=a.x+w&&pos.y>=a.y-a.size&&pos.y<=a.y+6);
+      const b=textBox(a);
+      return !(pos.x>=b.x&&pos.x<=b.x+b.w&&pos.y>=b.y&&pos.y<=b.y+b.h);
     }
     const th=R+a.width/2;
     if(a.pts.length===1) return Math.hypot(pos.x-a.pts[0].x,pos.y-a.pts[0].y)>th;
@@ -835,31 +921,75 @@ function eraseAt(p,pos){
   }
 }
 
-/* text tool */
-let txtPos=null;
-function openTextInput(pos){
-  txtPos=pos;
-  const size=sizes.text;
-  txtIn.style.display='block';
-  txtIn.style.left=(pos.x*zoom)+'px';
-  txtIn.style.top=((pos.y-size)*zoom-4)+'px';
-  txtIn.style.font=`${size*zoom}px system-ui,"Noto Sans Thai",sans-serif`;
-  txtIn.style.color=color;
-  txtIn.value='';
-  setTimeout(()=>txtIn.focus(),10);
+/* text tool: new text, or edit placed text (its style travels in inStyle while the box is open) */
+let txtPos=null, editingText=null, inStyle=null;
+function curTextStyle(){ return {size:sizes.text, color, font:textFont, bold:textBold}; }
+function styleInput(){
+  if(!inStyle||!txtPos) return;
+  txtIn.style.left=(txtPos.x*zoom)+'px';
+  txtIn.style.top=((txtPos.y-inStyle.size*1.05)*zoom-4)+'px';
+  txtIn.style.font=fontCss(inStyle, inStyle.size*zoom);
+  txtIn.style.color=inStyle.color;
 }
+function openTextInput(pos, a=null){
+  txtPos={x:pos.x,y:pos.y}; editingText=a;
+  inStyle=a ? {size:a.size, color:a.color, font:a.font||'sys', bold:!!a.bold} : curTextStyle();
+  if(a){ hiddenText.add(a); selText=a; redrawOverlay(); }
+  loadFont(inStyle).then(styleInput);
+  txtIn.style.display='block'; styleInput();
+  txtIn.value=a? a.text : '';
+  updateTextUI();
+  txtIn.focus(); if(a) txtIn.select();
+  setTimeout(()=>{ if(txtIn.style.display==='block'&&document.activeElement!==txtIn) txtIn.focus(); },10);
+}
+function closeInput(){ txtIn.style.display='none'; if(editingText) hiddenText.delete(editingText); }
 function commitText(){
-  const v=txtIn.value.trim();
-  txtIn.style.display='none';
-  if(!v||!txtPos) { txtPos=null; return; }
+  if(txtIn.style.display!=='block') return;
+  const v=txtIn.value.trim(), a=editingText, st=inStyle, pos=txtPos;
+  closeInput(); editingText=null; txtPos=null; inStyle=null;
   const p=pages[current];
-  pushUndo(p);
-  p.annots.push({type:'text',x:txtPos.x,y:txtPos.y,size:sizes.text,color,text:v});
-  txtPos=null; redrawOverlay(); refreshThumbCanvas(current);
+  if(a){
+    const same = v===a.text && st.size===a.size && st.color===a.color && st.font===(a.font||'sys') && st.bold===!!a.bold;
+    if(!same){
+      pushUndo(p);
+      if(!v){ p.annots=p.annots.filter(x=>x!==a); selText=null; }
+      else Object.assign(a,{text:v, size:st.size, color:st.color, font:st.font, bold:st.bold});
+    }
+  }else if(v&&pos){
+    pushUndo(p);
+    const t={type:'text',x:pos.x,y:pos.y,size:st.size,color:st.color,font:st.font,bold:st.bold,text:v};
+    p.annots.push(t); selText=t;
+  }
+  redrawOverlay(); refreshThumbCanvas(current); updateTextUI();
 }
+function cancelText(){ closeInput(); editingText=null; txtPos=null; inStyle=null; redrawOverlay(); updateTextUI(); }
+function deleteSelText(){
+  const p=pages[current]; if(!selText||!p) return;
+  pushUndo(p); p.annots=p.annots.filter(x=>x!==selText); selText=null;
+  redrawOverlay(); refreshThumbCanvas(current); updateTextUI();
+}
+/* a style change goes to the open text box, else to the selected text (undoable) */
+function applyTextStyle(ch){
+  if(txtIn.style.display==='block'&&inStyle){ Object.assign(inStyle,ch); loadFont(inStyle).then(styleInput); styleInput(); return; }
+  if(selText&&tool==='text'){
+    const p=pages[current], now=performance.now();
+    const k=Object.keys(ch).join();                 // repeated changes of one property (a slider drag) = one undo step
+    if(styleUndo.a!==selText||styleUndo.k!==k||now-styleUndo.t>900) pushUndo(p);
+    styleUndo={a:selText,k,t:now,h:styleUndo.h};
+    Object.assign(selText,ch);
+    loadFont(selText).then(redrawOverlay); redrawOverlay();
+    clearTimeout(styleUndo.h); styleUndo.h=setTimeout(()=>refreshThumbCanvas(current),300);
+  }
+}
+let styleUndo={a:null,k:'',t:0,h:0};
 txtIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();commitText();}
-                                      if(e.key==='Escape'){txtIn.value='';commitText();} });
-txtIn.addEventListener('blur',commitText);
+                                      if(e.key==='Escape'){e.preventDefault();cancelText();} });
+/* keep the box open while its style is being changed in the toolbar or palette */
+txtIn.addEventListener('blur',()=>setTimeout(()=>{
+  const el=document.activeElement;
+  if(el&&(el.closest?.('#toolbar')||el.closest?.('#palette')||el===colorIn)) return;
+  commitText();
+},0));
 
 /* undo */
 $('btnUndo').onclick=()=>{
@@ -889,10 +1019,11 @@ function setTool(t){
   if(txtIn.style.display==='block') txtIn.blur();
   tool=t;
   if(t!=='pan') lastDrawTool=t;
+  if(t!=='text'&&selText){ selText=null; redrawOverlay(); }
   toolBtns.forEach(x=>x.classList.toggle('on',x.dataset.tool===t));
   ovCv.style.cursor = t==='pan' ? '' : (t==='text'?'text':'crosshair');
   viewerEl.classList.toggle('panTool', t==='pan');
-  updateSizeUI(); saveSettings();
+  updateTextUI(); saveSettings();
 }
 toolBtns.forEach(b=>{ b.onclick=()=>setTool(b.dataset.tool); });
 
@@ -912,7 +1043,7 @@ function renderSwatches(){
 function setColor(c,remember){
   color=c;
   if(remember && !recent.some(x=>x.toLowerCase()===c.toLowerCase())){ recent.unshift(c); recent=recent.slice(0,5); }
-  if(txtIn.style.display==='block') txtIn.style.color=c;
+  applyTextStyle({color:c});
   renderSwatches(); saveSettings();
 }
 PRESETS.forEach(c=>{
@@ -934,7 +1065,7 @@ document.addEventListener('pointerdown',e=>{
   if(palette.classList.contains('open') && !palette.contains(e.target) && !$('btnPalette').contains(e.target)) closePalette();
 });
 $('btnColorMore').onclick=()=>{ colorIn.value=color; closePalette(); colorIn.click(); };
-colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); });
+colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); applyTextStyle({color}); });
 colorIn.addEventListener('change',()=>setColor(colorIn.value,true));
 
 /* line size: one slider, a separate remembered size per tool */
@@ -944,17 +1075,49 @@ function updateSizeUI(){
   const k=sizeKey();
   $('sizeBox').classList.toggle('off',!k);
   const key=k||'pen', [lo,hi]=SIZE_RANGE[key];
-  sizeRange.min=lo; sizeRange.max=hi; sizeRange.value=sizes[key];
-  $('sizeVal').textContent=sizes[key]+(key==='text'?' pt':' px');
-  const dot=$('szDot'), px=key==='text'?Math.min(26,sizes[key]*.6):Math.min(28,Math.max(2,sizes[key]));
+  const tx=key==='text'?textInHand():null, val=tx?tx.size:sizes[key], col=tx?tx.color:color;
+  sizeRange.min=lo; sizeRange.max=hi; sizeRange.value=val;
+  $('sizeVal').textContent=val+(key==='text'?' pt':' px');
+  const dot=$('szDot'), px=key==='text'?Math.min(26,val*.6):Math.min(28,Math.max(2,val));
   dot.style.width=dot.style.height=px+'px';
-  dot.style.background=color; dot.style.opacity=key==='hl'?.45:1;
+  dot.style.background=col; dot.style.opacity=key==='hl'?.45:1;
   $('sizeBox').title={pen:'ขนาดปากกา',hl:'ขนาดไฮไลต์',text:'ขนาดตัวอักษร'}[key];
 }
 sizeRange.addEventListener('input',()=>{
   const k=sizeKey(); if(!k) return;
-  sizes[k]=+sizeRange.value; updateSizeUI(); saveSettings();
+  sizes[k]=+sizeRange.value;
+  if(k==='text') applyTextStyle({size:sizes.text});
+  updateSizeUI(); saveSettings();
 });
+
+/* font + bold (shown with the text tool); they reflect the text being typed or selected */
+const fontSel=$('fontSel');
+Object.entries(FONTS).forEach(([k,f])=>{ const o=document.createElement('option'); o.value=k; o.textContent=f.label; fontSel.appendChild(o); });
+function textInHand(){ return (txtIn.style.display==='block'&&inStyle) || (tool==='text'&&selText) || null; }
+function updateTextUI(){
+  const show=tool==='text';
+  $('textOpts').style.display=show?'':'none';
+  const t=textInHand()||{font:textFont,bold:textBold};
+  fontSel.value=t.font||'sys';
+  $('btnBold').classList.toggle('on',!!t.bold);
+  updateSizeUI();
+}
+fontSel.addEventListener('change',()=>{
+  textFont=fontSel.value; if(FONTS[textFont].web) linkFonts();
+  applyTextStyle({font:textFont}); updateTextUI(); saveSettings();
+});
+$('btnBold').onclick=()=>{
+  const t=textInHand(); textBold=!(t?t.bold:textBold);
+  applyTextStyle({bold:textBold}); updateTextUI(); saveSettings();
+};
+/* after using a toolbar control, put the cursor back in the open text box */
+['click','change'].forEach(ev=>{
+  $('toolbar').addEventListener(ev,e=>{ if(txtIn.style.display==='block'&&e.target.id!=='sizeRange') setTimeout(()=>txtIn.focus(),0); });
+  palette.addEventListener(ev,()=>{ if(txtIn.style.display==='block') setTimeout(()=>txtIn.focus(),0); });
+});
+sizeRange.addEventListener('change',()=>{ if(txtIn.style.display==='block') setTimeout(()=>txtIn.focus(),0); });
+colorIn.addEventListener('change',()=>{ if(txtIn.style.display==='block') setTimeout(()=>txtIn.focus(),0); });
+if(textFont!=='sys') linkFonts();
 
 /* keyboard shortcuts (by key position, so a Thai keyboard layout works too) */
 document.addEventListener('keydown',e=>{
@@ -968,7 +1131,8 @@ document.addEventListener('keydown',e=>{
   if(mod||e.altKey) return;
   const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
-  else if(e.code==='Escape') closePalette();
+  else if(e.code==='Escape'){ closePalette(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
+  else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
   else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); showPage(current+1); }
   else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); showPage(current-1); }
 });
@@ -1045,6 +1209,7 @@ async function savePages(list, suffix, btn){
   const old=btn.innerHTML;
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
+    await fontsFor(list);
     const srcLibs=[];
     for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
     const out=await PDFLib.PDFDocument.create();
@@ -1055,7 +1220,9 @@ async function savePages(list, suffix, btn){
       const R=totalRot(p);
       pg.setRotation(PDFLib.degrees(R));
       if(p.annots.length){
-        const d=dispSize(p), Q=2;
+        // overlay image resolution: 2 px/pt for strokes, up to 5 px/pt when there is text (crisp when zoomed or printed)
+        const d=dispSize(p), hasText=p.annots.some(a=>a.type==='text');
+        const Q=Math.max(1,Math.min(hasText?5:2, Math.sqrt(40e6/(d.w*d.h))));
         const cv=document.createElement('canvas');
         cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
         const c=cv.getContext('2d'); c.scale(Q,Q);
@@ -1091,8 +1258,12 @@ $('cmpCancel').onclick=()=>{ $('cmpModal').style.display='none'; };
 document.querySelectorAll('#cmpModal [data-dpi]').forEach(b=>{
   b.onclick=()=>{ $('cmpModal').style.display='none'; compressSave(+b.dataset.dpi, +b.dataset.q); };
 });
+async function fontsFor(list){
+  await Promise.all(list.flatMap(p=>p.annots.filter(a=>a.type==='text').map(loadFont)));
+}
 async function compressSave(dpi, q){
   try{
+    await fontsFor(pages);
     const out=await PDFLib.PDFDocument.create();
     for(let i=0;i<pages.length;i++){
       toast(`กำลังบีบอัด… หน้า ${i+1}/${pages.length}`);
