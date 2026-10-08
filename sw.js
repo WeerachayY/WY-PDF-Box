@@ -1,5 +1,6 @@
 /* WY Pdf Box — service worker: แคชตัวแอปและไลบรารีเพื่อใช้งานออฟไลน์ */
-const CACHE = 'wy-pdf-box-v4.1';
+const CACHE = 'wy-pdf-box-v5';
+const SHARE_CACHE = 'wy-pdf-box-share';
 const ASSETS = [
   './',
   './index.html',
@@ -20,12 +21,33 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== SHARE_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', e => {
+  const reqUrl = new URL(e.request.url);
+
+  /* รับไฟล์ที่แชร์มาจากแอปอื่น (Android Share Target) */
+  if (e.request.method === 'POST' && reqUrl.pathname.endsWith('/share-target')) {
+    e.respondWith((async () => {
+      try {
+        const form = await e.request.formData();
+        const file = form.getAll('file').find(f => f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || '')));
+        if (!file) return Response.redirect('./?shared=0', 303);
+        const c = await caches.open(SHARE_CACHE);
+        await c.put('shared-file', new Response(file, {
+          headers: { 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(file.name || 'shared.pdf') }
+        }));
+        return Response.redirect('./?shared=1', 303);
+      } catch (err) {
+        return Response.redirect('./?shared=0', 303);
+      }
+    })());
+    return;
+  }
+
   if (e.request.method !== 'GET') return;
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(hit =>

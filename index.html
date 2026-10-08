@@ -846,6 +846,33 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () =>
     navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
+
+/* ---------------- เปิดไฟล์จากระบบ (double click / Open with) ---------------- */
+if ('launchQueue' in window) {
+  launchQueue.setConsumer(async params => {
+    const h = params.files && params.files[0];
+    if (!h) return;
+    try { loadFile(await h.getFile()); }
+    catch(err){ console.error(err); toast('เปิดไฟล์ไม่สำเร็จ'); }
+  });
+}
+
+/* ---------------- รับไฟล์ที่แชร์มาจากแอปอื่น (Android) ---------------- */
+(async () => {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('shared')) return;
+  history.replaceState(null, '', location.pathname);
+  if (q.get('shared') !== '1') { toast('ไม่พบไฟล์ PDF ในสิ่งที่แชร์มา'); return; }
+  try {
+    const c = await caches.open('wy-pdf-box-share');
+    const res = await c.match('shared-file');
+    if (!res) return;
+    const name = decodeURIComponent(res.headers.get('X-File-Name') || 'shared.pdf');
+    const file = new File([await res.blob()], name, {type:'application/pdf'});
+    await c.delete('shared-file');
+    loadFile(file);
+  } catch(err){ console.error(err); toast('รับไฟล์ที่แชร์มาไม่สำเร็จ'); }
+})();
 </script>
 </body>
 </html>
