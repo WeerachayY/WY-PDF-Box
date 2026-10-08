@@ -1,5 +1,5 @@
 /* WY Pdf Box — service worker: แคชตัวแอปและไลบรารีเพื่อใช้งานออฟไลน์ */
-const CACHE = 'wy-pdf-box-v8';
+const CACHE = 'wy-pdf-box-v9';
 const SHARE_CACHE = 'wy-pdf-box-share';
 const ASSETS = [
   './',
@@ -56,7 +56,7 @@ self.addEventListener('fetch', e => {
       hit ||
       fetch(e.request).then(res => {
         const url = e.request.url;
-        if (res.ok && (url.startsWith(self.location.origin) || url.includes('cdnjs.cloudflare.com'))) {
+        if (res.ok && (url.startsWith(self.location.origin) || url.includes('cdnjs.cloudflare.com') || url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com'))) {
           const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
