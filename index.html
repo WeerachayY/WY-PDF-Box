@@ -73,9 +73,28 @@ header{
 .sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;padding:0;position:relative}
 .sw.on{border-color:var(--ink)}
 .sw.on::after{content:"";position:absolute;inset:2px;border:2px solid #fff;border-radius:50%}
-.sizes{display:flex;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
-.szbtn{height:32px;padding:0 10px;border-radius:6px;color:var(--muted);font-size:12px;font-weight:600}
-.szbtn.on{background:var(--accent-soft);color:var(--accent)}
+.swMore{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--panel)}
+.swMore:hover{color:var(--ink);border-color:#C9CED6}
+#palette{
+  position:fixed;z-index:55;display:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:12px;width:248px;box-shadow:0 8px 24px rgba(20,24,30,.14);
+}
+#palette.open{display:block}
+#palette .pgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+#palette .pgrid button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.08);padding:0}
+#palette .pgrid button.on{outline:2px solid var(--ink);outline-offset:2px}
+#palette .pmore{margin-top:10px;width:100%;height:32px;border:1px solid var(--line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink)}
+#palette .pmore:hover{background:var(--bg)}
+#palette .pmore i{width:16px;height:16px;border-radius:50%;
+  background:conic-gradient(#ef4444,#eab308,#22c55e,#06b6d4,#3b82f6,#a855f7,#ef4444)}
+#colorIn{position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0}
+.sizebox{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--r);padding:0 10px;height:38px;flex:0 0 auto}
+.sizebox.off{opacity:.4;pointer-events:none}
+.szdotBox{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+#szDot{border-radius:50%;background:#1B1F24}
+#sizeRange{width:96px;accent-color:var(--accent)}
+#sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
 #zoomPct{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .tlabel{font-size:11px;color:var(--muted);flex:0 0 auto;padding:0 2px}
@@ -114,7 +133,10 @@ aside{
 
 /* ---------- Viewer ---------- */
 #viewer{flex:1;overflow:auto;background:var(--viewer);position:relative}
-#stage{min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:20px}
+/* safe center: centred while the page fits, start-aligned once it is wider, so every side stays reachable */
+#stage{min-height:100%;display:flex;align-items:flex-start;justify-content:center;justify-content:safe center;padding:20px;touch-action:none}
+#viewer.panTool #stage{cursor:grab}
+#viewer.grabbing, #viewer.grabbing *{cursor:grabbing !important}
 #pageWrap{position:relative;flex:0 0 auto;background:#fff;border:1px solid var(--line)}
 #pdfCanvas{display:block}
 #ovCanvas{position:absolute;inset:0;mix-blend-mode:multiply}
@@ -193,32 +215,35 @@ aside{
 
 <div class="toolbar" id="toolbar">
   <div class="tgroup" id="toolGroup">
-    <button class="tbtn on" data-tool="pan" title="เลื่อนดู / เลือก">
+    <button class="tbtn on" data-tool="pan" title="เลื่อนดู / ลากเพื่อเลื่อน (V)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7.5V3.2a1 1 0 0 1 2 0v3.6m0-2.3a1 1 0 0 1 2 0v2.6m0-1.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5c-2 0-3-.8-3.9-2.3L2.3 9.7a1 1 0 0 1 1.6-1.2L6 10.5"/></svg>
     </button>
-    <button class="tbtn" data-tool="pen" title="ปากกา">
+    <button class="tbtn" data-tool="pen" title="ปากกา (P)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9.7 3.3 3 3L6 13l-3.6.6L3 10l6.7-6.7Z"/><path d="m8.5 4.5 3 3"/></svg>
     </button>
-    <button class="tbtn" data-tool="hl" title="ไฮไลต์">
+    <button class="tbtn" data-tool="hl" title="ไฮไลต์ (H)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m10 2.8 3.2 3.2-5.6 5.6L4.4 8.4 10 2.8Z"/><path d="M4.4 8.4 3 12l3.6-1.4M2 14.5h12"/></svg>
     </button>
-    <button class="tbtn" data-tool="text" title="เพิ่มข้อความ">
+    <button class="tbtn" data-tool="text" title="เพิ่มข้อความ (T)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4V2.8h10V4M8 2.8v10.4M6 13.2h4"/></svg>
     </button>
-    <button class="tbtn" data-tool="eraser" title="ยางลบ (แตะเส้นที่ต้องการลบ)">
+    <button class="tbtn" data-tool="eraser" title="ยางลบ — แตะเส้นที่ต้องการลบ (E)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2.8 13.7 7a1 1 0 0 1 0 1.4l-4.3 4.3H6l-3.2-3.2a1 1 0 0 1 0-1.4l5.3-5.3a1 1 0 0 1 1.4 0Z"/><path d="M5.5 6.8 9.7 11M6 12.7h8"/></svg>
     </button>
   </div>
 
   <div class="swatches" id="swatches"></div>
+  <button class="swMore" id="btnPalette" title="เลือกสีเพิ่มเติม">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.8a6.2 6.2 0 1 0 0 12.4c1 0 1.4-.6 1.4-1.2 0-.9-.8-1.2-.8-2 0-.6.5-1.1 1.1-1.1h1.7a2.8 2.8 0 0 0 2.8-2.8C14.2 4.3 11.4 1.8 8 1.8Z"/><circle cx="4.9" cy="7.4" r=".9" fill="currentColor" stroke="none"/><circle cx="6.9" cy="4.6" r=".9" fill="currentColor" stroke="none"/><circle cx="10.1" cy="4.8" r=".9" fill="currentColor" stroke="none"/></svg>
+  </button>
 
-  <div class="sizes" id="sizes">
-    <button class="szbtn" data-sz="0">S</button>
-    <button class="szbtn on" data-sz="1">M</button>
-    <button class="szbtn" data-sz="2">L</button>
+  <div class="sizebox" id="sizeBox" title="ขนาดเส้น">
+    <div class="szdotBox"><span id="szDot"></span></div>
+    <input type="range" id="sizeRange" min="1" max="30" step="1" value="3" aria-label="ขนาดเส้น">
+    <span id="sizeVal">3</span>
   </div>
 
-  <button class="tbtn" id="btnUndo" title="ย้อนกลับ (หน้าปัจจุบัน)">
+  <button class="tbtn" id="btnUndo" title="ย้อนกลับ (Ctrl+Z)">
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
   </button>
 
@@ -245,10 +270,10 @@ aside{
   </div>
 
   <div class="zoombox">
-    <button class="tbtn" id="btnZoomOut" title="ซูมออก"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
+    <button class="tbtn" id="btnZoomOut" title="ซูมออก (Ctrl −)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
     <span id="zoomPct">100%</span>
-    <button class="tbtn" id="btnZoomIn" title="ซูมเข้า"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
-    <button class="tbtn" id="btnFit" title="พอดีความกว้าง" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
+    <button class="tbtn" id="btnZoomIn" title="ซูมเข้า (Ctrl +) · Ctrl+ล้อเมาส์ ซูมตรงจุด"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0)" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
   </div>
 </div>
 
@@ -288,6 +313,11 @@ aside{
 </main>
 
 <input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
+<input type="color" id="colorIn" tabindex="-1" aria-hidden="true">
+<div id="palette" role="dialog" aria-label="เลือกสี">
+  <div class="pgrid" id="pgrid"></div>
+  <button class="pmore" id="btnColorMore"><i></i>สีอื่นๆ / ดูดสีจากหน้า</button>
+</div>
 
 <div id="cmpModal" style="display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:50;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--panel);border-radius:12px;padding:18px;width:min(380px,100%);display:flex;flex-direction:column;gap:8px">
@@ -329,14 +359,35 @@ let baseName = 'document';
 let pages = [];             // {srcIndex,intrinsic,rot,baseW,baseH,annots[],undo[]}
 let current = 0;
 let selected = new Set();   // page objects
-let zoom = 1, fitMode = true;
-let tool = 'pan', colorIdx = 0, sizeIdx = 1;
-let renderSeq = 0;
+let zoom = 1, fitMode = true, rs = 1;   // rs = canvas pixels per PDF point actually rendered
+let renderSeq = 0, renderTask = null;
+const ZMIN = .05, ZMAX = 5;
 
-const COLORS = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
-const PEN_W  = [1.5, 3, 6];
-const HL_W   = [8, 14, 22];
-const TXT_S  = [12, 16, 22];
+/* tool settings — remembered between sessions */
+const PRESETS = [
+  '#1B1F24','#B91C1C','#C2410C','#A16207','#15803D','#0E7490','#1D4ED8','#7E22CE',
+  '#6B7280','#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#A855F7',
+  '#D1D5DB','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#D8B4FE'];
+const SIZE_RANGE = {pen:[1,30], hl:[4,40], text:[8,72]};
+const SETTINGS_KEY = 'wyPdfBox.settings.v1';
+let tool = 'pan', lastDrawTool = 'pen';
+let color = '#1B1F24';
+let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
+let sizes = {pen:3, hl:14, text:16};
+(function loadSettings(){
+  try{
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+    if(!s) return;
+    if(/^#[0-9a-f]{6}$/i.test(s.color)) color = s.color;
+    if(Array.isArray(s.recent) && s.recent.length) recent = s.recent.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,5);
+    for(const k of Object.keys(sizes)) if(Number.isFinite(s.sizes?.[k])) sizes[k] = s.sizes[k];
+    if(['pan','pen','hl','text','eraser'].includes(s.tool)) tool = s.tool;
+    if(['pen','hl','text','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
+  }catch(e){}
+})();
+function saveSettings(){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes})); }catch(e){}
+}
 
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), stage=$('stage'), wrap=$('pageWrap'),
@@ -525,27 +576,46 @@ async function showPage(i){
   const d=dispSize(p);
   if(fitMode){
     const avail=viewerEl.clientWidth-(window.innerWidth<=820?26:42);
-    zoom=Math.max(.2,Math.min(4, avail/d.w));
+    zoom=Math.max(ZMIN,Math.min(4, avail/d.w));
   }
   $('zoomPct').textContent=Math.round(zoom*100)+'%';
+  setCssSize(d);
 
-  const vp=page.getViewport({scale:zoom*DPR, rotation:totalRot(p)});
-  pdfCv.width=vp.width; pdfCv.height=vp.height;
-  pdfCv.style.width=(vp.width/DPR)+'px'; pdfCv.style.height=(vp.height/DPR)+'px';
-  ovCv.width=vp.width; ovCv.height=vp.height;
-  ovCv.style.width=pdfCv.style.width; ovCv.style.height=pdfCv.style.height;
+  // cap the bitmap so huge drawings at high zoom never exceed what a canvas can hold;
+  // past the cap the bitmap is stretched slightly instead of going blank
+  const maxArea=(navigator.deviceMemory||4)>=8 ? 120e6 : 40e6;
+  const scale=Math.min(zoom*DPR, 16000/Math.max(d.w,d.h), Math.sqrt(maxArea/(d.w*d.h)));
+  const vp=page.getViewport({scale, rotation:totalRot(p)});
 
-  await page.render({canvasContext:pdfCv.getContext('2d'), viewport:vp}).promise;
-  if(seq!==renderSeq) return;
+  // render off-screen, then swap in: the old picture stays visible while the new one renders
+  if(renderTask){ try{ renderTask.cancel(); }catch(e){} }
+  const off=document.createElement('canvas');
+  off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
+  renderTask=page.render({canvasContext:off.getContext('2d'), viewport:vp});
+  try{ await renderTask.promise; }
+  catch(err){ off.width=off.height=0; if(err?.name!=='RenderingCancelledException') console.error(err); return; }
+  if(seq!==renderSeq){ off.width=off.height=0; return; }
+  renderTask=null;
+  rs=scale;
+  pdfCv.width=off.width; pdfCv.height=off.height;
+  pdfCv.getContext('2d').drawImage(off,0,0);
+  off.width=off.height=0;
+  ovCv.width=pdfCv.width; ovCv.height=pdfCv.height;
+  setCssSize(d);                       // zoom may have moved while rendering
   redrawOverlay();
   updatePager();
   refreshThumbClasses();
+}
+function setCssSize(d){
+  const w=(d.w*zoom)+'px', h=(d.h*zoom)+'px';
+  pdfCv.style.width=w; pdfCv.style.height=h;
+  ovCv.style.width=w;  ovCv.style.height=h;
 }
 function redrawOverlay(){
   const p=pages[current]; if(!p) return;
   octx.save(); octx.setTransform(1,0,0,1,0,0);
   octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
-  octx.setTransform(zoom*DPR,0,0,zoom*DPR,0,0);
+  octx.setTransform(rs,0,0,rs,0,0);
   drawAnnots(octx,p.annots);
 }
 function updatePager(){
@@ -582,49 +652,140 @@ function drawAnnots(ctx,annots){
   }
 }
 
-/* pointer input on overlay */
-let drawing=null;
+/* ---------------- pointer input: draw · pan · pinch ----------------
+   mouse  : drawing tools draw; hand tool (or middle button) drags the page
+   stylus : always draws (hand tool → the last drawing tool; barrel/eraser button → eraser)
+   finger : draws only until a stylus has been seen; after that fingers pan and pinch
+   two fingers anywhere = pinch zoom + pan                                          */
+let drawing=null, drawPid=null, panning=null, pinch=null, penSeen=false, glide=0;
+const touchPts=new Map();
+function capture(id){ try{ viewerEl.setPointerCapture(id); }catch(e){} }
 function evPos(e){
   const r=ovCv.getBoundingClientRect();
   return {x:(e.clientX-r.left)/zoom, y:(e.clientY-r.top)/zoom};
 }
-ovCv.addEventListener('pointerdown',e=>{
-  if(!pages.length||tool==='pan') return;
-  e.preventDefault();
+function startDraw(e,t){
   const p=pages[current], pos=evPos(e);
-  if(tool==='pen'||tool==='hl'){
+  if(t==='pen'||t==='hl'){
     pushUndo(p);
-    drawing={type:tool, color:COLORS[colorIdx],
-             width: tool==='pen'?PEN_W[sizeIdx]:HL_W[sizeIdx], pts:[pos]};
+    drawing={type:t, color, width:sizes[t], pts:[pos]};
     p.annots.push(drawing);
-    ovCv.setPointerCapture(e.pointerId);
     redrawOverlay();
-  }else if(tool==='eraser'){
+  }else if(t==='eraser'){
     drawing={type:'erase',hit:false,snapshot:JSON.stringify(p.annots)};
     eraseAt(p,pos);
-    ovCv.setPointerCapture(e.pointerId);
-  }else if(tool==='text'){
-    openTextInput(pos);
+  }else if(t==='text'){
+    openTextInput(pos); return false;
   }
-});
-ovCv.addEventListener('pointermove',e=>{
+  drawPid=e.pointerId; return true;
+}
+function cancelStroke(){               // a second finger landed: the stroke was really a pinch
   if(!drawing) return;
-  const p=pages[current], pos=evPos(e);
-  if(drawing.type==='erase'){ eraseAt(p,pos); return; }
-  const last=drawing.pts[drawing.pts.length-1];
-  if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6){ drawing.pts.push(pos); redrawOverlay(); }
-});
+  const p=pages[current];
+  if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
+  else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); }
+  drawing=null; drawPid=null; redrawOverlay();
+}
 function endStroke(){
   if(!drawing) return;
   if(drawing.type==='erase'&&drawing.hit){
     const p=pages[current];
     p.undo.push(drawing.snapshot); if(p.undo.length>30)p.undo.shift();
   }
-  drawing=null;
+  drawing=null; drawPid=null;
   refreshThumbCanvas(current);
 }
-ovCv.addEventListener('pointerup',endStroke);
-ovCv.addEventListener('pointercancel',endStroke);
+function startPan(e){
+  cancelAnimationFrame(glide);
+  panning={id:e.pointerId, type:e.pointerType, x:e.clientX, y:e.clientY,
+           sl:viewerEl.scrollLeft, st:viewerEl.scrollTop, vx:0, vy:0, lx:e.clientX, ly:e.clientY, lt:performance.now()};
+  viewerEl.classList.add('grabbing');
+}
+function movePan(e){
+  viewerEl.scrollLeft=panning.sl-(e.clientX-panning.x);
+  viewerEl.scrollTop =panning.st-(e.clientY-panning.y);
+  const now=performance.now(), dt=Math.max(1,now-panning.lt);
+  panning.vx=.8*((e.clientX-panning.lx)/dt)+.2*panning.vx;
+  panning.vy=.8*((e.clientY-panning.ly)/dt)+.2*panning.vy;
+  panning.lx=e.clientX; panning.ly=e.clientY; panning.lt=now;
+}
+function endPan(){
+  viewerEl.classList.remove('grabbing');
+  const p=panning; panning=null;
+  if(!p||p.type!=='touch'||performance.now()-p.lt>80) return;
+  let vx=p.vx*16, vy=p.vy*16;                       // px per frame, then glide to a stop
+  const step=()=>{
+    if(Math.abs(vx)<.4&&Math.abs(vy)<.4) return;
+    viewerEl.scrollLeft-=vx; viewerEl.scrollTop-=vy; vx*=.94; vy*=.94;
+    glide=requestAnimationFrame(step);
+  };
+  glide=requestAnimationFrame(step);
+}
+function pinchState(){
+  const [a,b]=[...touchPts.values()];
+  return {mx:(a.x+b.x)/2, my:(a.y+b.y)/2, d:Math.hypot(a.x-b.x,a.y-b.y)||1};
+}
+function startPinch(){
+  cancelAnimationFrame(glide);
+  if(panning){ viewerEl.classList.remove('grabbing'); panning=null; }
+  const s=pinchState(), r=wrap.getBoundingClientRect();
+  pinch={d0:s.d, z0:zoom, fx:(s.mx-r.left)/zoom, fy:(s.my-r.top)/zoom};
+}
+
+viewerEl.addEventListener('pointerdown',e=>{
+  if(!pages.length||e.target===txtIn||!stage.contains(e.target)) return;
+  if(e.pointerType==='pen') penSeen=true;
+  if(e.pointerType==='touch'){
+    touchPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    capture(e.pointerId);
+    if(touchPts.size===2){ cancelStroke(); startPinch(); return; }
+    if(touchPts.size>2) return;
+  }
+  let t=tool;
+  if(e.pointerType==='pen'){ if(e.buttons&32) t='eraser'; else if(t==='pan') t=lastDrawTool; }
+  const fingerPans = e.pointerType==='touch' && penSeen;
+  const mainButton = e.pointerType!=='mouse' || e.button===0;
+  if(e.target===ovCv && t!=='pan' && !fingerPans && mainButton){
+    e.preventDefault();
+    if(startDraw(e,t)) capture(e.pointerId);
+    return;
+  }
+  const canPan = e.pointerType==='touch' ||
+                 (e.pointerType==='mouse' && (e.button===1 || (e.button===0 && tool==='pan')));
+  if(canPan){ e.preventDefault(); startPan(e); capture(e.pointerId); }
+});
+viewerEl.addEventListener('pointermove',e=>{
+  if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch){
+    if(touchPts.size>=2){ const s=pinchState(); applyZoom(pinch.z0*s.d/pinch.d0, s.mx, s.my, pinch.fx, pinch.fy); }
+    return;
+  }
+  if(drawing){
+    if(e.pointerId!==drawPid) return;
+    const p=pages[current], pos=evPos(e);
+    if(drawing.type==='erase'){ eraseAt(p,pos); return; }
+    const last=drawing.pts[drawing.pts.length-1];
+    if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6/Math.max(zoom,.5)){ drawing.pts.push(pos); redrawOverlay(); }
+    return;
+  }
+  if(panning&&e.pointerId===panning.id) movePan(e);
+});
+function pointerEnd(e){
+  touchPts.delete(e.pointerId);
+  if(pinch){ if(touchPts.size<2) pinch=null; return; }   // lift both fingers before a new gesture
+  if(drawing&&e.pointerId===drawPid) endStroke();
+  if(panning&&e.pointerId===panning.id) endPan();
+}
+viewerEl.addEventListener('pointerup',pointerEnd);
+viewerEl.addEventListener('pointercancel',pointerEnd);
+
+/* Ctrl + wheel (and a laptop trackpad pinch) zooms at the cursor */
+viewerEl.addEventListener('wheel',e=>{
+  if(!e.ctrlKey||!pages.length) return;
+  e.preventDefault();
+  const k=e.deltaMode===1?.05:.0015;
+  applyZoom(zoom*Math.exp(-e.deltaY*k), e.clientX, e.clientY);
+},{passive:false});
 
 function distSeg(px,py,ax,ay,bx,by){
   const dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;
@@ -654,12 +815,12 @@ function eraseAt(p,pos){
 let txtPos=null;
 function openTextInput(pos){
   txtPos=pos;
-  const size=TXT_S[sizeIdx];
+  const size=sizes.text;
   txtIn.style.display='block';
   txtIn.style.left=(pos.x*zoom)+'px';
   txtIn.style.top=((pos.y-size)*zoom-4)+'px';
   txtIn.style.font=`${size*zoom}px system-ui,"Noto Sans Thai",sans-serif`;
-  txtIn.style.color=COLORS[colorIdx];
+  txtIn.style.color=color;
   txtIn.value='';
   setTimeout(()=>txtIn.focus(),10);
 }
@@ -669,7 +830,7 @@ function commitText(){
   if(!v||!txtPos) { txtPos=null; return; }
   const p=pages[current];
   pushUndo(p);
-  p.annots.push({type:'text',x:txtPos.x,y:txtPos.y,size:TXT_S[sizeIdx],color:COLORS[colorIdx],text:v});
+  p.annots.push({type:'text',x:txtPos.x,y:txtPos.y,size:sizes.text,color,text:v});
   txtPos=null; redrawOverlay(); refreshThumbCanvas(current);
 }
 txtIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();commitText();}
@@ -684,27 +845,97 @@ $('btnUndo').onclick=()=>{
 };
 
 /* ---------------- tools UI ---------------- */
-document.querySelectorAll('#toolGroup .tbtn').forEach(b=>{
-  b.onclick=()=>{
-    tool=b.dataset.tool;
-    document.querySelectorAll('#toolGroup .tbtn').forEach(x=>x.classList.toggle('on',x===b));
-    ovCv.style.touchAction = tool==='pan' ? 'auto':'none';
-    ovCv.style.cursor = tool==='pan' ? 'grab' : (tool==='text'?'text':'crosshair');
-  };
-});
-ovCv.style.touchAction='auto';
+const toolBtns=[...document.querySelectorAll('#toolGroup .tbtn')];
+function setTool(t){
+  if(txtIn.style.display==='block') txtIn.blur();
+  tool=t;
+  if(t!=='pan') lastDrawTool=t;
+  toolBtns.forEach(x=>x.classList.toggle('on',x.dataset.tool===t));
+  ovCv.style.cursor = t==='pan' ? '' : (t==='text'?'text':'crosshair');
+  viewerEl.classList.toggle('panTool', t==='pan');
+  updateSizeUI(); saveSettings();
+}
+toolBtns.forEach(b=>{ b.onclick=()=>setTool(b.dataset.tool); });
 
-const swBox=$('swatches');
-COLORS.forEach((c,i)=>{
+/* colours: five quick swatches (the most recently picked) + a palette */
+const swBox=$('swatches'), palette=$('palette'), pgrid=$('pgrid'), colorIn=$('colorIn');
+function renderSwatches(){
+  swBox.innerHTML='';
+  recent.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='sw'+(c.toLowerCase()===color.toLowerCase()?' on':''); b.style.background=c; b.title=c;
+    b.onclick=()=>setColor(c,false);
+    swBox.appendChild(b);
+  });
+  [...pgrid.children].forEach(b=>b.classList.toggle('on',b.dataset.c.toLowerCase()===color.toLowerCase()));
+  updateSizeUI();
+}
+function setColor(c,remember){
+  color=c;
+  if(remember && !recent.some(x=>x.toLowerCase()===c.toLowerCase())){ recent.unshift(c); recent=recent.slice(0,5); }
+  if(txtIn.style.display==='block') txtIn.style.color=c;
+  renderSwatches(); saveSettings();
+}
+PRESETS.forEach(c=>{
   const b=document.createElement('button');
-  b.className='sw'+(i===0?' on':''); b.style.background=c; b.title='สี';
-  b.onclick=()=>{colorIdx=i;[...swBox.children].forEach((x,j)=>x.classList.toggle('on',j===i));};
-  swBox.appendChild(b);
+  b.style.background=c; b.dataset.c=c; b.title=c;
+  b.onclick=()=>{ setColor(c,true); closePalette(); };
+  pgrid.appendChild(b);
 });
-document.querySelectorAll('.szbtn').forEach(b=>{
-  b.onclick=()=>{sizeIdx=+b.dataset.sz;
-    document.querySelectorAll('.szbtn').forEach(x=>x.classList.toggle('on',x===b));};
+function openPalette(){
+  const r=$('btnPalette').getBoundingClientRect();
+  palette.classList.add('open');
+  const w=palette.offsetWidth;
+  palette.style.left=Math.max(8,Math.min(window.innerWidth-w-8, r.left+r.width/2-w/2))+'px';
+  palette.style.top=(r.bottom+8)+'px';
+}
+function closePalette(){ palette.classList.remove('open'); }
+$('btnPalette').onclick=e=>{ e.stopPropagation(); palette.classList.contains('open')?closePalette():openPalette(); };
+document.addEventListener('pointerdown',e=>{
+  if(palette.classList.contains('open') && !palette.contains(e.target) && !$('btnPalette').contains(e.target)) closePalette();
 });
+$('btnColorMore').onclick=()=>{ colorIn.value=color; closePalette(); colorIn.click(); };
+colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); });
+colorIn.addEventListener('change',()=>setColor(colorIn.value,true));
+
+/* line size: one slider, a separate remembered size per tool */
+const sizeRange=$('sizeRange');
+function sizeKey(){ const t=tool==='pan'?lastDrawTool:tool; return SIZE_RANGE[t]?t:null; }
+function updateSizeUI(){
+  const k=sizeKey();
+  $('sizeBox').classList.toggle('off',!k);
+  const key=k||'pen', [lo,hi]=SIZE_RANGE[key];
+  sizeRange.min=lo; sizeRange.max=hi; sizeRange.value=sizes[key];
+  $('sizeVal').textContent=sizes[key]+(key==='text'?' pt':' px');
+  const dot=$('szDot'), px=key==='text'?Math.min(26,sizes[key]*.6):Math.min(28,Math.max(2,sizes[key]));
+  dot.style.width=dot.style.height=px+'px';
+  dot.style.background=color; dot.style.opacity=key==='hl'?.45:1;
+  $('sizeBox').title={pen:'ขนาดปากกา',hl:'ขนาดไฮไลต์',text:'ขนาดตัวอักษร'}[key];
+}
+sizeRange.addEventListener('input',()=>{
+  const k=sizeKey(); if(!k) return;
+  sizes[k]=+sizeRange.value; updateSizeUI(); saveSettings();
+});
+
+/* keyboard shortcuts (by key position, so a Thai keyboard layout works too) */
+document.addEventListener('keydown',e=>{
+  const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&e.target.type!=='range' || e.target.isContentEditable;
+  if(typing) return;
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&e.code==='KeyZ'&&!e.shiftKey){ e.preventDefault(); $('btnUndo').click(); return; }
+  if(mod&&(e.code==='Equal'||e.code==='NumpadAdd')){ e.preventDefault(); $('btnZoomIn').click(); return; }
+  if(mod&&(e.code==='Minus'||e.code==='NumpadSubtract')){ e.preventDefault(); $('btnZoomOut').click(); return; }
+  if(mod&&(e.code==='Digit0'||e.code==='Numpad0')){ e.preventDefault(); $('btnFit').click(); return; }
+  if(mod||e.altKey) return;
+  const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
+  if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
+  else if(e.code==='Escape') closePalette();
+  else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); showPage(current+1); }
+  else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); showPage(current-1); }
+});
+
+renderSwatches();
+setTool(tool);
 
 /* ---------------- rotate / delete ---------------- */
 function targets(){ return selected.size? pages.filter(p=>selected.has(p)) : (pages[current]?[pages[current]]:[]); }
@@ -738,12 +969,30 @@ $('btnDel').onclick=()=>{
   toast(`ลบแล้ว ${t.length} หน้า`);
 };
 
-/* ---------------- zoom ---------------- */
-function setZoom(z){ fitMode=false; zoom=Math.max(.2,Math.min(5,z)); showPage(current); }
-$('btnZoomIn').onclick=()=>setZoom(zoom*1.25);
-$('btnZoomOut').onclick=()=>setZoom(zoom/1.25);
+/* ---------------- zoom ----------------
+   applyZoom stretches the current bitmap at once (smooth while pinching or wheeling),
+   keeps the point under the cursor/fingers in place, then re-renders sharp shortly after */
+let zoomT;
+function applyZoom(z, cx, cy, fx, fy){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') txtIn.blur();
+  if(fx===undefined){ const r=wrap.getBoundingClientRect(); fx=(cx-r.left)/zoom; fy=(cy-r.top)/zoom; }
+  zoom=Math.max(ZMIN,Math.min(ZMAX,z)); fitMode=false;
+  setCssSize(dispSize(pages[current]));
+  $('zoomPct').textContent=Math.round(zoom*100)+'%';
+  const vr=viewerEl.getBoundingClientRect();
+  viewerEl.scrollLeft=wrap.offsetLeft+wrap.clientLeft+fx*zoom-(cx-vr.left);
+  viewerEl.scrollTop =wrap.offsetTop +wrap.clientTop +fy*zoom-(cy-vr.top);
+  clearTimeout(zoomT); zoomT=setTimeout(()=>showPage(current),180);
+}
+function zoomAtCenter(f){
+  const r=viewerEl.getBoundingClientRect();
+  applyZoom(zoom*f, r.left+r.width/2, r.top+r.height/2);
+}
+$('btnZoomIn').onclick=()=>zoomAtCenter(1.25);
+$('btnZoomOut').onclick=()=>zoomAtCenter(1/1.25);
 $('btnFit').onclick=()=>{fitMode=true; showPage(current);};
-let rzT; window.addEventListener('resize',()=>{ if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
+let rzT; window.addEventListener('resize',()=>{ closePalette(); if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
 
 /* ---------------- save ---------------- */
 $('btnSave').onclick=async ()=>{
