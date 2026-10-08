@@ -109,6 +109,9 @@ aside{
   flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
   font-size:11px;color:var(--muted);
 }
+.thumbHead{flex-wrap:wrap;row-gap:4px;column-gap:10px}
+.thumbHead.hasSel #selInfo{flex:1 0 100%;color:var(--ink);font-weight:600}
+.thumbHead.hasSel .spacer{display:none}
 .thumbHead button{font-size:11px;color:var(--accent);font-weight:600}
 #thumbList{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
 
@@ -207,6 +210,10 @@ aside{
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1.5v4m0 0L6 3.7M8 5.5l2-1.8M8 14.5v-4m0 0-2 1.8m2-1.8 2 1.8M1.5 8h4m5 0h4"/></svg>
     <span class="lbl">บีบอัด</span>
   </button>
+  <button class="btn" id="btnSaveSel" style="display:none" title="บันทึกเฉพาะหน้าที่เลือกเป็นไฟล์ใหม่ (ไฟล์ที่เปิดอยู่ไม่เปลี่ยน)">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5V5.5L9.5 2Z"/><path d="M9.5 2v3.5H13"/><path d="m6 9.5 1.5 1.5L10.5 8"/></svg>
+    <span class="lbl" id="saveSelLbl">บันทึกที่เลือก</span>
+  </button>
   <button class="btn primary" id="btnSave" disabled>
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
     <span class="lbl">บันทึก PDF</span>
@@ -243,7 +250,7 @@ aside{
     <span id="sizeVal">3</span>
   </div>
 
-  <button class="tbtn" id="btnUndo" title="ย้อนกลับ (Ctrl+Z)">
+  <button class="tbtn" id="btnUndo" title="ย้อนกลับ — รอยขีดเขียน, ลบ/ย้าย/เพิ่มหน้า (Ctrl+Z)">
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
   </button>
 
@@ -283,6 +290,7 @@ aside{
       <span id="selInfo">หน้า</span>
       <span class="spacer"></span>
       <button id="btnSelAll">เลือกทั้งหมด</button>
+      <button id="btnSelInvert" style="display:none" title="สลับ: หน้าที่เลือก ↔ หน้าที่ไม่ได้เลือก">สลับ</button>
       <button id="btnSelNone" style="display:none">ยกเลิก</button>
     </div>
     <div id="thumbList"></div>
@@ -400,7 +408,10 @@ function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('sho
 const norm = d => ((d % 360) + 360) % 360;
 const totalRot = p => norm(p.intrinsic + p.rot);
 function dispSize(p){ return totalRot(p)%180 ? {w:p.baseH,h:p.baseW} : {w:p.baseW,h:p.baseH}; }
-function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); }
+function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); history.push({t:'a',p}); trimHistory(); }
+const history=[];                 // newest last: {t:'a',p} annotation change · {t:'d',pages,current} page delete
+function trimHistory(){ if(history.length>200) history.shift(); }
+function snapPages(){ history.push({t:'pg', pages:[...pages], current}); trimHistory(); }
 
 /* ---------------- open file ---------------- */
 $('btnOpen').onclick = ()=>{ addMode=false; $('fileIn').click(); };
@@ -443,7 +454,7 @@ async function parsePdf(file){
 async function loadFile(file){
   try{
     toast('กำลังเปิดไฟล์…');
-    docs=[]; selected.clear(); current=0;
+    docs=[]; selected.clear(); current=0; history.length=0;
     pages = await parsePdf(file);
     baseName = file.name.replace(/\.pdf$/i,'') || 'document';
     $('fname').textContent = file.name;
@@ -466,6 +477,7 @@ async function insertFileAt(file, where){
     toast('กำลังเพิ่มไฟล์…');
     const list = await parsePdf(file);
     const at = where==='front' ? 0 : where==='after' ? current+1 : pages.length;
+    snapPages();
     pages.splice(at, 0, ...list);
     selected.clear();
     current = at;
@@ -535,6 +547,12 @@ function refreshSelInfo(){
   $('selInfo').textContent = n? `เลือก ${n} หน้า` : `${pages.length} หน้า`;
   $('btnSelNone').style.display = n? '' : 'none';
   $('btnSelAll').style.display  = n===pages.length? 'none':'';
+  $('btnSelAll').textContent    = n? 'ทั้งหมด' : 'เลือกทั้งหมด';
+  $('btnSelInvert').style.display = n? '' : 'none';
+  document.querySelector('.thumbHead').classList.toggle('hasSel', n>0);
+  $('btnSaveSel').style.display = n? '' : 'none';
+  $('saveSelLbl').textContent   = `บันทึก ${n} หน้าที่เลือก`;
+  $('btnSaveSel').title = `บันทึกเฉพาะ ${n} หน้าที่เลือกเป็นไฟล์ใหม่ (ไฟล์ที่เปิดอยู่ไม่เปลี่ยน)`;
   $('targetLabel').textContent = n? `หน้าที่เลือก (${n}):` : 'หน้าปัจจุบัน:';
 }
 async function renderThumb(p,cv){
@@ -555,10 +573,15 @@ function refreshThumbCanvas(i){
 }
 $('btnSelAll').onclick=()=>{pages.forEach(p=>selected.add(p)); refreshThumbClasses();};
 $('btnSelNone').onclick=()=>{selected.clear(); refreshThumbClasses();};
+$('btnSelInvert').onclick=()=>{
+  const next=new Set(pages.filter(p=>!selected.has(p)));
+  selected.clear(); next.forEach(p=>selected.add(p)); refreshThumbClasses();
+};
 
 function movePage(from,to){
   if(to<0||to>=pages.length) return;
   const cur=pages[current];
+  snapPages();
   const [m]=pages.splice(from,1);
   pages.splice(to,0,m);
   current=pages.indexOf(cur);
@@ -683,7 +706,7 @@ function cancelStroke(){               // a second finger landed: the stroke was
   if(!drawing) return;
   const p=pages[current];
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
-  else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); }
+  else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); history.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
 function endStroke(){
@@ -691,6 +714,7 @@ function endStroke(){
   if(drawing.type==='erase'&&drawing.hit){
     const p=pages[current];
     p.undo.push(drawing.snapshot); if(p.undo.length>30)p.undo.shift();
+    history.push({t:'a',p}); trimHistory();
   }
   drawing=null; drawPid=null;
   refreshThumbCanvas(current);
@@ -839,9 +863,24 @@ txtIn.addEventListener('blur',commitText);
 
 /* undo */
 $('btnUndo').onclick=()=>{
-  const p=pages[current]; if(!p||!p.undo.length) return;
-  p.annots=JSON.parse(p.undo.pop());
-  redrawOverlay(); refreshThumbCanvas(current);
+  if(txtIn.style.display==='block') txtIn.blur();
+  while(history.length){
+    const h=history.pop();
+    if(h.t==='pg'){                                   // page delete / move / insert
+      const cur=h.pages[h.current]||h.pages[0];
+      pages=h.pages; selected.clear();
+      current=Math.max(0,pages.indexOf(cur));
+      rebuildThumbs(); showPage(current);
+      toast(`ย้อนกลับแล้ว · ${pages.length} หน้า`);
+      return;
+    }
+    const p=h.p, i=pages.indexOf(p);
+    if(i<0||!p.undo.length) continue;                 // that page is gone: skip to the next step
+    p.annots=JSON.parse(p.undo.pop());
+    refreshThumbCanvas(i);
+    if(i!==current) showPage(i); else redrawOverlay();
+    return;
+  }
 };
 
 /* ---------------- tools UI ---------------- */
@@ -962,11 +1001,12 @@ $('btnDel').onclick=()=>{
   if(t.length>=pages.length){ toast('ต้องเหลืออย่างน้อย 1 หน้า'); return; }
   if(!confirm(`ลบ ${t.length} หน้า?`)) return;
   const cur=pages[current];
+  snapPages();
   pages=pages.filter(p=>!t.includes(p));
   t.forEach(p=>selected.delete(p));
   current=t.includes(cur)? Math.min(current,pages.length-1) : pages.indexOf(cur);
   rebuildThumbs(); showPage(current);
-  toast(`ลบแล้ว ${t.length} หน้า`);
+  toast(`ลบแล้ว ${t.length} หน้า · กด ↶ หรือ Ctrl+Z เพื่อเอากลับ`);
 };
 
 /* ---------------- zoom ----------------
@@ -995,16 +1035,21 @@ $('btnFit').onclick=()=>{fitMode=true; showPage(current);};
 let rzT; window.addEventListener('resize',()=>{ closePalette(); if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
 
 /* ---------------- save ---------------- */
-$('btnSave').onclick=async ()=>{
-  if(!docs.length) return;
-  const btn=$('btnSave'), old=btn.innerHTML;
+$('btnSave').onclick=()=>savePages(pages,'edited',$('btnSave'));
+$('btnSaveSel').onclick=()=>{
+  const list=pages.filter(p=>selected.has(p));      // in the order they appear now
+  if(list.length) savePages(list,'selected',$('btnSaveSel'));
+};
+async function savePages(list, suffix, btn){
+  if(!docs.length||!list.length) return;
+  const old=btn.innerHTML;
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
     const srcLibs=[];
     for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
     const out=await PDFLib.PDFDocument.create();
-    for(let i=0;i<pages.length;i++){
-      const p=pages[i];
+    for(let i=0;i<list.length;i++){
+      const p=list[i];
       const [pg]=await out.copyPages(srcLibs[p.doc],[p.srcIndex]);
       out.addPage(pg);
       const R=totalRot(p);
@@ -1028,17 +1073,17 @@ $('btnSave').onclick=async ()=>{
     const blob=new Blob([bytes],{type:'application/pdf'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download=baseName+'-edited.pdf';
+    a.download=`${baseName}-${suffix}.pdf`;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    toast('บันทึกไฟล์แล้ว ✓');
+    toast(suffix==='selected' ? `บันทึก ${list.length} หน้าเป็นไฟล์ใหม่แล้ว ✓` : 'บันทึกไฟล์แล้ว ✓');
   }catch(err){
     console.error(err);
     toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ');
   }finally{
     btn.disabled=false; btn.innerHTML=old;
   }
-};
+}
 
 /* ---------------- compress ---------------- */
 $('btnCompress').onclick=()=>{ if(docs.length) $('cmpModal').style.display='flex'; };
