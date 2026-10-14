@@ -154,10 +154,16 @@ aside{
 /* ---------- Viewer ---------- */
 #viewer{flex:1;overflow:auto;background:var(--viewer);position:relative}
 /* safe center: centred while the page fits, start-aligned once it is wider, so every side stays reachable */
-#stage{min-height:100%;display:flex;align-items:flex-start;justify-content:center;justify-content:safe center;padding:20px;touch-action:none}
+#stage{min-height:100%;display:flex;flex-direction:column;align-items:center;align-items:safe center;gap:14px;padding:20px;touch-action:none}
+/* one slot per page; the working canvases (#pageWrap) sit in the current page's slot,
+   other slots show a picture that is drawn only while near the screen */
+.slot{position:relative;flex:0 0 auto;background:#fff;border:1px solid var(--line)}
+.slot>canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.slot>canvas.so{mix-blend-mode:multiply}
+#viewer.single .slot:not(.cur){display:none}
 #viewer.panTool #stage{cursor:grab}
 #viewer.grabbing, #viewer.grabbing *{cursor:grabbing !important}
-#pageWrap{position:relative;flex:0 0 auto;background:#fff;border:1px solid var(--line)}
+#pageWrap{position:absolute;inset:0}
 #pdfCanvas{display:block}
 #ovCanvas{position:absolute;inset:0;mix-blend-mode:multiply}
 #txtIn{
@@ -297,6 +303,7 @@ aside{
   </div>
 
   <div class="tgroup" id="pager">
+    <button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button>
     <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
     <span id="pgInfo">–</span>
     <button class="tbtn" id="pgNext" title="หน้าถัดไป" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
@@ -426,7 +433,7 @@ let tool = 'pan', lastDrawTool = 'pen';
 let color = '#1B1F24';
 let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
 let sizes = {pen:3, hl:14, text:16};
-let textFont = 'sys', textBold = false, snapQ = 'normal';
+let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll';
 /* text is drawn as part of the overlay image, so any web font works in the saved PDF too;
    Thai Google Fonts load on first use and the service worker keeps them for offline use */
 const FONTS = {
@@ -446,13 +453,15 @@ const FONTS = {
     if(FONTS[s.textFont]) textFont = s.textFont;
     textBold = !!s.textBold;
     if(s.snapQ==='high') snapQ='high';
+    if(s.viewMode==='single') viewMode='single';
     if(['pen','hl','text','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
   }catch(e){}
 })();
 function saveSettings(){
-  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ})); }catch(e){}
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode})); }catch(e){}
 }
 
+const APP_VERSION = '2.0.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), stage=$('stage'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'),
@@ -522,7 +531,7 @@ async function loadFile(file){
     $('btnCompress').disabled=false;
     fitMode=true;
     rebuildThumbs();
-    await showPage(0);
+    await goToPage(0);
     toast(`เปิดแล้ว · ${pages.length} หน้า`);
   }catch(err){
     console.error(err);
@@ -539,7 +548,7 @@ async function insertFileAt(file, where){
     selected.clear();
     current = at;
     rebuildThumbs();
-    await showPage(at);
+    await goToPage(at);
     toast(`เพิ่มแล้ว ${list.length} หน้า`);
   }catch(err){
     console.error(err);
@@ -574,7 +583,7 @@ function rebuildThumbs(){
     rb.append(up,dn); meta.append(pno,rb);
     el.append(chk,cv,meta);
 
-    el.onclick=()=>{ current=i; refreshThumbClasses(); showPage(i);
+    el.onclick=()=>{ goToPage(i);
       if(window.innerWidth<=820) closeThumbs(); };
 
     /* drag reorder (desktop) */
@@ -591,6 +600,7 @@ function rebuildThumbs(){
     renderThumb(p,cv);
   });
   refreshSelInfo();
+  rebuildSlots();
 }
 function refreshThumbClasses(){
   [...thumbList.children].forEach((el,i)=>{
@@ -625,6 +635,7 @@ async function renderThumb(p,cv){
   }catch(e){}
 }
 function refreshThumbCanvas(i){
+  if(pages[i]){ pages[i]._v=(pages[i]._v||0)+1; schedulePump(); }
   const el=thumbList.children[i]; if(!el) return;
   renderThumb(pages[i], el.querySelector('canvas'));
 }
@@ -645,27 +656,89 @@ function movePage(from,to){
   rebuildThumbs(); updatePager();
 }
 
-/* ---------------- main preview ---------------- */
+/* ---------------- main preview ----------------
+   Every page has a slot of its real size in #stage. The current page's slot holds #pageWrap
+   (the full-quality canvas + drawing overlay + text box); slots near the screen show a
+   lighter picture drawn in the background, slots far away hold no picture at all.
+   Single-page mode is the same layout with only the current slot shown. */
+let slots=[], rsZoom=0;
+const nearSlots=new Set();
+const slotIO=new IntersectionObserver(es=>{
+  for(const e of es){
+    const i=+e.target.dataset.i, sl=slots[i]; if(!sl||sl.el!==e.target) continue;
+    if(e.isIntersecting) nearSlots.add(i);
+    else { nearSlots.delete(i); if(!sl.el.contains(wrap)) freeSlot(sl); }
+  }
+  schedulePump();
+},{root:viewerEl, rootMargin:'60% 0px'});
+function freeSlot(sl){ sl.cp.width=sl.cp.height=0; sl.co.width=sl.co.height=0; sl.z=null; }
+function rebuildSlots(){
+  slotIO.disconnect(); nearSlots.clear();
+  slots.forEach(sl=>freeSlot(sl));
+  stage.replaceChildren();
+  slots=pages.map((p,i)=>{
+    const el=document.createElement('div'); el.className='slot'; el.dataset.i=i;
+    const cp=document.createElement('canvas'), co=document.createElement('canvas');
+    cp.className='sp'; co.className='so'; cp.width=cp.height=co.width=co.height=0;
+    el.append(cp,co); stage.appendChild(el);
+    return {el,cp,co,z:null,v:-1,rs:1};
+  });
+  if(slots[current]) slots[current].el.appendChild(wrap); else stage.appendChild(wrap);
+  layoutSlots();
+  slots.forEach(sl=>slotIO.observe(sl.el));
+}
+function layoutSlots(){
+  slots.forEach((sl,i)=>{
+    const d=dispSize(pages[i]);
+    sl.el.style.width=(d.w*zoom)+'px'; sl.el.style.height=(d.h*zoom)+'px';
+    sl.el.classList.toggle('cur',i===current);
+  });
+}
+/* move the working canvases into slot i; the page being left keeps its picture */
+function attachWrap(i){
+  const to=slots[i]; if(!to||to.el.contains(wrap)) return false;
+  if(selText){ selText=null; redrawOverlay(); }
+  const from=slots.find(sl=>sl.el.contains(wrap));
+  if(from&&pdfCv.width>1){
+    from.cp.width=pdfCv.width; from.cp.height=pdfCv.height; from.cp.getContext('2d').drawImage(pdfCv,0,0);
+    from.co.width=ovCv.width;  from.co.height=ovCv.height;  from.co.getContext('2d').drawImage(ovCv,0,0);
+    const fi=slots.indexOf(from);
+    from.z=rsZoom; from.v=pages[fi]?._v||0; from.rs=rs;
+  }
+  to.el.appendChild(wrap);
+  if(to.cp.width){                                  // show its picture at once, sharpen after
+    pdfCv.width=to.cp.width; pdfCv.height=to.cp.height; pdfCv.getContext('2d').drawImage(to.cp,0,0);
+    rs=to.rs; rsZoom=to.z;
+  }else{ pdfCv.getContext('2d').clearRect(0,0,pdfCv.width,pdfCv.height); }
+  ovCv.width=pdfCv.width; ovCv.height=pdfCv.height;
+  return true;
+}
+function fitZoom(){
+  const avail=viewerEl.clientWidth-(window.innerWidth<=820?26:42);
+  const w = viewMode==='scroll' ? Math.max(...pages.map(p=>dispSize(p).w)) : dispSize(pages[current]).w;
+  return Math.max(ZMIN,Math.min(4, avail/w));
+}
 async function showPage(i){
   if(!pages.length) return;
+  // everything up to the first await runs at once, so callers can scroll right after
   current=Math.max(0,Math.min(i,pages.length-1));
   const p=pages[current], seq=++renderSeq;
+  if(fitMode) zoom=fitZoom();
+  $('zoomPct').textContent=Math.round(zoom*100)+'%';
+  attachWrap(current);
+  layoutSlots();
+  const d=dispSize(p);
+  setCssSize(d); redrawOverlay();
+  updatePager(); refreshThumbClasses();
+
   const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
   if(seq!==renderSeq) return;
-
-  const d=dispSize(p);
-  if(fitMode){
-    const avail=viewerEl.clientWidth-(window.innerWidth<=820?26:42);
-    zoom=Math.max(ZMIN,Math.min(4, avail/d.w));
-  }
-  $('zoomPct').textContent=Math.round(zoom*100)+'%';
-  setCssSize(d);
-
   // cap the bitmap so huge drawings at high zoom never exceed what a canvas can hold;
   // past the cap the bitmap is stretched slightly instead of going blank
   const maxArea=(navigator.deviceMemory||4)>=8 ? 120e6 : 40e6;
   const scale=Math.min(zoom*DPR, 16000/Math.max(d.w,d.h), Math.sqrt(maxArea/(d.w*d.h)));
   const vp=page.getViewport({scale, rotation:totalRot(p)});
+  const z0=zoom;
 
   // render off-screen, then swap in: the old picture stays visible while the new one renders
   if(renderTask){ try{ renderTask.cancel(); }catch(e){} }
@@ -676,16 +749,29 @@ async function showPage(i){
   catch(err){ off.width=off.height=0; if(err?.name!=='RenderingCancelledException') console.error(err); return; }
   if(seq!==renderSeq){ off.width=off.height=0; return; }
   renderTask=null;
-  rs=scale;
+  rs=scale; rsZoom=z0;
   pdfCv.width=off.width; pdfCv.height=off.height;
   pdfCv.getContext('2d').drawImage(off,0,0);
   off.width=off.height=0;
   ovCv.width=pdfCv.width; ovCv.height=pdfCv.height;
-  setCssSize(d);                       // zoom may have moved while rendering
+  setCssSize(dispSize(pages[current]));            // zoom may have moved while rendering
   redrawOverlay();
-  updatePager();
-  refreshThumbClasses();
+  schedulePump();
 }
+/* show page i and bring it into view */
+function goToPage(i){
+  if(!pages.length) return Promise.resolve();
+  i=Math.max(0,Math.min(i,pages.length-1));
+  const changed=i!==current;
+  const done=showPage(i);
+  if(viewMode==='scroll'){
+    viewerEl.scrollTop=slots[i].el.offsetTop-14;
+    navTop=viewerEl.scrollTop;                       // the page asked for stays current until the user scrolls
+  }else if(changed) viewerEl.scrollTop=0;
+  thumbIntoView(i);
+  return done;
+}
+function thumbIntoView(i){ thumbList.children[i]?.scrollIntoView({block:'nearest'}); }
 function setCssSize(d){
   const w=(d.w*zoom)+'px', h=(d.h*zoom)+'px';
   pdfCv.style.width=w; pdfCv.style.height=h;
@@ -699,13 +785,86 @@ function redrawOverlay(){
   drawAnnots(octx,p.annots);
   drawSelection(octx);
 }
+
 function updatePager(){
   $('pgInfo').textContent=`${current+1} / ${pages.length}`;
   $('pgPrev').disabled=current===0;
   $('pgNext').disabled=current===pages.length-1;
 }
-$('pgPrev').onclick=()=>showPage(current-1);
-$('pgNext').onclick=()=>showPage(current+1);
+
+/* the page whose slot crosses the middle of the screen becomes the current page */
+let trackHold=0, trackRaf=0, navTop=null;
+viewerEl.addEventListener('scroll',()=>{
+  if(viewMode==='scroll'&&pages.length&&!trackRaf) trackRaf=requestAnimationFrame(trackCurrent);
+},{passive:true});
+function trackCurrent(){
+  trackRaf=0;
+  if(drawing||pinch||txtIn.style.display==='block'||performance.now()<trackHold){
+    if(performance.now()<trackHold) setTimeout(()=>{ if(!trackRaf) trackRaf=requestAnimationFrame(trackCurrent); }, trackHold-performance.now()+20);
+    return;
+  }
+  if(navTop!==null){ if(Math.abs(viewerEl.scrollTop-navTop)<2) return; navTop=null; }
+  const mid=viewerEl.scrollTop+viewerEl.clientHeight/2;
+  let lo=0, hi=slots.length-1;
+  while(lo<hi){ const m=(lo+hi+1)>>1; if(slots[m].el.offsetTop<=mid) lo=m; else hi=m-1; }
+  if(lo!==current){ showPage(lo); thumbIntoView(lo); }
+}
+
+/* background pictures for the slots near the screen, nearest to the current page first */
+let pumping=false;
+function slotStale(i){
+  const sl=slots[i]; return !!sl && !sl.el.contains(wrap) && (!sl.cp.width || sl.z!==zoom || sl.v!==(pages[i]._v||0));
+}
+function schedulePump(){ if(!pumping) pump(); }
+async function pump(){
+  pumping=true;
+  try{
+    for(;;){
+      const todo=[...nearSlots].filter(slotStale).sort((a,b)=>Math.abs(a-current)-Math.abs(b-current));
+      if(!todo.length) break;
+      await renderSlot(todo[0]);
+    }
+  }finally{ pumping=false; }
+}
+async function renderSlot(i){
+  const sl=slots[i], p=pages[i], d=dispSize(p), z0=zoom, v0=p._v||0;
+  const scale=Math.min(z0*DPR, 8000/Math.max(d.w,d.h), Math.sqrt(12e6/(d.w*d.h)));
+  const off=document.createElement('canvas');
+  try{
+    const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
+    const vp=page.getViewport({scale, rotation:totalRot(p)});
+    off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
+    await page.render({canvasContext:off.getContext('2d'), viewport:vp}).promise;
+    if(slots[i]!==sl||sl.el.contains(wrap)||!nearSlots.has(i)){ return; }
+    sl.cp.width=off.width; sl.cp.height=off.height; sl.cp.getContext('2d').drawImage(off,0,0);
+    if(p.annots.length){
+      await fontsFor([p]);
+      sl.co.width=off.width; sl.co.height=off.height;
+      const c=sl.co.getContext('2d'); c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots);
+    }else sl.co.width=sl.co.height=0;
+    sl.z=z0; sl.v=v0; sl.rs=scale;
+  }catch(err){ console.error(err); sl.z=z0; sl.v=v0; }   // don't retry a broken page in a loop
+  finally{ off.width=off.height=0; }
+}
+
+/* view mode: continuous scroll ⇄ one page at a time */
+const ICON_SCROLL='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="1.5" width="8" height="5.5" rx="1"/><rect x="4" y="9" width="8" height="5.5" rx="1"/></svg>';
+const ICON_SINGLE='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="2" width="9" height="12" rx="1.2"/></svg>';
+function applyViewMode(){
+  viewerEl.classList.toggle('single', viewMode==='single');
+  const b=$('btnViewMode');
+  b.innerHTML = viewMode==='scroll' ? ICON_SCROLL : ICON_SINGLE;
+  b.title = viewMode==='scroll' ? 'โหมดเลื่อนต่อเนื่อง (กดเพื่อเปลี่ยนเป็นทีละหน้า)' : 'โหมดทีละหน้า (กดเพื่อเปลี่ยนเป็นเลื่อนต่อเนื่อง)';
+}
+$('btnViewMode').onclick=()=>{
+  viewMode = viewMode==='scroll' ? 'single' : 'scroll';
+  applyViewMode(); saveSettings();
+  if(pages.length) goToPage(current);
+};
+applyViewMode();
+document.querySelector('.brand').title='WY Pdf Box '+APP_VERSION;
+$('pgPrev').onclick=()=>goToPage(current-1);
+$('pgNext').onclick=()=>goToPage(current+1);
 
 /* ---------------- annotation drawing ---------------- */
 const hiddenText=new WeakSet(), mctx=document.createElement('canvas').getContext('2d');
@@ -872,8 +1031,8 @@ function pinchState(){
 function startPinch(){
   cancelAnimationFrame(glide);
   if(panning){ viewerEl.classList.remove('grabbing'); panning=null; }
-  const s=pinchState(), r=wrap.getBoundingClientRect();
-  pinch={d0:s.d, z0:zoom, fx:(s.mx-r.left)/zoom, fy:(s.my-r.top)/zoom};
+  const s=pinchState(), o=slotOrigin(current);
+  pinch={d0:s.d, z0:zoom, fx:(s.mx-o.x)/zoom, fy:(s.my-o.y)/zoom};
 }
 
 viewerEl.addEventListener('pointerdown',e=>{
@@ -890,7 +1049,12 @@ viewerEl.addEventListener('pointerdown',e=>{
   if(e.pointerType==='pen'){ if(e.buttons&32) t='eraser'; else if(t==='pan') t=lastDrawTool; }
   const fingerPans = e.pointerType==='touch' && penSeen;
   const mainButton = e.pointerType!=='mouse' || e.button===0;
-  if(e.target===ovCv && t!=='pan' && !fingerPans && mainButton){
+  let onPage=e.target===ovCv;
+  if(!onPage && t!=='pan' && !fingerPans && mainButton){
+    const sl=e.target.closest?.('.slot'), k=sl?slots.findIndex(x=>x.el===sl):-1;
+    if(k>=0&&k!==current){ trackHold=performance.now()+300; showPage(k); thumbIntoView(k); onPage=true; }
+  }
+  if(onPage && t!=='pan' && !fingerPans && mainButton){
     e.preventDefault();
     if(startDraw(e,t)) capture(e.pointerId);
     return;
@@ -1040,7 +1204,7 @@ $('btnUndo').onclick=()=>{
       const cur=h.pages[h.current]||h.pages[0];
       pages=h.pages; selected.clear();
       current=Math.max(0,pages.indexOf(cur));
-      rebuildThumbs(); showPage(current);
+      rebuildThumbs(); goToPage(current);
       toast(`ย้อนกลับแล้ว · ${pages.length} หน้า`);
       return;
     }
@@ -1048,7 +1212,7 @@ $('btnUndo').onclick=()=>{
     if(i<0||!p.undo.length) continue;                 // that page is gone: skip to the next step
     p.annots=JSON.parse(p.undo.pop());
     refreshThumbCanvas(i);
-    if(i!==current) showPage(i); else redrawOverlay();
+    if(i!==current) goToPage(i); else redrawOverlay();
     return;
   }
 };
@@ -1174,8 +1338,8 @@ document.addEventListener('keydown',e=>{
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
   else if(e.code==='Escape'){ closePalette(); closeSnap(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
-  else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); showPage(current+1); }
-  else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); showPage(current-1); }
+  else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); goToPage(current+1); }
+  else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); goToPage(current-1); }
 });
 
 renderSwatches();
@@ -1210,7 +1374,7 @@ $('btnDel').onclick=()=>{
   pages=pages.filter(p=>!t.includes(p));
   t.forEach(p=>selected.delete(p));
   current=t.includes(cur)? Math.min(current,pages.length-1) : pages.indexOf(cur);
-  rebuildThumbs(); showPage(current);
+  rebuildThumbs(); goToPage(current);
   toast(`ลบแล้ว ${t.length} หน้า · กด ↶ หรือ Ctrl+Z เพื่อเอากลับ`);
 };
 
@@ -1318,17 +1482,25 @@ $('snapDownload').onclick=()=>{ if(snapFile){ downloadBlob(snapFile,snapFile.nam
    applyZoom stretches the current bitmap at once (smooth while pinching or wheeling),
    keeps the point under the cursor/fingers in place, then re-renders sharp shortly after */
 let zoomT;
-function applyZoom(z, cx, cy, fx, fy){
+function slotOrigin(k){ const el=slots[k].el, r=el.getBoundingClientRect(); return {x:r.left+el.clientLeft, y:r.top+el.clientTop}; }
+function slotAt(cx,cy){
+  const el=document.elementFromPoint(cx,cy)?.closest?.('.slot');
+  const k=el?slots.findIndex(sl=>sl.el===el):-1;
+  return k>=0?k:current;
+}
+function applyZoom(z, cx, cy, fx, fy, k){
   if(!pages.length) return;
   if(txtIn.style.display==='block') txtIn.blur();
-  if(fx===undefined){ const r=wrap.getBoundingClientRect(); fx=(cx-r.left)/zoom; fy=(cy-r.top)/zoom; }
+  if(k===undefined) k=fx===undefined?slotAt(cx,cy):current;
+  if(fx===undefined){ const o=slotOrigin(k); fx=(cx-o.x)/zoom; fy=(cy-o.y)/zoom; }
   zoom=Math.max(ZMIN,Math.min(ZMAX,z)); fitMode=false;
-  setCssSize(dispSize(pages[current]));
+  trackHold=performance.now()+300;
+  layoutSlots(); setCssSize(dispSize(pages[current]));
   $('zoomPct').textContent=Math.round(zoom*100)+'%';
-  const vr=viewerEl.getBoundingClientRect();
-  viewerEl.scrollLeft=wrap.offsetLeft+wrap.clientLeft+fx*zoom-(cx-vr.left);
-  viewerEl.scrollTop =wrap.offsetTop +wrap.clientTop +fy*zoom-(cy-vr.top);
-  clearTimeout(zoomT); zoomT=setTimeout(()=>showPage(current),180);
+  const o=slotOrigin(k);                            // keep the point under the cursor in place
+  viewerEl.scrollLeft+=o.x+fx*zoom-cx;
+  viewerEl.scrollTop +=o.y+fy*zoom-cy;
+  clearTimeout(zoomT); zoomT=setTimeout(()=>{ showPage(current); if(!trackRaf) trackRaf=requestAnimationFrame(trackCurrent); },180);
 }
 function zoomAtCenter(f){
   const r=viewerEl.getBoundingClientRect();
@@ -1336,7 +1508,7 @@ function zoomAtCenter(f){
 }
 $('btnZoomIn').onclick=()=>zoomAtCenter(1.25);
 $('btnZoomOut').onclick=()=>zoomAtCenter(1/1.25);
-$('btnFit').onclick=()=>{fitMode=true; showPage(current);};
+$('btnFit').onclick=()=>{fitMode=true; goToPage(current);};
 let rzT; window.addEventListener('resize',()=>{ closePalette(); closeSnap(); if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
 
 /* ---------------- save ---------------- */
