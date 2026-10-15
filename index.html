@@ -130,7 +130,8 @@ aside{
 .thumbHead.hasSel #selInfo{flex:1 0 100%;color:var(--ink);font-weight:600}
 .thumbHead.hasSel .spacer{display:none}
 .thumbHead button{font-size:11px;color:var(--accent);font-weight:600}
-#thumbList{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.thumbList{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.thumbList[hidden],.stage[hidden]{display:none!important}
 
 .thumb{
   border:1px solid var(--line);border-radius:var(--r);background:var(--panel);position:relative;
@@ -154,14 +155,14 @@ aside{
 /* ---------- Viewer ---------- */
 #viewer{flex:1;overflow:auto;background:var(--viewer);position:relative}
 /* safe center: centred while the page fits, start-aligned once it is wider, so every side stays reachable */
-#stage{min-height:100%;display:flex;flex-direction:column;align-items:center;align-items:safe center;gap:14px;padding:20px;touch-action:none}
+.stage{min-height:100%;display:flex;flex-direction:column;align-items:center;align-items:safe center;gap:14px;padding:20px;touch-action:none}
 /* one slot per page; the working canvases (#pageWrap) sit in the current page's slot,
    other slots show a picture that is drawn only while near the screen */
 .slot{position:relative;flex:0 0 auto;background:#fff;border:1px solid var(--line)}
 .slot>canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .slot>canvas.so{mix-blend-mode:multiply}
 #viewer.single .slot:not(.cur){display:none}
-#viewer.panTool #stage{cursor:grab}
+#viewer.panTool .stage{cursor:grab}
 #viewer.grabbing, #viewer.grabbing *{cursor:grabbing !important}
 #pageWrap{position:absolute;inset:0}
 #pdfCanvas{display:block}
@@ -172,6 +173,63 @@ aside{
 }
 #pager{margin-left:auto}
 #pager span{font-size:12px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums;min-width:50px;text-align:center}
+#pgInfo{cursor:text;border-radius:4px}
+#pgInfo:hover{background:var(--bg);color:var(--ink)}
+#pgEdit{width:52px;height:26px;border:1px solid var(--accent);border-radius:6px;text-align:center;font:inherit;font-size:12px}
+#zoomPct{cursor:pointer;border-radius:4px}
+#zoomPct:hover{background:var(--bg);color:var(--ink)}
+
+/* ---------- Tabs ---------- */
+#tabs{display:none;flex:0 0 auto;align-items:flex-end;gap:2px;padding:6px 10px 0;background:var(--bg);
+  border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
+#tabs.on{display:flex}
+.tab{display:flex;align-items:center;gap:6px;height:32px;padding:0 6px 0 12px;max-width:240px;flex:0 0 auto;
+  border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;background:#EDEFF2;color:var(--muted);font-size:12px;cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--panel);color:var(--ink);font-weight:600;position:relative;top:1px;height:33px}
+.tab .tname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .tdirty{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto;display:none}
+.tab.dirty .tdirty{display:block}
+.tab .tclose{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--muted);flex:0 0 auto}
+.tab .tclose:hover{background:#DDE1E6;color:var(--ink)}
+
+/* ---------- Menus & dialogs ---------- */
+.btnSplit{display:inline-flex}
+.btnSplit .btn:first-child{border-radius:var(--r) 0 0 var(--r)}
+.btnSplit .btn.caret{border-radius:0 var(--r) var(--r) 0;border-left:none;padding:0 6px}
+.btnSplit .btn.primary.caret{border-left:1px solid rgba(255,255,255,.35)}
+.menu{position:fixed;z-index:70;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px;
+  min-width:210px;max-width:340px;box-shadow:0 8px 24px rgba(20,24,30,.16);font-size:13px}
+.menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 10px;border-radius:6px;color:var(--ink)}
+.menu button:hover:not(:disabled){background:var(--accent-soft)}
+.menu button:disabled{color:#B5BBC3}
+.menu .mk{margin-left:auto;font-size:11px;color:var(--muted);padding-left:12px;white-space:nowrap}
+.menu .mtick{width:14px;flex:0 0 auto;color:var(--accent);font-weight:700}
+.menu .msub{font-size:11px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .mlbl{min-width:0;flex:1}
+.menu .msep{height:1px;background:var(--line);margin:4px 6px}
+.menu .mhead{font-size:11px;color:var(--muted);padding:6px 10px 2px}
+.dlg{position:fixed;inset:0;z-index:65;background:rgba(20,24,30,.35);display:flex;align-items:center;justify-content:center;padding:20px}
+.dlg .box{background:var(--panel);border-radius:12px;padding:18px;width:min(380px,100%);display:flex;flex-direction:column;gap:8px;max-height:86vh;overflow:auto}
+.dlg .box b{font-size:14px}
+.dlg .box .note{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px}
+.dlg .box .btn{justify-content:center;min-height:36px;height:auto;padding:6px 12px;text-align:center}
+.dlg .box .btn small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.dlg .box .btn.primary small{color:rgba(255,255,255,.8)}
+.dlg .box .btn.link{border:none;color:var(--muted)}
+#recentList{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
+#recentList button{display:flex;flex-direction:column;align-items:flex-start;padding:7px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
+#recentList button:hover{background:var(--accent-soft)}
+#recentList small{font-size:11px;color:var(--muted)}
+#printRoot{display:none}
+@media print{
+  html,body{height:auto!important;overflow:visible!important;display:block!important;background:#fff!important}
+  body>*:not(#printRoot){display:none!important}
+  #printRoot{display:block}
+  #printRoot img{display:block;width:100%;height:auto;break-after:page;page-break-after:always}
+  #printRoot img:last-child{break-after:auto;page-break-after:auto}
+  @page{margin:8mm}
+}
 
 /* ---------- Empty state ---------- */
 #empty{
@@ -207,7 +265,7 @@ aside{
   }
   body.thumbsOpen aside{transform:translateX(0);box-shadow:0 0 0 1px var(--line)}
   body.thumbsOpen #backdrop{display:block}
-  #stage{padding:12px}
+  .stage{padding:12px}
   .tlabel{display:none}
 }
 </style>
@@ -221,10 +279,13 @@ aside{
   <div class="brand"><span class="dot"></span>WY Pdf Box <small>จัดหน้า · ขีดเขียน</small></div>
   <div class="spacer"></div>
   <span class="fname" id="fname"></span>
-  <button class="btn" id="btnOpen">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>
-    <span class="lbl">เปิดไฟล์</span>
-  </button>
+  <div class="btnSplit">
+    <button class="btn" id="btnOpen" title="เปิดไฟล์ (Ctrl+O)">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>
+      <span class="lbl">เปิดไฟล์</span>
+    </button>
+    <button class="btn caret" id="btnOpenMenu" title="ไฟล์ล่าสุด · กู้คืนไฟล์ก่อนบันทึก"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
+  </div>
   <button class="btn" id="btnAdd" disabled title="เพิ่มไฟล์ PDF เข้าเอกสารนี้ (แทรก/ต่อท้าย)">
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 6V4.8L9.5 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5H8"/><path d="M9 1.5V5h3.5M12 9.5v5M9.5 12h5"/></svg>
     <span class="lbl">เพิ่มไฟล์</span>
@@ -241,10 +302,17 @@ aside{
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5V5.5L9.5 2Z"/><path d="M9.5 2v3.5H13"/><path d="m6 9.5 1.5 1.5L10.5 8"/></svg>
     <span class="lbl" id="saveSelLbl">บันทึกที่เลือก</span>
   </button>
-  <button class="btn primary" id="btnSave" disabled>
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
-    <span class="lbl">บันทึก PDF</span>
+  <button class="btn" id="btnPrint" disabled title="พิมพ์ (Ctrl+P)">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 6V2h7v4"/><rect x="2" y="6" width="12" height="6" rx="1.2"/><path d="M4.5 10h7v4h-7z"/></svg>
+    <span class="lbl">พิมพ์</span>
   </button>
+  <div class="btnSplit">
+    <button class="btn primary" id="btnSave" disabled title="บันทึก (Ctrl+S)">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8m0 0 3-3M8 10 5 7"/><path d="M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11"/></svg>
+      <span class="lbl">บันทึก</span>
+    </button>
+    <button class="btn primary caret" id="btnSaveMenu" disabled title="บันทึกเป็น…"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
+  </div>
 </header>
 
 <div class="toolbar" id="toolbar">
@@ -285,6 +353,9 @@ aside{
   <button class="tbtn" id="btnUndo" title="ย้อนกลับ — รอยขีดเขียน, ลบ/ย้าย/เพิ่มหน้า (Ctrl+Z)">
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
   </button>
+  <button class="tbtn" id="btnRedo" title="ทำซ้ำ (Ctrl+Y)">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 6H6a3.5 3.5 0 0 0 0 7h4"/><path d="M10.5 3.5 13 6l-2.5 2.5"/></svg>
+  </button>
 
   <div class="sep"></div>
   <span class="tlabel" id="targetLabel">หน้าปัจจุบัน:</span>
@@ -305,17 +376,19 @@ aside{
   <div class="tgroup" id="pager">
     <button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button>
     <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
-    <span id="pgInfo">–</span>
+    <span id="pgInfo" title="คลิกเพื่อพิมพ์เลขหน้า (Ctrl+G)">–</span>
     <button class="tbtn" id="pgNext" title="หน้าถัดไป" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
   </div>
 
   <div class="zoombox">
     <button class="tbtn" id="btnZoomOut" title="ซูมออก (Ctrl −)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
-    <span id="zoomPct">100%</span>
+    <span id="zoomPct" title="เลือกขนาดซูม">100%</span>
     <button class="tbtn" id="btnZoomIn" title="ซูมเข้า (Ctrl +) · Ctrl+ล้อเมาส์ ซูมตรงจุด"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
-    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0)" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
+    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0) · คลิกตัวเลข % เพื่อเลือกขนาดอื่น" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
   </div>
 </div>
+
+<div id="tabs" role="tablist"></div>
 
 <main>
   <aside id="sidebar">
@@ -326,12 +399,12 @@ aside{
       <button id="btnSelInvert" style="display:none" title="สลับ: หน้าที่เลือก ↔ หน้าที่ไม่ได้เลือก">สลับ</button>
       <button id="btnSelNone" style="display:none">ยกเลิก</button>
     </div>
-    <div id="thumbList"></div>
+    <div id="thumbList" class="thumbList"></div>
   </aside>
   <div id="backdrop"></div>
 
   <section id="viewer">
-    <div id="stage">
+    <div id="stage" class="stage">
       <div id="pageWrap" style="display:none">
         <canvas id="pdfCanvas"></canvas>
         <canvas id="ovCanvas"></canvas>
@@ -344,6 +417,11 @@ aside{
         <h1>เปิดไฟล์ PDF เพื่อเริ่มต้น</h1>
         <p>ลากไฟล์มาวางที่นี่ หรือกดปุ่มด้านล่าง<br>ไฟล์ถูกประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการอัปโหลด</p>
         <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF</button>
+        <button class="btn" id="btnSession" style="display:none;height:34px"></button>
+        <div id="recentWrap" style="display:none;width:100%">
+          <p style="font-size:12px;margin-bottom:4px">ไฟล์ล่าสุด</p>
+          <div id="recentList"></div>
+        </div>
         <div class="feat">
           <span>ลบหน้า</span><span>สลับลำดับหน้า</span><span>หมุนหน้า</span>
           <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>บันทึกเป็นไฟล์ใหม่</span>
@@ -353,7 +431,8 @@ aside{
   </section>
 </main>
 
-<input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
+<input type="file" id="fileIn" accept="application/pdf,.pdf" multiple hidden>
+<div id="printRoot"></div>
 <input type="color" id="colorIn" tabindex="-1" aria-hidden="true">
 <div id="snapPop" role="dialog" aria-label="คัดลอกหน้าเป็นรูป">
   <div class="snapRow">
@@ -393,16 +472,6 @@ aside{
   </div>
 </div>
 
-<div id="insModal" style="display:none;position:fixed;inset:0;background:rgba(20,24,30,.35);z-index:50;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--panel);border-radius:12px;padding:18px;width:min(340px,100%);display:flex;flex-direction:column;gap:8px">
-    <b id="insTitle" style="font-size:13px;word-break:break-all"></b>
-    <span style="font-size:12px;color:var(--muted);margin-bottom:4px">ต้องการวางหน้าจากไฟล์นี้ไว้ตรงไหน</span>
-    <button class="btn" id="insFront" style="justify-content:center">ไว้หน้าแรกสุด</button>
-    <button class="btn" id="insAfter" style="justify-content:center">แทรกหลังหน้าปัจจุบัน</button>
-    <button class="btn primary" id="insEnd" style="justify-content:center">ต่อท้ายไฟล์</button>
-    <button class="btn" id="insCancel" style="justify-content:center;border:none;color:var(--muted)">ยกเลิก</button>
-  </div>
-</div>
 <div id="toast"></div>
 
 <script>
@@ -418,7 +487,7 @@ let baseName = 'document';
 let pages = [];             // {srcIndex,intrinsic,rot,baseW,baseH,annots[],undo[]}
 let current = 0;
 let selected = new Set();   // page objects
-let zoom = 1, fitMode = true, rs = 1;   // rs = canvas pixels per PDF point actually rendered
+let zoom = 1, fitMode = 'width', rs = 1;   // rs = canvas pixels per PDF point actually rendered
 let renderSeq = 0, renderTask = null;
 const ZMIN = .05, ZMAX = 5;
 
@@ -433,7 +502,7 @@ let tool = 'pan', lastDrawTool = 'pen';
 let color = '#1B1F24';
 let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
 let sizes = {pen:3, hl:14, text:16};
-let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll';
+let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll', backupOn = true;
 /* text is drawn as part of the overlay image, so any web font works in the saved PDF too;
    Thai Google Fonts load on first use and the service worker keeps them for offline use */
 const FONTS = {
@@ -454,18 +523,21 @@ const FONTS = {
     textBold = !!s.textBold;
     if(s.snapQ==='high') snapQ='high';
     if(s.viewMode==='single') viewMode='single';
+    if(s.backupOn===false) backupOn=false;
     if(['pen','hl','text','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
   }catch(e){}
 })();
 function saveSettings(){
-  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode})); }catch(e){}
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.0.0-beta.1';
+const APP_VERSION = '2.1.0-beta.1';
 const $ = id => document.getElementById(id);
-const viewerEl=$('viewer'), stage=$('stage'), wrap=$('pageWrap'),
-      pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'),
-      txtIn=$('txtIn'), thumbList=$('thumbList');
+const viewerEl=$('viewer'), wrap=$('pageWrap'),
+      pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
+/* the active tab's thumbnail list and page area (each tab has its own pair) */
+let stage=$('stage'), thumbList=$('thumbList');
+const emptyStage=stage, emptyThumbs=thumbList;
 
 /* ---------------- helpers ---------------- */
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show');
@@ -473,87 +545,489 @@ function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('sho
 const norm = d => ((d % 360) + 360) % 360;
 const totalRot = p => norm(p.intrinsic + p.rot);
 function dispSize(p){ return totalRot(p)%180 ? {w:p.baseH,h:p.baseW} : {w:p.baseW,h:p.baseH}; }
-function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); history.push({t:'a',p}); trimHistory(); }
-const history=[];                 // newest last: {t:'a',p} annotation change · {t:'d',pages,current} page delete
-function trimHistory(){ if(history.length>200) history.shift(); }
-function snapPages(){ history.push({t:'pg', pages:[...pages], current}); trimHistory(); }
+/* undo / redo — one list per tab, newest last:
+   {t:'a',p} strokes/text of page p changed (its previous state is on p.undo)
+   {t:'pg',pages,current} the page list changed (delete, move, insert)
+   {t:'rot',list,cw} pages were rotated */
+let undoLog=[], redoLog=[];
+function logPush(e){ undoLog.push(e); if(undoLog.length>200) undoLog.shift(); redoLog.length=0; markDirty(); }
+function pushUndo(p){ p.undo.push(JSON.stringify(p.annots)); if(p.undo.length>30) p.undo.shift(); logPush({t:'a',p}); }
+function snapPages(){ logPush({t:'pg', pages:[...pages], current}); }
+function markDirty(){ if(activeTab&&!activeTab.dirty){ activeTab.dirty=true; renderTabs(); } }
 
-/* ---------------- open file ---------------- */
-$('btnOpen').onclick = ()=>{ addMode=false; $('fileIn').click(); };
-$('btnOpen2').onclick = ()=>{ addMode=false; $('fileIn').click(); };
-$('btnAdd').onclick  = ()=>{ addMode=true;  $('fileIn').click(); };
-$('fileIn').onchange = e=>{
-  const f=e.target.files[0];
-  if(f){ (addMode && docs.length) ? openInsertModal(f) : loadFile(f); }
-  e.target.value='';
-};
-function openInsertModal(f){ pendFile=f; $('insTitle').textContent=f.name; $('insModal').style.display='flex'; }
-function closeIns(){ $('insModal').style.display='none'; pendFile=null; }
-$('insFront').onclick =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'front'); };
-$('insAfter').onclick =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'after'); };
-$('insEnd').onclick   =()=>{ const f=pendFile; closeIns(); insertFileAt(f,'end'); };
-$('insCancel').onclick=closeIns;
+/* ---------------- documents & tabs ----------------
+   Each open file is a tab. A tab owns its own thumbnail list and page area in the page, plus
+   its working state (pages, undo, zoom, scroll). Switching tabs stores the working variables
+   into the tab being left and loads them from the tab being opened, so everything else in the
+   app keeps working on "the active tab" exactly as before. */
+const tabs=[]; let activeTab=null, tabSeq=0;
+const canFS='showOpenFilePicker' in window && 'showSaveFilePicker' in window;
+const PDF_TYPES=[{description:'PDF', accept:{'application/pdf':['.pdf']}}];
+const stripPdf=n=>(n||'document').replace(/\.pdf$/i,'') || 'document';
 
-const dropEl=$('drop');
-['dragover','dragenter'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('over');}));
-['dragleave','drop'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===document.documentElement)dropEl.classList.remove('over');}));
-window.addEventListener('drop',e=>{
-  const f=[...(e.dataTransfer?.files||[])].find(f=>/pdf$/i.test(f.name)||f.type==='application/pdf');
-  if(f){ docs.length ? openInsertModal(f) : loadFile(f); }
+function newTab(name, handle){
+  const thumbEl=document.createElement('div'); thumbEl.className='thumbList'; thumbEl.hidden=true;
+  emptyThumbs.parentNode.appendChild(thumbEl);
+  const stageEl=document.createElement('div'); stageEl.className='stage'; stageEl.hidden=true;
+  viewerEl.insertBefore(stageEl, $('empty'));
+  return {id:++tabSeq, name, handle:handle||null, docs:[], pages:[], current:0, selected:new Set(),
+          undoLog:[], redoLog:[], baseName:stripPdf(name), zoom:1, fitMode:'width', slots:[],
+          sl:0, st:0, dirty:false, backedUp:false, thumbEl, stageEl};
+}
+function stashTab(){
+  const t=activeTab; if(!t) return;
+  Object.assign(t,{docs,pages,current,selected,undoLog,redoLog,baseName,zoom,fitMode,slots,
+                   sl:viewerEl.scrollLeft, st:viewerEl.scrollTop});
+}
+function leaveTab(){
+  if(!activeTab) return;
+  if(txtIn.style.display==='block') commitText();
+  if(selText){ selText=null; redrawOverlay(); }
+  stashTab();
+  slotIO.disconnect(); nearSlots.clear();
+  slots.forEach(freeSlot);
+  // keep a light picture of the page being left, so coming back shows it at once
+  const cs=slots[current];
+  if(cs&&pdfCv.width>1){
+    const k=Math.min(1,Math.sqrt(8e6/(pdfCv.width*pdfCv.height)));
+    for(const [dst,src] of [[cs.cp,pdfCv],[cs.co,ovCv]]){
+      dst.width=Math.max(1,Math.round(src.width*k)); dst.height=Math.max(1,Math.round(src.height*k));
+      dst.getContext('2d').drawImage(src,0,0,dst.width,dst.height);
+    }
+    cs.rs=rs*k; cs.z=null; cs.v=-1;
+  }
+  emptyStage.appendChild(wrap);                    // park the working canvases outside every tab
+  activeTab.thumbEl.hidden=true; activeTab.stageEl.hidden=true;
+}
+/* show tab t; fresh=true for a tab whose thumbnails/slots are not built yet */
+function activateTab(t, fresh=false){
+  if(t===activeTab&&!fresh) return Promise.resolve();
+  leaveTab();
+  activeTab=t;
+  ({docs,pages,current,selected,undoLog,redoLog,baseName,zoom,fitMode,slots}=t);
+  thumbList=t.thumbEl; stage=t.stageEl;
+  thumbList.hidden=false; stage.hidden=false;
+  emptyThumbs.hidden=true; emptyStage.hidden=true;
+  $('empty').style.display='none'; wrap.style.display='block';
+  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnCompress','btnPrint'].forEach(id=>$(id).disabled=false);
+  $('fname').textContent=t.name;
+  document.title=`${t.name} — WY Pdf Box`;
+  renderSwatches();
+  let done;
+  if(fresh){ rebuildThumbs(); done=goToPage(0); }
+  else{
+    slots.forEach(sl=>slotIO.observe(sl.el));
+    rebuildSlotsIfNeeded();
+    done=showPage(current);
+    viewerEl.scrollLeft=t.sl; viewerEl.scrollTop=t.st; navTop=viewerEl.scrollTop;
+    refreshSelInfo();
+  }
+  renderTabs(); saveSession();
+  return done;
+}
+function rebuildSlotsIfNeeded(){ if(slots.length!==pages.length) rebuildSlots(); else layoutSlots(); }
+function showEmpty(){
+  activeTab=null;
+  docs=[]; pages=[]; current=0; selected=new Set(); undoLog=[]; redoLog=[]; slots=[];
+  slotIO.disconnect(); nearSlots.clear();
+  stage=emptyStage; thumbList=emptyThumbs; emptyStage.hidden=false; emptyThumbs.hidden=false;
+  emptyStage.appendChild(wrap); wrap.style.display='none';
+  $('empty').style.display='';
+  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnCompress','btnPrint'].forEach(id=>$(id).disabled=true);
+  $('fname').textContent=''; document.title='WY Pdf Box';
+  $('pgInfo').textContent='–'; $('btnSaveSel').style.display='none';
+  renderTabs(); saveSession(); renderStart();
+}
+
+/* tab strip */
+function renderTabs(){
+  const bar=$('tabs'); bar.replaceChildren();
+  bar.classList.toggle('on', tabs.length>0);
+  for(const t of tabs){
+    const el=document.createElement('div');
+    el.className='tab'+(t===activeTab?' on':'')+(t.dirty?' dirty':'');
+    el.setAttribute('role','tab'); el.title=t.name+(t.dirty?' (ยังไม่ได้บันทึก)':'');
+    const nm=document.createElement('span'); nm.className='tname'; nm.textContent=t.name;
+    const dot=document.createElement('span'); dot.className='tdirty';
+    const x=document.createElement('button'); x.className='tclose'; x.title='ปิด';
+    x.innerHTML='<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg>';
+    x.onclick=e=>{ e.stopPropagation(); closeTab(t); };
+    el.append(nm,dot,x);
+    el.onclick=()=>activateTab(t);
+    el.onauxclick=e=>{ if(e.button===1){ e.preventDefault(); closeTab(t); } };
+    el.oncontextmenu=e=>{ e.preventDefault(); showMenu({x:e.clientX,y:e.clientY},[
+      {label:'บันทึก', action:async()=>{ await activateTab(t); saveDoc(); }},
+      {label:'บันทึกเป็น…', action:async()=>{ await activateTab(t); saveDoc({as:true}); }},
+      {sep:true},
+      {label:'ปิดแท็บนี้', action:()=>closeTab(t)},
+      {label:'ปิดแท็บอื่นทั้งหมด', disabled:tabs.length<2, action:async()=>{ for(const o of [...tabs]) if(o!==t && !(await closeTab(o))) break; }},
+    ]); };
+    bar.appendChild(el);
+    if(t===activeTab) requestAnimationFrame(()=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
+  }
+}
+function cycleTab(dir){
+  if(tabs.length<2) return;
+  const i=tabs.indexOf(activeTab);
+  activateTab(tabs[(i+dir+tabs.length)%tabs.length]);
+}
+async function closeTab(t){
+  if(t.dirty){
+    if(t!==activeTab) await activateTab(t);
+    const a=await ask(`บันทึกการแก้ไขใน "${t.name}" ก่อนปิดไหม?`, '', [
+      {label:'บันทึก', value:'save', primary:true}, {label:'ไม่บันทึก', value:'discard'}, {label:'ยกเลิก', value:null, link:true}]);
+    if(!a) return false;
+    if(a==='save' && !(await saveDoc())) return false;
+  }
+  const i=tabs.indexOf(t);
+  if(t===activeTab){ leaveTab(); activeTab=null; }
+  tabs.splice(i,1);
+  t.slots.forEach(freeSlot); t.thumbEl.remove(); t.stageEl.remove();
+  // free the PDF engines this tab used, unless another tab still shows pages from them
+  for(const d of t.docs) if(!tabs.some(o=>o.docs.includes(d))) { try{ d.pdf.destroy(); }catch(e){} }
+  if(!activeTab){
+    if(tabs.length) activateTab(tabs[Math.min(i,tabs.length-1)]);
+    else showEmpty();
+  } else renderTabs();
+  saveSession();
+  return true;
+}
+window.addEventListener('beforeunload',e=>{
+  if(tabs.some(t=>t.dirty)){ e.preventDefault(); e.returnValue=''; }
 });
 
-async function parsePdf(file){
+/* open */
+async function parsePdf(file, into=docs){
   const buf = new Uint8Array(await file.arrayBuffer());
   const bytes = buf.slice();                      // เก็บสำเนาไว้ให้ pdf-lib
   const pdf = await pdfjsLib.getDocument({data:buf}).promise;
-  const di = docs.length, list = [];
+  const di = into.length, list = [];
   for(let i=0;i<pdf.numPages;i++){
     const pg = await pdf.getPage(i+1);
     const vp0 = pg.getViewport({scale:1, rotation:0});
     list.push({doc:di, srcIndex:i, intrinsic:norm(pg.rotate||0), rot:0,
                baseW:vp0.width, baseH:vp0.height, annots:[], undo:[]});
   }
-  docs.push({pdf, bytes});
+  into.push({pdf, bytes});
   return list;
 }
-async function loadFile(file){
+/* open a file in a new tab; the same file already open just brings its tab forward */
+async function openDocument(file, handle=null, name=null){
   try{
+    if(handle) for(const t of tabs){
+      if(t.handle && await t.handle.isSameEntry(handle).catch(()=>false)){ await activateTab(t); toast('ไฟล์นี้เปิดอยู่แล้ว'); return t; }
+    }
     toast('กำลังเปิดไฟล์…');
-    docs=[]; selected.clear(); current=0; history.length=0;
-    pages = await parsePdf(file);
-    baseName = file.name.replace(/\.pdf$/i,'') || 'document';
-    $('fname').textContent = file.name;
-    $('empty').style.display='none';
-    wrap.style.display='block';
-    $('btnSave').disabled=false;
-    $('btnAdd').disabled=false;
-    $('btnSnap').disabled=false;
-    $('btnCompress').disabled=false;
-    fitMode=true;
-    rebuildThumbs();
-    await goToPage(0);
+    const t=newTab(name||file.name, handle);
+    t.pages=await parsePdf(file, t.docs);
+    tabs.push(t);
+    await activateTab(t, true);
+    if(handle) addRecent(handle);
     toast(`เปิดแล้ว · ${pages.length} หน้า`);
+    return t;
   }catch(err){
     console.error(err);
     toast('เปิดไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
+    return null;
   }
+}
+const loadFile=f=>openDocument(f);              // (kept for older call sites)
+async function openFiles(){
+  if(canFS){
+    let hs;
+    try{ hs=await showOpenFilePicker({id:'wy-open', multiple:true, types:PDF_TYPES}); }
+    catch(e){ if(e.name!=='AbortError') console.error(e); return; }
+    for(const h of hs) await openDocument(await h.getFile(), h);
+  } else { addMode=false; $('fileIn').click(); }
+}
+$('btnOpen').onclick=openFiles;
+$('btnOpen2').onclick=openFiles;
+$('fileIn').onchange=async e=>{
+  const fs=[...e.target.files]; e.target.value='';
+  if(addMode&&pages.length&&fs[0]){ chooseInsertPlace({file:fs[0]}); return; }
+  for(const f of fs) await openDocument(f);
+};
+
+/* drop files: on the page list = insert into this file, anywhere else = open as tabs */
+const dropEl=$('drop');
+['dragover','dragenter'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===document.documentElement)dropEl.classList.remove('over');}));
+window.addEventListener('drop',async e=>{
+  const fs=[...(e.dataTransfer?.files||[])].filter(f=>/pdf$/i.test(f.name)||f.type==='application/pdf');
+  if(!fs.length||e.target.closest?.('.thumb')) return;   // thumbnails handle their own drag-reorder
+  if(pages.length && e.target.closest?.('aside')){ chooseInsertPlace({file:fs[0]}); return; }
+  for(const f of fs) await openDocument(f);
+});
+
+/* ---------------- insert pages: from a file on disk or from another open tab ---------------- */
+$('btnAdd').onclick=async()=>{
+  const others=tabs.filter(t=>t!==activeTab);
+  const opts=[{label:'ไฟล์ในเครื่อง…', value:'disk', primary:!others.length}];
+  for(const t of others){
+    const n=t.selected.size;
+    opts.push({label:t.name, sub: n?`ใช้ ${n} หน้าที่ติ๊กไว้ในแท็บนั้น`:`ทั้งไฟล์ · ${t.pages.length} หน้า`, value:t});
+  }
+  opts.push({label:'ยกเลิก', value:null, link:true});
+  const src = others.length ? await ask('เพิ่มหน้าจาก', 'เลือกไฟล์ในเครื่อง หรือดึงจากแท็บที่เปิดอยู่ (ได้ตามสภาพปัจจุบันของแท็บนั้น รวมรอยขีดเขียนและการหมุน)', opts) : 'disk';
+  if(!src) return;
+  if(src==='disk'){
+    if(canFS){
+      let hs; try{ hs=await showOpenFilePicker({id:'wy-open', multiple:false, types:PDF_TYPES}); }
+      catch(e){ if(e.name!=='AbortError') console.error(e); return; }
+      chooseInsertPlace({file:await hs[0].getFile()});
+    } else { addMode=true; $('fileIn').click(); }
+  } else chooseInsertPlace({tab:src});
+};
+async function chooseInsertPlace(src){
+  const title = src.file ? src.file.name : src.tab.name;
+  const where = await ask(title, 'ต้องการวางหน้าเหล่านี้ไว้ตรงไหน', [
+    {label:'ไว้หน้าแรกสุด', value:'front'}, {label:'แทรกหลังหน้าปัจจุบัน', value:'after'},
+    {label:'ต่อท้ายไฟล์', value:'end', primary:true}, {label:'ยกเลิก', value:null, link:true}]);
+  if(!where) return;
+  if(src.file) insertFileAt(src.file, where); else insertFromTab(src.tab, where);
 }
 async function insertFileAt(file, where){
   try{
     toast('กำลังเพิ่มไฟล์…');
     const list = await parsePdf(file);
-    const at = where==='front' ? 0 : where==='after' ? current+1 : pages.length;
-    snapPages();
-    pages.splice(at, 0, ...list);
-    selected.clear();
-    current = at;
-    rebuildThumbs();
-    await goToPage(at);
-    toast(`เพิ่มแล้ว ${list.length} หน้า`);
+    placePages(list, where);
   }catch(err){
     console.error(err);
     toast('เพิ่มไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
   }
+}
+function insertFromTab(src, where){
+  const take = src.selected.size ? src.pages.filter(p=>src.selected.has(p)) : src.pages;
+  const list = take.map(p=>{
+    const d=src.docs[p.doc]; let di=docs.indexOf(d);
+    if(di<0){ docs.push(d); di=docs.length-1; }      // share the source file, no second copy
+    return {doc:di, srcIndex:p.srcIndex, intrinsic:p.intrinsic, rot:p.rot, baseW:p.baseW, baseH:p.baseH,
+            annots:JSON.parse(JSON.stringify(p.annots)), undo:[]};
+  });
+  placePages(list, where);
+}
+function placePages(list, where){
+  const at = where==='front' ? 0 : where==='after' ? current+1 : pages.length;
+  snapPages();
+  pages.splice(at, 0, ...list);
+  selected.clear();
+  current = at;
+  rebuildThumbs();
+  goToPage(at);
+  toast(`เพิ่มแล้ว ${list.length} หน้า`);
+}
+
+/* ---------------- small UI kit: menus and choice dialogs ---------------- */
+let menuEl=null;
+function closeMenu(){ if(menuEl){ menuEl.remove(); menuEl=null; } }
+/* at = {x,y} or an element to drop the menu under */
+function showMenu(at, items){
+  closeMenu();
+  const m=document.createElement('div'); m.className='menu'; m.setAttribute('role','menu');
+  for(const it of items){
+    if(it.sep){ const d=document.createElement('div'); d.className='msep'; m.appendChild(d); continue; }
+    if(it.head){ const d=document.createElement('div'); d.className='mhead'; d.textContent=it.head; m.appendChild(d); continue; }
+    const b=document.createElement('button'); b.disabled=!!it.disabled; b.setAttribute('role','menuitem');
+    const tick=document.createElement('span'); tick.className='mtick'; tick.textContent=it.checked?'✓':'';
+    const lbl=document.createElement('span'); lbl.className='mlbl'; lbl.textContent=it.label;
+    if(it.sub){ const sm=document.createElement('small'); sm.className='msub'; sm.textContent=it.sub; lbl.appendChild(sm); }
+    b.append(tick,lbl);
+    if(it.key){ const k=document.createElement('span'); k.className='mk'; k.textContent=it.key; b.appendChild(k); }
+    b.onclick=()=>{ closeMenu(); it.action&&it.action(); };
+    m.appendChild(b);
+  }
+  document.body.appendChild(m); menuEl=m;
+  let x,y;
+  if(at instanceof Element){ const r=at.getBoundingClientRect(); x=r.right-m.offsetWidth; y=r.bottom+6; if(x<8) x=r.left; }
+  else { x=at.x; y=at.y; }
+  m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,x))+'px';
+  m.style.top=Math.max(8,Math.min(innerHeight-m.offsetHeight-8,y))+'px';
+}
+document.addEventListener('pointerdown',e=>{ if(menuEl&&!menuEl.contains(e.target)) closeMenu(); },true);
+window.addEventListener('blur',closeMenu);
+/* a dialog with buttons; resolves to the chosen value (null = cancelled) */
+function ask(title, note, options){
+  return new Promise(res=>{
+    const d=document.createElement('div'); d.className='dlg';
+    const box=document.createElement('div'); box.className='box'; box.setAttribute('role','dialog');
+    const h=document.createElement('b'); h.textContent=title; h.style.wordBreak='break-all'; box.appendChild(h);
+    if(note){ const n=document.createElement('span'); n.className='note'; n.textContent=note; box.appendChild(n); }
+    const done=v=>{ d.remove(); document.removeEventListener('keydown',esc,true); res(v); };
+    const esc=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(null); } };
+    for(const o of options){
+      const b=document.createElement('button'); b.className='btn'+(o.primary?' primary':'')+(o.link?' link':'');
+      b.textContent=o.label;
+      if(o.sub){ const sm=document.createElement('small'); sm.textContent=o.sub; b.appendChild(sm); b.style.flexDirection='column'; }
+      b.onclick=()=>done(o.value);
+      box.appendChild(b);
+    }
+    d.appendChild(box);
+    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
+    document.addEventListener('keydown',esc,true);
+    document.body.appendChild(d);
+    (box.querySelector('.btn.primary')||box.querySelector('.btn'))?.focus();
+  });
+}
+
+/* ---------------- recent files & last session (file handles kept in IndexedDB) ---------------- */
+const idb=(()=>{
+  let dbp=null;
+  const open=()=>dbp||(dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open('wy-pdf-box',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  }));
+  const tx=async(mode,fn)=>{ const db=await open(); return new Promise((res,rej)=>{
+    const q=fn(db.transaction('kv',mode).objectStore('kv')); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); };
+  return { get:k=>tx('readonly',s=>s.get(k)).catch(()=>undefined), set:(k,v)=>tx('readwrite',s=>s.put(v,k)).catch(()=>{}) };
+})();
+async function getRecent(){ return (await idb.get('recent'))||[]; }
+async function addRecent(handle){
+  const list=await getRecent(), out=[{name:handle.name, handle, time:Date.now()}];
+  for(const r of list){ if(out.length>=10) break; if(!(await r.handle.isSameEntry(handle).catch(()=>false))) out.push(r); }
+  await idb.set('recent', out);
+  renderStart();
+}
+async function openHandle(h){
+  try{
+    const o={mode:'read'};
+    if((await h.queryPermission(o))!=='granted' && (await h.requestPermission(o))!=='granted'){ toast('ไม่ได้รับอนุญาตให้เปิดไฟล์นี้'); return false; }
+    await openDocument(await h.getFile(), h); return true;
+  }catch(err){
+    console.error(err);
+    toast(`เปิด "${h.name}" ไม่ได้ — ไฟล์อาจถูกย้ายหรือลบไปแล้ว`);
+    const list=(await getRecent()).filter(r=>r.handle!==h); await idb.set('recent',list); renderStart();
+    return false;
+  }
+}
+function fmtTime(t){ return new Date(t).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+async function saveSession(){
+  if(!canFS) return;
+  await idb.set('session', tabs.filter(t=>t.handle).map(t=>({name:t.name, handle:t.handle})));
+}
+/* start screen: reopen last session + recent files */
+async function renderStart(){
+  if(tabs.length||!canFS) return;
+  const recentL=await getRecent(), sess=(await idb.get('session'))||[];
+  const sb=$('btnSession');
+  if(sess.length){
+    sb.style.display=''; sb.textContent=`เปิดไฟล์ชุดเดิมต่อ (${sess.length} ไฟล์)`;
+    sb.onclick=async()=>{ for(const s of sess) await openHandle(s.handle); };
+  } else sb.style.display='none';
+  const box=$('recentList'); box.replaceChildren();
+  $('recentWrap').style.display=recentL.length?'':'none';
+  for(const r of recentL.slice(0,6)){
+    const b=document.createElement('button');
+    b.textContent=r.name; const sm=document.createElement('small'); sm.textContent=fmtTime(r.time); b.appendChild(sm);
+    b.onclick=()=>openHandle(r.handle);
+    box.appendChild(b);
+  }
+}
+$('btnOpenMenu').onclick=async e=>{
+  e.stopPropagation();
+  const recentL=canFS?await getRecent():[];
+  const items=[{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles}];
+  if(recentL.length){ items.push({sep:true},{head:'ไฟล์ล่าสุด'});
+    for(const r of recentL) items.push({label:r.name, sub:fmtTime(r.time), action:()=>openHandle(r.handle)}); }
+  if(canFS){
+    items.push({sep:true},
+      {label:'กู้คืนไฟล์ก่อนบันทึก…', action:showBackups},
+      {label:'สำรองไฟล์เดิมก่อนบันทึกทับ', checked:backupOn, action:()=>{ backupOn=!backupOn; saveSettings();
+        toast(backupOn?'เปิดการสำรองไฟล์เดิมแล้ว':'ปิดการสำรองไฟล์เดิมแล้ว'); }});
+  }
+  showMenu($('btnOpenMenu'), items);
+};
+
+/* ---------------- save / save as / backups ---------------- */
+async function writeHandle(h, data){ const w=await h.createWritable(); await w.write(data); await w.close(); }
+async function canWrite(h){
+  const o={mode:'readwrite'};
+  if((await h.queryPermission(o))==='granted') return true;
+  return (await h.requestPermission(o))==='granted';
+}
+async function pickSaveTarget(suggested, near){
+  const opt={id:'wy-save', suggestedName:suggested, types:PDF_TYPES};
+  if(near) opt.startIn=near;                    // open the dialog in the folder of the current file
+  try{ return await showSaveFilePicker(opt); }
+  catch(e){ if(e.name==='AbortError') return null; if(near){ delete opt.startIn; return await showSaveFilePicker(opt).catch(()=>null); } throw e; }
+}
+function downloadBytes(bytes, name){
+  downloadBlob(new Blob([bytes],{type:'application/pdf'}), name);
+}
+/* new file (Save As / selected pages / compressed): returns false when cancelled */
+async function saveBytesAs(bytes, suggested){
+  if(!canFS){ downloadBytes(bytes, suggested); return {name:suggested}; }
+  const h=await pickSaveTarget(suggested, activeTab?.handle);
+  if(!h) return false;
+  await writeHandle(h, bytes);
+  addRecent(h);
+  return h;
+}
+/* Save (Ctrl+S): overwrite the file this tab came from; Save As or no file → pick a place */
+async function saveDoc({as=false}={}){
+  const t=activeTab; if(!t||!pages.length) return false;
+  if(txtIn.style.display==='block') commitText();
+  const btn=$('btnSave'), old=btn.innerHTML;
+  btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
+  try{
+    const bytes=await buildPdf(pages);
+    if(!canFS){ downloadBytes(bytes, `${baseName}${as?'-save_as':'-edited'}.pdf`); return savedOk(t,'บันทึกไฟล์แล้ว ✓ (อยู่ในโฟลเดอร์ดาวน์โหลด)'); }
+    if(!as && t.handle){
+      if(await canWrite(t.handle)){
+        try{
+          if(backupOn && !t.backedUp){ await backupOriginal(t.handle); t.backedUp=true; }
+          await writeHandle(t.handle, bytes);
+          return savedOk(t,'บันทึกแล้ว ✓');
+        }catch(err){ console.error(err); toast('บันทึกทับไม่ได้ (ไฟล์อาจเปิดอยู่ในโปรแกรมอื่น) — เลือกที่บันทึกใหม่'); }
+      } else toast('ไม่ได้รับอนุญาตให้บันทึกทับ — เลือกที่บันทึกใหม่');
+    }
+    const h=await pickSaveTarget(`${baseName}${(as||t.handle)?'-save_as':''}.pdf`, t.handle);
+    if(!h) return false;
+    await writeHandle(h, bytes);
+    t.handle=h; t.name=h.name; t.backedUp=true;       // the tab now stands for the new file
+    baseName=t.baseName=stripPdf(h.name);
+    $('fname').textContent=t.name; document.title=`${t.name} — WY Pdf Box`;
+    addRecent(h); saveSession();
+    return savedOk(t,`บันทึกเป็น "${h.name}" แล้ว ✓`);
+  }catch(err){
+    console.error(err);
+    toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ');
+    return false;
+  }finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+function savedOk(t,msg){ t.dirty=false; renderTabs(); toast(msg); return true; }
+
+/* backups of the file as it was before the first overwrite, kept in the app's private storage */
+const BK_DAYS=7, BK_MAX=20;
+async function backupDir(){ const root=await navigator.storage.getDirectory(); return root.getDirectoryHandle('backups',{create:true}); }
+async function backupOriginal(h){
+  const f=await h.getFile(), dir=await backupDir();
+  const fh=await dir.getFileHandle(`${Date.now()}__${f.name}`,{create:true});
+  await writeHandle(fh, f);
+  await pruneBackups(dir);
+}
+async function listBackups(dir){
+  const out=[];
+  for await (const [name,fh] of dir.entries()){
+    const m=/^(\d+)__(.*)$/.exec(name); if(!m||fh.kind!=='file') continue;
+    out.push({name, time:+m[1], file:m[2], fh});
+  }
+  return out.sort((a,b)=>b.time-a.time);
+}
+async function pruneBackups(dir){
+  const list=await listBackups(dir), now=Date.now();
+  for(const [i,b] of list.entries())
+    if(i>=BK_MAX || now-b.time>BK_DAYS*864e5) await dir.removeEntry(b.name).catch(()=>{});
+}
+async function showBackups(){
+  let list=[];
+  try{ const dir=await backupDir(); await pruneBackups(dir); list=await listBackups(dir); }catch(e){ console.error(e); }
+  if(!list.length){ toast('ยังไม่มีไฟล์สำรอง — จะเก็บให้อัตโนมัติก่อนบันทึกทับครั้งแรก'); return; }
+  const pick=await ask('กู้คืนไฟล์ก่อนบันทึก', `ไฟล์ต้นฉบับก่อนถูกบันทึกทับ เก็บไว้ ${BK_DAYS} วัน หรือ ${BK_MAX} ไฟล์ล่าสุด · เปิดแล้วใช้ "บันทึกเป็น" เพื่อเก็บไว้ที่ไหนก็ได้`,
+    [...list.map(b=>({label:b.file, sub:`ก่อนบันทึก ${fmtTime(b.time)}`, value:b})), {label:'ปิด', value:null, link:true}]);
+  if(!pick) return;
+  const f=await pick.fh.getFile();
+  await openDocument(f, null, `${stripPdf(pick.file)} (สำรอง ${fmtTime(pick.time)}).pdf`);
 }
 
 /* ---------------- thumbnails ---------------- */
@@ -714,7 +1188,12 @@ function attachWrap(i){
   return true;
 }
 function fitZoom(){
-  const avail=viewerEl.clientWidth-(window.innerWidth<=820?26:42);
+  const pad=window.innerWidth<=820?26:42;
+  const avail=viewerEl.clientWidth-pad;
+  if(fitMode==='page'){
+    const d=dispSize(pages[current]);
+    return Math.max(ZMIN,Math.min(4, avail/d.w, (viewerEl.clientHeight-pad)/d.h));
+  }
   const w = viewMode==='scroll' ? Math.max(...pages.map(p=>dispSize(p).w)) : dispSize(pages[current]).w;
   return Math.max(ZMIN,Math.min(4, avail/w));
 }
@@ -978,8 +1457,8 @@ function cancelStroke(){               // a second finger landed: the stroke was
   if(!drawing) return;
   const p=pages[current];
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
-  else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); history.pop(); } }
-  else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); history.pop(); }
+  else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
 function endStroke(){
@@ -993,7 +1472,7 @@ function endStroke(){
   if(drawing.type==='erase'&&drawing.hit){
     const p=pages[current];
     p.undo.push(drawing.snapshot); if(p.undo.length>30)p.undo.shift();
-    history.push({t:'a',p}); trimHistory();
+    logPush({t:'a',p});
   }
   drawing=null; drawPid=null;
   refreshThumbCanvas(current);
@@ -1196,26 +1675,49 @@ txtIn.addEventListener('blur',()=>setTimeout(()=>{
 },0));
 
 /* undo */
-$('btnUndo').onclick=()=>{
+function restorePages(h, toast_){
+  const cur=h.pages[h.current]||h.pages[0];
+  pages=h.pages; selected.clear();
+  current=Math.max(0,pages.indexOf(cur));
+  rebuildThumbs(); goToPage(current);
+  toast(`${toast_} · ${pages.length} หน้า`);
+}
+function undo(){
   if(txtIn.style.display==='block') txtIn.blur();
-  while(history.length){
-    const h=history.pop();
-    if(h.t==='pg'){                                   // page delete / move / insert
-      const cur=h.pages[h.current]||h.pages[0];
-      pages=h.pages; selected.clear();
-      current=Math.max(0,pages.indexOf(cur));
-      rebuildThumbs(); goToPage(current);
-      toast(`ย้อนกลับแล้ว · ${pages.length} หน้า`);
-      return;
-    }
+  while(undoLog.length){
+    const h=undoLog.pop();
+    if(h.t==='pg'){ redoLog.push({t:'pg', pages:[...pages], current}); restorePages(h,'ย้อนกลับแล้ว'); markDirty(); return; }
+    if(h.t==='rot'){ const live=h.list.filter(p=>pages.includes(p)); if(!live.length) continue;
+      rotate(live,!h.cw,false); redoLog.push(h); markDirty(); return; }
     const p=h.p, i=pages.indexOf(p);
     if(i<0||!p.undo.length) continue;                 // that page is gone: skip to the next step
+    redoLog.push({t:'a', p, state:JSON.stringify(p.annots)});
     p.annots=JSON.parse(p.undo.pop());
     refreshThumbCanvas(i);
     if(i!==current) goToPage(i); else redrawOverlay();
-    return;
+    markDirty(); return;
   }
-};
+  toast('ไม่มีอะไรให้ย้อนกลับ');
+}
+function redo(){
+  if(txtIn.style.display==='block') txtIn.blur();
+  while(redoLog.length){
+    const h=redoLog.pop();
+    if(h.t==='pg'){ undoLog.push({t:'pg', pages:[...pages], current}); restorePages(h,'ทำซ้ำแล้ว'); markDirty(); return; }
+    if(h.t==='rot'){ const live=h.list.filter(p=>pages.includes(p)); if(!live.length) continue;
+      rotate(live,h.cw,false); undoLog.push(h); markDirty(); return; }
+    const p=h.p, i=pages.indexOf(p);
+    if(i<0) continue;
+    p.undo.push(JSON.stringify(p.annots)); undoLog.push({t:'a',p});
+    p.annots=JSON.parse(h.state);
+    refreshThumbCanvas(i);
+    if(i!==current) goToPage(i); else redrawOverlay();
+    markDirty(); return;
+  }
+  toast('ไม่มีอะไรให้ทำซ้ำ');
+}
+$('btnUndo').onclick=undo;
+$('btnRedo').onclick=redo;
 
 /* ---------------- tools UI ---------------- */
 const toolBtns=[...document.querySelectorAll('#toolGroup .tbtn')];
@@ -1325,10 +1827,21 @@ if(textFont!=='sys') linkFonts();
 
 /* keyboard shortcuts (by key position, so a Thai keyboard layout works too) */
 document.addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&!e.altKey){
+    const fileKey={KeyO:()=>openFiles(), KeyS:()=>pages.length&&saveDoc({as:e.shiftKey}), KeyP:()=>pages.length&&startPrint()}[e.code];
+    if(fileKey){ e.preventDefault(); if(txtIn.style.display==='block') commitText(); fileKey(); return; }
+    if(e.code==='Tab'||e.code==='PageDown'||e.code==='PageUp'){
+      if(tabs.length>1){ e.preventDefault(); cycleTab(e.code==='PageUp'||(e.code==='Tab'&&e.shiftKey)?-1:1); }
+      return;
+    }
+  }
+  if(document.querySelector('.dlg')) return;       // a dialog is open
   const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&e.target.type!=='range' || e.target.isContentEditable;
   if(typing) return;
-  const mod=e.ctrlKey||e.metaKey;
-  if(mod&&e.code==='KeyZ'&&!e.shiftKey){ e.preventDefault(); $('btnUndo').click(); return; }
+  if(mod&&e.code==='KeyZ'&&!e.shiftKey){ e.preventDefault(); undo(); return; }
+  if(mod&&(e.code==='KeyY'||(e.code==='KeyZ'&&e.shiftKey))){ e.preventDefault(); redo(); return; }
+  if(mod&&e.code==='KeyG'){ e.preventDefault(); editPage(); return; }
   if(mod&&e.code==='KeyC'&&pages.length&&!String(getSelection())){ e.preventDefault(); snapshot('page'); return; }
   if(mod&&(e.code==='Equal'||e.code==='NumpadAdd')){ e.preventDefault(); $('btnZoomIn').click(); return; }
   if(mod&&(e.code==='Minus'||e.code==='NumpadSubtract')){ e.preventDefault(); $('btnZoomOut').click(); return; }
@@ -1336,7 +1849,9 @@ document.addEventListener('keydown',e=>{
   if(mod||e.altKey) return;
   const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
-  else if(e.code==='Escape'){ closePalette(); closeSnap(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
+  else if(pages.length&&e.code==='Home'){ e.preventDefault(); goToPage(0); }
+  else if(pages.length&&e.code==='End'){ e.preventDefault(); goToPage(pages.length-1); }
+  else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
   else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); goToPage(current+1); }
   else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); goToPage(current-1); }
@@ -1355,8 +1870,9 @@ function rotAnnots(p,cw){
     else a.pts=a.pts.map(tf);
   }
 }
-function rotate(list,cw){
+function rotate(list,cw,log=true){
   if(!list.length) return;
+  if(log) logPush({t:'rot', list:[...list], cw});
   list.forEach(p=>{ rotAnnots(p,cw); p.rot=norm(p.rot+(cw?90:-90)); });
   pages.forEach((p,i)=>{ if(list.includes(p)) refreshThumbCanvas(i); });
   showPage(current);
@@ -1365,10 +1881,11 @@ $('btnRotR').onclick=()=>rotate(targets(),true);
 $('btnRotL').onclick=()=>rotate(targets(),false);
 $('btnRotAll').onclick=()=>rotate([...pages],true);
 
-$('btnDel').onclick=()=>{
-  const t=targets(); if(!t.length) return;
+$('btnDel').onclick=()=>deletePages(targets());
+async function deletePages(t){
+  if(!t.length) return;
   if(t.length>=pages.length){ toast('ต้องเหลืออย่างน้อย 1 หน้า'); return; }
-  if(!confirm(`ลบ ${t.length} หน้า?`)) return;
+  if(!(await ask(`ลบ ${t.length} หน้า?`, 'ย้อนกลับได้ด้วย Ctrl+Z', [{label:'ลบ', value:true, primary:true},{label:'ยกเลิก', value:false, link:true}]))) return;
   const cur=pages[current];
   snapPages();
   pages=pages.filter(p=>!t.includes(p));
@@ -1376,7 +1893,7 @@ $('btnDel').onclick=()=>{
   current=t.includes(cur)? Math.min(current,pages.length-1) : pages.indexOf(cur);
   rebuildThumbs(); goToPage(current);
   toast(`ลบแล้ว ${t.length} หน้า · กด ↶ หรือ Ctrl+Z เพื่อเอากลับ`);
-};
+}
 
 /* ---------------- copy page as picture ----------------
    desktop: straight to the clipboard (paste into LINE, Word, mail…)
@@ -1508,20 +2025,39 @@ function zoomAtCenter(f){
 }
 $('btnZoomIn').onclick=()=>zoomAtCenter(1.25);
 $('btnZoomOut').onclick=()=>zoomAtCenter(1/1.25);
-$('btnFit').onclick=()=>{fitMode=true; goToPage(current);};
+$('btnFit').onclick=()=>{fitMode='width'; goToPage(current);};
 let rzT; window.addEventListener('resize',()=>{ closePalette(); closeSnap(); if(fitMode&&pages.length){clearTimeout(rzT); rzT=setTimeout(()=>showPage(current),150);} });
 
 /* ---------------- save ---------------- */
-$('btnSave').onclick=()=>savePages(pages,'edited',$('btnSave'));
-$('btnSaveSel').onclick=()=>{
-  const list=pages.filter(p=>selected.has(p));      // in the order they appear now
-  if(list.length) savePages(list,'selected',$('btnSaveSel'));
+$('btnSave').onclick=()=>saveDoc();
+$('btnSaveMenu').onclick=e=>{
+  e.stopPropagation();
+  const n=selected.size;
+  showMenu($('btnSaveMenu'),[
+    {label:'บันทึก', key:'Ctrl+S', action:()=>saveDoc()},
+    {label:'บันทึกเป็น…', key:'Ctrl+Shift+S', action:()=>saveDoc({as:true})},
+    {label:n?`บันทึก ${n} หน้าที่เลือกเป็นไฟล์ใหม่…`:'บันทึกหน้าที่เลือกเป็นไฟล์ใหม่…', disabled:!n, action:saveSelectedPages},
+    {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:()=>$('btnCompress').click()},
+    {sep:true},
+    {label:'พิมพ์…', key:'Ctrl+P', action:startPrint},
+  ]);
 };
-async function savePages(list, suffix, btn){
-  if(!docs.length||!list.length) return;
-  const old=btn.innerHTML;
-  btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
+$('btnSaveSel').onclick=saveSelectedPages;
+async function saveSelectedPages(list){
+  if(!Array.isArray(list)) list=pages.filter(p=>selected.has(p));      // in the order they appear now
+  if(!list.length) return;
+  const btn=$('btnSaveSel'), old=btn.innerHTML;
+  btn.disabled=true;
   try{
+    const bytes=await buildPdf(list);
+    if(await saveBytesAs(bytes, `${baseName}-selected.pdf`)) toast(`บันทึก ${list.length} หน้าเป็นไฟล์ใหม่แล้ว ✓`);
+  }catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ'); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+/* the PDF bytes for a list of pages: original pages copied as they are (text stays text),
+   rotation applied, strokes and text laid over as an image */
+async function buildPdf(list){
+  {
     await fontsFor(list);
     const srcLibs=[];
     for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
@@ -1549,19 +2085,7 @@ async function savePages(list, suffix, btn){
         pg.drawImage(img,{...opt,width:d.w,height:d.h});
       }
     }
-    const bytes=await out.save();
-    const blob=new Blob([bytes],{type:'application/pdf'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`${baseName}-${suffix}.pdf`;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    toast(suffix==='selected' ? `บันทึก ${list.length} หน้าเป็นไฟล์ใหม่แล้ว ✓` : 'บันทึกไฟล์แล้ว ✓');
-  }catch(err){
-    console.error(err);
-    toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ');
-  }finally{
-    btn.disabled=false; btn.innerHTML=old;
+    return await out.save();
   }
 }
 
@@ -1600,24 +2124,128 @@ async function compressSave(dpi, q){
     }
     const bytes=await out.save();
     const orig=docs.reduce((s,d)=>s+d.bytes.length,0);
-    const blob=new Blob([bytes],{type:'application/pdf'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=baseName+'-compressed.pdf';
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     const mb=x=>(x/1048576).toFixed(2);
-    toast(`เสร็จแล้ว ✓ ${mb(orig)} MB → ${mb(bytes.length)} MB`);
+    if(await saveBytesAs(bytes, `${baseName}-compressed.pdf`)) toast(`เสร็จแล้ว ✓ ${mb(orig)} MB → ${mb(bytes.length)} MB`);
   }catch(err){
     console.error(err);
     toast('บีบอัดไม่สำเร็จ');
   }
 }
 
+/* ---------------- print ----------------
+   pages are drawn as pictures (with strokes and text) into a print-only area, then the
+   system print dialog takes over (printer, paper size, orientation, copies) */
+$('btnPrint').onclick=()=>startPrint();
+async function startPrint(){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText();
+  const n=selected.size;
+  const opts=[{label:`ทั้งไฟล์`, sub:`${pages.length} หน้า`, value:'all', primary:!n}];
+  if(n) opts.push({label:'หน้าที่เลือก', sub:`${n} หน้า`, value:'sel', primary:true});
+  opts.push({label:'หน้าปัจจุบัน', sub:`หน้า ${current+1}`, value:'cur'}, {label:'ยกเลิก', value:null, link:true});
+  const which=await ask('พิมพ์', 'เลือกหน้าที่จะพิมพ์ แล้วเลือกเครื่องพิมพ์ ขนาดกระดาษ และแนวกระดาษในหน้าต่างพิมพ์ถัดไป', opts);
+  if(!which) return;
+  const list = which==='all'?pages : which==='sel'?pages.filter(p=>selected.has(p)) : [pages[current]];
+  const root=$('printRoot'); root.replaceChildren();
+  try{
+    await fontsFor(list);
+    for(let i=0;i<list.length;i++){
+      toast(`กำลังเตรียมพิมพ์… ${i+1}/${list.length}`);
+      const p=list[i], d=dispSize(p);
+      const scale=Math.min(200/72, Math.sqrt(14e6/(d.w*d.h)));   // ~200 dpi, capped for big sheets
+      const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
+      const vp=page.getViewport({scale, rotation:totalRot(p)});
+      const cv=document.createElement('canvas'); cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
+      const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+      await page.render({canvasContext:c, viewport:vp}).promise;
+      c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots);
+      const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92)); cv.width=cv.height=0;
+      const img=new Image(); img.src=URL.createObjectURL(blob); root.appendChild(img);
+    }
+    await Promise.all([...root.querySelectorAll('img')].map(im=>im.decode().catch(()=>{})));
+    toast('เปิดหน้าต่างพิมพ์…');
+    const cleanup=()=>{ [...root.querySelectorAll('img')].forEach(im=>URL.revokeObjectURL(im.src)); root.replaceChildren(); };
+    window.addEventListener('afterprint', cleanup, {once:true});
+    window.print();
+  }catch(err){ console.error(err); toast('เตรียมพิมพ์ไม่สำเร็จ'); root.replaceChildren(); }
+}
+
+/* ---------------- go to page / zoom presets ---------------- */
+function editPage(){
+  if(!pages.length||$('pgEdit')) return;
+  const span=$('pgInfo'), inp=document.createElement('input');
+  inp.id='pgEdit'; inp.inputMode='numeric'; inp.value=current+1; inp.title=`1–${pages.length}`;
+  span.style.display='none'; span.after(inp); inp.select();
+  let ended=false;
+  const end=go=>{ if(ended) return; ended=true; const v=parseInt(inp.value,10); inp.remove(); span.style.display='';
+    if(go&&v>=1&&v<=pages.length) goToPage(v-1); };
+  inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); end(true); } else if(e.key==='Escape'){ e.preventDefault(); end(false); } e.stopPropagation(); };
+  inp.onblur=()=>end(true);
+}
+$('pgInfo').onclick=editPage;
+$('zoomPct').onclick=e=>{
+  if(!pages.length) return;
+  e.stopPropagation();
+  const set=z=>{ const r=viewerEl.getBoundingClientRect(); applyZoom(z, r.left+r.width/2, r.top+r.height/2); };
+  showMenu($('zoomPct'),[
+    {label:'พอดีความกว้าง', key:'Ctrl+0', checked:fitMode==='width', action:()=>{ fitMode='width'; goToPage(current); }},
+    {label:'พอดีทั้งหน้า', checked:fitMode==='page', action:()=>{ fitMode='page'; goToPage(current); }},
+    {sep:true},
+    ...[.5,.75,1,1.25,1.5,2,3,4].map(z=>({label:`${Math.round(z*100)}%`+(z===1?' (ขนาดจริง)':''), checked:!fitMode&&Math.abs(zoom-z)<.005, action:()=>set(z)})),
+  ]);
+};
+
+/* ---------------- right-click menus ---------------- */
+thumbsAside().addEventListener('contextmenu',e=>{
+  const el=e.target.closest('.thumb'); if(!el||!pages.length) return;
+  e.preventDefault();
+  const i=[...thumbList.children].indexOf(el), p=pages[i]; if(!p) return;
+  const list = selected.has(p) ? pages.filter(x=>selected.has(x)) : [p];
+  const n=list.length, w=n>1?`${n} หน้า`:`หน้า ${i+1}`;
+  showMenu({x:e.clientX,y:e.clientY},[
+    {head:w},
+    {label:'ไปที่หน้านี้', action:()=>goToPage(i)},
+    {label:selected.has(p)?'ยกเลิกเลือกหน้านี้':'เลือกหน้านี้', action:()=>{ selected.has(p)?selected.delete(p):selected.add(p); refreshThumbClasses(); }},
+    {sep:true},
+    {label:'หมุนขวา 90°', action:()=>rotate(list,true)},
+    {label:'หมุนซ้าย 90°', action:()=>rotate(list,false)},
+    {label:`บันทึก${n>1?` ${n} หน้า`:'หน้านี้'}เป็นไฟล์ใหม่…`, action:()=>saveSelectedPages(list)},
+    {label:'คัดลอกรูปหน้านี้', action:async()=>{ await goToPage(i); snapshot('page'); }},
+    {sep:true},
+    {label:`ลบ${w}`, disabled:n>=pages.length, action:()=>deletePages(list)},
+  ]);
+});
+function thumbsAside(){ return $('sidebar'); }
+viewerEl.addEventListener('contextmenu',e=>{
+  if(!pages.length||!e.target.closest?.('.slot')) return;
+  e.preventDefault();
+  const sl=e.target.closest('.slot'), k=slots.findIndex(x=>x.el===sl);
+  const go=async()=>{ if(k>=0&&k!==current) await goToPage(k); };
+  const pos=()=>{ const r=sl.getBoundingClientRect(); return {x:(e.clientX-r.left-sl.clientLeft)/zoom, y:(e.clientY-r.top-sl.clientTop)/zoom}; };
+  const hit=k>=0?hitText(pages[k],pos()):null;
+  const items=[];
+  if(hit) items.push(
+    {head:'ข้อความ'},
+    {label:'แก้ไขข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; openTextInput({x:hit.x,y:hit.y},hit); }},
+    {label:'ลบข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; deleteSelText(); }},
+    {sep:true});
+  items.push(
+    {head:`หน้า ${k+1}`},
+    {label:'คัดลอกรูปทั้งหน้า', key:'Ctrl+C', action:async()=>{ await go(); snapshot('page'); }},
+    {label:'คัดลอกส่วนที่เห็นบนจอ', action:async()=>{ await go(); snapshot('view'); }},
+    {label:'หมุนขวา 90°', action:()=>rotate([pages[k]],true)},
+    {label:'หมุนซ้าย 90°', action:()=>rotate([pages[k]],false)},
+    {sep:true},
+    {label:'พิมพ์…', key:'Ctrl+P', action:startPrint});
+  showMenu({x:e.clientX,y:e.clientY}, items);
+});
+
 /* ---------------- mobile sidebar ---------------- */
 $('btnThumbs').onclick=()=>document.body.classList.toggle('thumbsOpen');
 function closeThumbs(){document.body.classList.remove('thumbsOpen');}
 $('backdrop').onclick=closeThumbs;
+
+renderStart();
 
 /* ---------------- PWA ---------------- */
 if ('serviceWorker' in navigator) {
@@ -1628,10 +2256,10 @@ if ('serviceWorker' in navigator) {
 /* ---------------- เปิดไฟล์จากระบบ (double click / Open with) ---------------- */
 if ('launchQueue' in window) {
   launchQueue.setConsumer(async params => {
-    const h = params.files && params.files[0];
-    if (!h) return;
-    try { loadFile(await h.getFile()); }
-    catch(err){ console.error(err); toast('เปิดไฟล์ไม่สำเร็จ'); }
+    for (const h of (params.files||[])) {
+      try { await openDocument(await h.getFile(), h); }
+      catch(err){ console.error(err); toast('เปิดไฟล์ไม่สำเร็จ'); }
+    }
   });
 }
 
@@ -1639,7 +2267,7 @@ if ('launchQueue' in window) {
 (async () => {
   const q = new URLSearchParams(location.search);
   if (!q.has('shared')) return;
-  history.replaceState(null, '', location.pathname);
+  window.history.replaceState(null, '', location.pathname);   // (window. — the undo list used to shadow it)
   if (q.get('shared') !== '1') { toast('ไม่พบไฟล์ PDF ในสิ่งที่แชร์มา'); return; }
   try {
     const c = await caches.open('wy-pdf-box-share');
@@ -1648,7 +2276,7 @@ if ('launchQueue' in window) {
     const name = decodeURIComponent(res.headers.get('X-File-Name') || 'shared.pdf');
     const file = new File([await res.blob()], name, {type:'application/pdf'});
     await c.delete('shared-file');
-    loadFile(file);
+    openDocument(file);
   } catch(err){ console.error(err); toast('รับไฟล์ที่แชร์มาไม่สำเร็จ'); }
 })();
 </script>

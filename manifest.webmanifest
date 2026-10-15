@@ -35,11 +35,11 @@
           ".pdf"
         ]
       },
-      "launch_type": "multiple-clients"
+      "launch_type": "single-client"
     }
   ],
   "launch_handler": {
-    "client_mode": "navigate-new"
+    "client_mode": "focus-existing"
   },
   "share_target": {
     "action": "./share-target",
