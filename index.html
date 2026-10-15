@@ -42,7 +42,7 @@ header{
   height:var(--topH);flex:0 0 auto;background:var(--panel);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px;padding:0 14px;
 }
-.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:.2px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:.2px;white-space:nowrap}
 .brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
 .brand small{font-weight:400;color:var(--muted);font-size:12px}
 .spacer{flex:1}
@@ -69,6 +69,19 @@ header{
 .tbtn.on{background:var(--accent-soft);color:var(--accent)}
 .tbtn.warn:hover:not(:disabled){background:#FDF0F0;color:var(--danger)}
 .sep{width:1px;height:24px;background:var(--line);flex:0 0 auto}
+.tbtn.wide{width:auto;padding:0 9px;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.hgroup{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.hsep{width:1px;height:22px;background:var(--line);flex:0 0 auto}
+/* ---------- status bar: view mode · page size | page navigation | zoom ---------- */
+#statusbar{flex:0 0 auto;height:38px;background:var(--panel);border-top:1px solid var(--line);display:grid;
+  grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:0 10px}
+#statusbar .sleft{display:flex;align-items:center;gap:6px;min-width:0}
+#statusbar .zoombox{justify-self:end;border:none;padding:0}
+#statusbar #btnFit{white-space:nowrap}
+.sgroup{display:flex;align-items:center;gap:2px}
+#statusbar .tbtn{height:30px;width:32px}
+#pgSize{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+#statusbar.off{visibility:hidden}
 .swatches{display:flex;gap:6px;align-items:center;flex:0 0 auto}
 .sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;padding:0;position:relative}
 .sw.on{border-color:var(--ink)}
@@ -110,6 +123,7 @@ header{
 .szdotBox{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 #szDot{border-radius:50%;background:#1B1F24}
 #sizeRange{width:96px;accent-color:var(--accent)}
+@media (max-width:1360px){ #sizeRange{width:64px} .tlabel{font-size:11px} .toolbar{gap:5px;padding:6px 8px} }
 #fontSel{height:32px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:0 4px;max-width:132px}
 #sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
@@ -171,7 +185,7 @@ aside{
   position:absolute;display:none;border:1px dashed var(--accent);background:rgba(255,255,255,.9);
   padding:1px 4px;border-radius:4px;outline:none;font-family:inherit;min-width:60px;z-index:5;
 }
-#pager{margin-left:auto}
+
 #pager span{font-size:12px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums;min-width:50px;text-align:center}
 #pgInfo{cursor:text;border-radius:4px}
 #pgInfo:hover{background:var(--bg);color:var(--ink)}
@@ -217,6 +231,31 @@ aside{
 .dlg .box .btn small{display:block;font-size:11px;color:var(--muted);font-weight:400}
 .dlg .box .btn.primary small{color:rgba(255,255,255,.8)}
 .dlg .box .btn.link{border:none;color:var(--muted)}
+/* blank page dialog */
+.dlg .box.bk{width:min(560px,100%);gap:12px}
+.bkBody{display:flex;gap:18px;align-items:flex-start}
+.bkPrev{flex:0 0 150px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bkPrev .pv{width:150px;height:170px;display:flex;align-items:center;justify-content:center;background:#EEF1F5;border-radius:10px}
+.bkPrev canvas{box-shadow:0 1px 4px rgba(0,0,0,.18);background:#fff}
+.bkPrev small{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;font-variant-numeric:tabular-nums}
+.bkForm{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.bkRow{display:flex;flex-direction:column;gap:5px}
+.bkRow>label{font-size:12px;font-weight:600;color:var(--muted)}
+.bkForm select,.bkForm input[type=number]{height:34px;border:1px solid var(--line);border-radius:var(--r);padding:0 8px;font:inherit;background:var(--panel);color:var(--ink);width:100%}
+.bkCustom[hidden]{display:none}
+.bkCustom{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.bkCustom input{width:84px !important}
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--r);padding:2px;gap:2px}
+.seg button{flex:1;height:30px;border-radius:6px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--muted)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.seg button:disabled{opacity:.4}
+.seg.bg button{flex-direction:column;height:54px;gap:3px;font-size:11px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:32px;height:32px;border:1px solid var(--line);border-radius:var(--r);font-size:16px}
+.stepper input{width:64px !important;text-align:center}
+.bkBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.bkBtns .btn{min-width:96px}
+@media (max-width:520px){ .bkBody{flex-direction:column;align-items:stretch} .bkPrev{flex:none} }
 #recentList{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
 #recentList button{display:flex;flex-direction:column;align-items:flex-start;padding:7px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
 #recentList button:hover{background:var(--accent-soft)}
@@ -247,7 +286,7 @@ aside{
 
 /* ---------- Toast / loading ---------- */
 #toast{
-  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);transition:transform .25s;
+  position:fixed;left:50%;bottom:54px;transform:translateX(-50%) translateY(120px);transition:transform .25s;max-width:calc(100vw - 32px);text-align:center;
   background:var(--ink);color:#fff;font-size:13px;padding:9px 16px;border-radius:999px;z-index:60;
 }
 #toast.show{transform:translateX(-50%) translateY(0)}
@@ -267,7 +306,12 @@ aside{
   body.thumbsOpen #backdrop{display:block}
   .stage{padding:12px}
   .tlabel{display:none}
+  .tbtn.wide span{display:none}
+  .hsep{display:none}
+  .brand small{display:none}
+  #pgSize{display:none}
 }
+@media (max-width:520px){ .brand{display:none} header{gap:6px;padding:0 8px} }
 </style>
 </head>
 <body>
@@ -279,6 +323,11 @@ aside{
   <div class="brand"><span class="dot"></span>WY Pdf Box <small>จัดหน้า · ขีดเขียน</small></div>
   <div class="spacer"></div>
   <span class="fname" id="fname"></span>
+  <div class="hgroup" aria-label="ไฟล์">
+  <button class="btn" id="btnNew" title="ไฟล์ใหม่จากหน้าเปล่า — เลือกขนาดกระดาษ แนว และพื้นหลัง">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.5 1.5h-5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 13 13V5L9.5 1.5Z"/><path d="M9.5 1.5V5H13"/></svg>
+    <span class="lbl">ใหม่</span>
+  </button>
   <div class="btnSplit">
     <button class="btn" id="btnOpen" title="เปิดไฟล์ (Ctrl+O)">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>
@@ -286,25 +335,22 @@ aside{
     </button>
     <button class="btn caret" id="btnOpenMenu" title="ไฟล์ล่าสุด · กู้คืนไฟล์ก่อนบันทึก"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
   </div>
-  <button class="btn" id="btnAdd" disabled title="เพิ่มไฟล์ PDF เข้าเอกสารนี้ (แทรก/ต่อท้าย)">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 6V4.8L9.5 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5H8"/><path d="M9 1.5V5h3.5M12 9.5v5M9.5 12h5"/></svg>
-    <span class="lbl">เพิ่มไฟล์</span>
-  </button>
-  <button class="btn" id="btnCompress" disabled title="บีบอัดไฟล์ (เหมาะกับเอกสารสแกน)">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1.5v4m0 0L6 3.7M8 5.5l2-1.8M8 14.5v-4m0 0-2 1.8m2-1.8 2 1.8M1.5 8h4m5 0h4"/></svg>
-    <span class="lbl">บีบอัด</span>
-  </button>
+  </div>
+  <div class="hsep"></div>
+  <div class="hgroup" aria-label="ส่งออก">
   <button class="btn" id="btnSnap" disabled title="คัดลอกหน้าเป็นรูป (Ctrl+C = ทั้งหน้า)">
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/><path d="m7 12 2-2.2 1.4 1.4L12 9.6"/></svg>
     <span class="lbl">คัดลอกรูป</span>
   </button>
-  <button class="btn" id="btnSaveSel" style="display:none" title="บันทึกเฉพาะหน้าที่เลือกเป็นไฟล์ใหม่ (ไฟล์ที่เปิดอยู่ไม่เปลี่ยน)">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5V5.5L9.5 2Z"/><path d="M9.5 2v3.5H13"/><path d="m6 9.5 1.5 1.5L10.5 8"/></svg>
-    <span class="lbl" id="saveSelLbl">บันทึกที่เลือก</span>
-  </button>
   <button class="btn" id="btnPrint" disabled title="พิมพ์ (Ctrl+P)">
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 6V2h7v4"/><rect x="2" y="6" width="12" height="6" rx="1.2"/><path d="M4.5 10h7v4h-7z"/></svg>
     <span class="lbl">พิมพ์</span>
+  </button>
+  </div>
+  <div class="hsep"></div>
+  <button class="btn" id="btnSaveSel" style="display:none" title="บันทึกเฉพาะหน้าที่เลือกเป็นไฟล์ใหม่ (ไฟล์ที่เปิดอยู่ไม่เปลี่ยน)">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5V5.5L9.5 2Z"/><path d="M9.5 2v3.5H13"/><path d="m6 9.5 1.5 1.5L10.5 8"/></svg>
+    <span class="lbl" id="saveSelLbl">บันทึกที่เลือก</span>
   </button>
   <div class="btnSplit">
     <button class="btn primary" id="btnSave" disabled title="บันทึก (Ctrl+S)">
@@ -316,6 +362,15 @@ aside{
 </header>
 
 <div class="toolbar" id="toolbar">
+  <div class="tgroup" id="histGroup">
+    <button class="tbtn" id="btnUndo" title="ย้อนกลับ (Ctrl+Z) — รอยขีดเขียน, ข้อความ, ลบ/ย้าย/หมุน/แทรกหน้า">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
+    </button>
+    <button class="tbtn" id="btnRedo" title="ทำซ้ำ (Ctrl+Y)">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 6H6a3.5 3.5 0 0 0 0 7h4"/><path d="M10.5 3.5 13 6l-2.5 2.5"/></svg>
+    </button>
+  </div>
+  <div class="sep"></div>
   <div class="tgroup" id="toolGroup">
     <button class="tbtn on" data-tool="pan" title="เลื่อนดู / ลากเพื่อเลื่อน (V)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7.5V3.2a1 1 0 0 1 2 0v3.6m0-2.3a1 1 0 0 1 2 0v2.6m0-1.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5c-2 0-3-.8-3.9-2.3L2.3 9.7a1 1 0 0 1 1.6-1.2L6 10.5"/></svg>
@@ -353,42 +408,26 @@ aside{
     <button class="tbtn" id="btnTxtCW" title="หมุนข้อความขวา 90° (Ctrl+]) · กด ] = 15° · Shift+] = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12.8 6.2A5.2 5.2 0 1 0 13 9.6"/><path d="M13.4 2.8v3.6H9.8"/></svg></button>
   </div>
 
-  <button class="tbtn" id="btnUndo" title="ย้อนกลับ — รอยขีดเขียน, ลบ/ย้าย/เพิ่มหน้า (Ctrl+Z)">
-    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h7a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/></svg>
-  </button>
-  <button class="tbtn" id="btnRedo" title="ทำซ้ำ (Ctrl+Y)">
-    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 6H6a3.5 3.5 0 0 0 0 7h4"/><path d="M10.5 3.5 13 6l-2.5 2.5"/></svg>
-  </button>
-
   <div class="sep"></div>
   <span class="tlabel" id="targetLabel">หน้าปัจจุบัน:</span>
 
-  <div class="tgroup">
+  <div class="tgroup" id="pageGroup">
+    <button class="tbtn wide" id="btnAdd" disabled title="แทรกหน้า — หน้าเปล่า, จากไฟล์ในเครื่อง หรือจากแท็บอื่น">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 6.5V5L9.5 1.5h-5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5H8"/><path d="M9.5 1.5V5H13M12 9.5v5M9.5 12h5"/></svg>
+      <span>แทรกหน้า</span>
+    </button>
     <button class="tbtn" id="btnRotL" title="หมุนซ้าย 90°">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 5.5H3V2"/><path d="M3 5.5A5.5 5.5 0 1 1 2.6 9"/></svg>
     </button>
     <button class="tbtn" id="btnRotR" title="หมุนขวา 90°">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 5.5H13V2"/><path d="M13 5.5A5.5 5.5 0 1 0 13.4 9"/></svg>
     </button>
-    <button class="tbtn" id="btnRotAll" title="หมุนทุกหน้า 90°" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">ทั้งหมด ⟳</button>
+    <button class="tbtn wide" id="btnRotAll" title="หมุนทุกหน้า 90°">ทั้งหมด ⟳</button>
     <button class="tbtn warn" id="btnDel" title="ลบหน้า">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M6.5 4.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1M4.5 4.5 5 13a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l.5-8.5M6.7 7v4.5M9.3 7v4.5"/></svg>
     </button>
   </div>
 
-  <div class="tgroup" id="pager">
-    <button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button>
-    <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
-    <span id="pgInfo" title="คลิกเพื่อพิมพ์เลขหน้า (Ctrl+G)">–</span>
-    <button class="tbtn" id="pgNext" title="หน้าถัดไป" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
-  </div>
-
-  <div class="zoombox">
-    <button class="tbtn" id="btnZoomOut" title="ซูมออก (Ctrl −)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
-    <span id="zoomPct" title="เลือกขนาดซูม">100%</span>
-    <button class="tbtn" id="btnZoomIn" title="ซูมเข้า (Ctrl +) · Ctrl+ล้อเมาส์ ซูมตรงจุด"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
-    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0) · คลิกตัวเลข % เพื่อเลือกขนาดอื่น" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
-  </div>
 </div>
 
 <div id="tabs" role="tablist"></div>
@@ -420,6 +459,7 @@ aside{
         <h1>เปิดไฟล์ PDF เพื่อเริ่มต้น</h1>
         <p>ลากไฟล์มาวางที่นี่ หรือกดปุ่มด้านล่าง<br>ไฟล์ถูกประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการอัปโหลด</p>
         <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF</button>
+        <button class="btn" id="btnNew2" style="height:34px">สร้างไฟล์ใหม่จากหน้าเปล่า</button>
         <button class="btn" id="btnSession" style="display:none;height:34px"></button>
         <div id="recentWrap" style="display:none;width:100%">
           <p style="font-size:12px;margin-bottom:4px">ไฟล์ล่าสุด</p>
@@ -433,6 +473,20 @@ aside{
     </div>
   </section>
 </main>
+<footer id="statusbar" class="off">
+  <div class="sleft"><button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button><span id="pgSize"></span></div>
+  <div class="sgroup" id="pager">
+    <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
+    <span id="pgInfo" title="คลิกเพื่อพิมพ์เลขหน้า (Ctrl+G)">–</span>
+    <button class="tbtn" id="pgNext" title="หน้าถัดไป" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 3 5 5-5 5"/></svg></button>
+  </div>
+  <div class="sgroup zoombox">
+    <button class="tbtn" id="btnZoomOut" title="ซูมออก (Ctrl −)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
+    <span id="zoomPct" title="เลือกขนาดซูม">100%</span>
+    <button class="tbtn" id="btnZoomIn" title="ซูมเข้า (Ctrl +) · Ctrl+ล้อเมาส์ ซูมตรงจุด"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0) · คลิกตัวเลข % เพื่อเลือกขนาดอื่น" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
+  </div>
+</footer>
 
 <input type="file" id="fileIn" accept="application/pdf,.pdf" multiple hidden>
 <div id="printRoot"></div>
@@ -534,7 +588,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.2.0-beta.1';
+const APP_VERSION = '2.3.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -612,8 +666,8 @@ function activateTab(t, fresh=false){
   thumbList.hidden=false; stage.hidden=false;
   emptyThumbs.hidden=true; emptyStage.hidden=true;
   $('empty').style.display='none'; wrap.style.display='block';
-  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnCompress','btnPrint'].forEach(id=>$(id).disabled=false);
-  $('fname').textContent=t.name;
+  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnPrint'].forEach(id=>$(id).disabled=false);
+  $('fname').textContent=t.name; $('statusbar').classList.remove('off');
   document.title=`${t.name} — WY Pdf Box`;
   renderSwatches();
   let done;
@@ -636,8 +690,9 @@ function showEmpty(){
   stage=emptyStage; thumbList=emptyThumbs; emptyStage.hidden=false; emptyThumbs.hidden=false;
   emptyStage.appendChild(wrap); wrap.style.display='none';
   $('empty').style.display='';
-  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnCompress','btnPrint'].forEach(id=>$(id).disabled=true);
+  ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnPrint'].forEach(id=>$(id).disabled=true);
   $('fname').textContent=''; document.title='WY Pdf Box';
+  $('statusbar').classList.add('off'); $('pgSize').textContent='';
   $('pgInfo').textContent='–'; $('btnSaveSel').style.display='none';
   renderTabs(); saveSession(); renderStart();
 }
@@ -765,14 +820,17 @@ window.addEventListener('drop',async e=>{
 /* ---------------- insert pages: from a file on disk or from another open tab ---------------- */
 $('btnAdd').onclick=async()=>{
   const others=tabs.filter(t=>t!==activeTab);
-  const opts=[{label:'ไฟล์ในเครื่อง…', value:'disk', primary:!others.length}];
+  const opts=[{label:'หน้าเปล่า…', sub:'เลือกขนาด แนว พื้นหลัง และจำนวน', value:'blank', primary:true},
+              {label:'จากไฟล์ในเครื่อง…', value:'disk'}];
+  if(others.length) opts.push({label:'— หรือดึงจากแท็บที่เปิดอยู่ —', value:undefined, divider:true});
   for(const t of others){
     const n=t.selected.size;
     opts.push({label:t.name, sub: n?`ใช้ ${n} หน้าที่ติ๊กไว้ในแท็บนั้น`:`ทั้งไฟล์ · ${t.pages.length} หน้า`, value:t});
   }
   opts.push({label:'ยกเลิก', value:null, link:true});
-  const src = others.length ? await ask('เพิ่มหน้าจาก', 'เลือกไฟล์ในเครื่อง หรือดึงจากแท็บที่เปิดอยู่ (ได้ตามสภาพปัจจุบันของแท็บนั้น รวมรอยขีดเขียนและการหมุน)', opts) : 'disk';
+  const src = await ask('แทรกหน้า', others.length?'หน้าจากแท็บอื่นได้ตามสภาพปัจจุบันของแท็บนั้น รวมรอยขีดเขียนและการหมุน':'', opts);
   if(!src) return;
+  if(src==='blank') return insertBlank();
   if(src==='disk'){
     if(canFS){
       let hs; try{ hs=await showOpenFilePicker({id:'wy-open', multiple:false, types:PDF_TYPES}); }
@@ -810,7 +868,7 @@ function insertFromTab(src, where){
   placePages(list, where);
 }
 function placePages(list, where){
-  const at = where==='front' ? 0 : where==='after' ? current+1 : pages.length;
+  const at = typeof where==='number' ? where : where==='front' ? 0 : where==='after' ? current+1 : pages.length;
   snapPages();
   pages.splice(at, 0, ...list);
   selected.clear();
@@ -819,6 +877,190 @@ function placePages(list, where){
   goToPage(at);
   toast(`เพิ่มแล้ว ${list.length} หน้า`);
 }
+
+/* ---------------- blank pages: insert, or start a new file ----------------
+   A blank page is a tiny PDF made here with pdf-lib (optionally ruled: grid, dots or lines,
+   always in real millimetres so a 1 cm grid stays 1 cm when printed). It then goes through the
+   same machinery as any other page: move, rotate, delete, draw, undo, save.               */
+const MM=72/25.4;
+const PAPERS=[['A0',841,1189],['A1',594,841],['A2',420,594],['A3',297,420],['A4',210,297],['A5',148,210],
+              ['Letter',215.9,279.4],['Legal',215.9,355.6],['Tabloid',279.4,431.8]];
+const BGS=[['none','ขาวเปล่า'],['grid','ตาราง 5 มม.'],['dots','จุด 5 มม.'],['lines','เส้นบรรทัด']];
+let blankPref={size:'same', orient:'p', bg:'none', cw:210, ch:297}, untitledSeq=0;
+try{ Object.assign(blankPref, JSON.parse(localStorage.getItem('wy-blank')||'{}')); }catch(e){}
+const saveBlankPref=()=>{ try{ localStorage.setItem('wy-blank', JSON.stringify(blankPref)); }catch(e){} };
+const fmtMM=v=>String(Math.round(v*10)/10);
+
+/* size in points for a choice; 'same' = the current page as it shows on screen */
+function blankSize(o){
+  if(o.size==='same'&&pages[current]){ const d=dispSize(pages[current]); return {w:d.w, h:d.h}; }
+  let w,h;
+  if(o.size==='custom'){ w=o.cw; h=o.ch; } else { const P=PAPERS.find(p=>p[0]===o.size)||PAPERS[4]; w=P[1]; h=P[2]; }
+  if((o.orient==='l')!==(w>h)) [w,h]=[h,w];
+  return {w:w*MM, h:h*MM};
+}
+/* ruling for a page of w×h pt; calls line(x1,y1,x2,y2,kind) / dot(x,y) in top-left coordinates */
+function rule(bg, w, h, line, dot, thin=1){        // thin>1 = draw every n-th line (small previews)
+  const m=10*MM, step=5*MM*thin;
+  if(bg==='grid'||bg==='dots'){
+    const nx=Math.floor((w-2*m)/step), ny=Math.floor((h-2*m)/step);
+    const x0=(w-nx*step)/2, y0=(h-ny*step)/2;          // centred, whole cells only
+    if(bg==='grid'){
+      for(let i=0;i<=nx;i++) line(x0+i*step,y0,x0+i*step,y0+ny*step, i%2?'minor':'major');
+      for(let j=0;j<=ny;j++) line(x0,y0+j*step,x0+nx*step,y0+j*step, j%2?'minor':'major');
+    } else for(let i=0;i<=nx;i++) for(let j=0;j<=ny;j++) dot(x0+i*step,y0+j*step);
+  } else if(bg==='lines'){
+    const gap=8*MM*thin, top=25*MM, left=Math.min(25*MM,w*.12);
+    for(let y=top;y<=h-15*MM;y+=gap) line(m,y,w-m,y,'minor');
+    line(left,m,left,h-m,'margin');
+  }
+}
+const RULE_INK={major:[.70,.77,.85,.6], minor:[.82,.87,.92,.4], margin:[.93,.62,.62,.6], dot:[.55,.60,.68,1.3]};
+async function makeBlankPdf(w,h,bg){
+  const doc=await PDFLib.PDFDocument.create(), pg=doc.addPage([w,h]), L=PDFLib, ops=[L.pushGraphicsState()];
+  const lines={major:[],minor:[],margin:[]}, dots=[];
+  rule(bg,w,h,(a,b,c,d,k)=>lines[k].push([a,h-b,c,h-d]),(x,y)=>dots.push([x,h-y]));
+  for(const k of ['minor','major','margin']){
+    if(!lines[k].length) continue;
+    const [r,g,b,lw]=RULE_INK[k]; ops.push(L.setStrokingRgbColor(r,g,b), L.setLineWidth(lw));
+    for(const [a,b2,c,d] of lines[k]) ops.push(L.moveTo(a,b2), L.lineTo(c,d));
+    ops.push(L.stroke());
+  }
+  if(dots.length){
+    const [r,g,b,lw]=RULE_INK.dot;
+    ops.push(L.setStrokingRgbColor(r,g,b), L.setLineWidth(lw), L.setLineCap(L.LineCapStyle.Round));
+    for(const [x,y] of dots) ops.push(L.moveTo(x,y), L.lineTo(x+.01,y));
+    ops.push(L.stroke());
+  }
+  ops.push(L.popGraphicsState()); pg.pushOperators(...ops);
+  doc.setTitle('WY Pdf Box'); doc.setProducer('WY Pdf Box');
+  return new File([await doc.save()], 'blank.pdf', {type:'application/pdf'});
+}
+/* n page entries that all point at one blank page (one tiny PDF, however many pages) */
+async function blankPages(o, into){
+  const {w,h}=blankSize(o);
+  const [one]=await parsePdf(await makeBlankPdf(w,h,o.bg), into);
+  return Array.from({length:o.count}, ()=>({...one, annots:[], undo:[]}));
+}
+
+/* the dialog: mode 'insert' (with position) or 'new'; resolves to the options or null */
+function blankDialog(mode, where){
+  return new Promise(res=>{
+    const ins=mode==='insert', canSame=ins&&!!pages[current];
+    const o={...blankPref, count:1, where: where ?? 'after'};
+    if(o.size==='same'&&!canSame) o.size='A4';
+    if(!o.cw||!o.ch){ o.cw=210; o.ch=297; }
+    const d=document.createElement('div'); d.className='dlg';
+    const n=current+1, tot=pages.length;
+    d.innerHTML=`<div class="box bk" role="dialog" aria-label="${ins?'แทรกหน้าเปล่า':'ไฟล์ใหม่'}">
+      <b>${ins?'แทรกหน้าเปล่า':'ไฟล์ใหม่จากหน้าเปล่า'}</b>
+      <div class="bkBody">
+        <div class="bkPrev"><div class="pv"><canvas></canvas></div><small class="pvCap"></small></div>
+        <div class="bkForm">
+          <div class="bkRow"><label for="bkSize">ขนาดกระดาษ</label>
+            <select id="bkSize">
+              ${canSame?`<option value="same">เท่ากับหน้าปัจจุบัน</option>`:''}
+              <optgroup label="ISO (มม.)">${PAPERS.slice(0,6).map(p=>`<option value="${p[0]}">${p[0]} · ${p[1]} × ${p[2]}</option>`).join('')}</optgroup>
+              <optgroup label="อเมริกา (นิ้ว)">${PAPERS.slice(6).map(p=>`<option value="${p[0]}">${p[0]} · ${fmtMM(p[1]/25.4)} × ${fmtMM(p[2]/25.4)}"</option>`).join('')}</optgroup>
+              <option value="custom">กำหนดเอง…</option>
+            </select>
+            <div class="bkCustom" hidden><input type="number" id="bkW" min="20" max="5000" step="1" aria-label="กว้าง (มม.)"> ×
+              <input type="number" id="bkH" min="20" max="5000" step="1" aria-label="สูง (มม.)"> มม.</div>
+          </div>
+          <div class="bkRow"><label>แนวกระดาษ</label>
+            <div class="seg" id="bkOrient">
+              <button type="button" data-v="p"><svg width="12" height="14" viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1" width="9" height="12" rx="1"/></svg>แนวตั้ง</button>
+              <button type="button" data-v="l"><svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1.5" width="12" height="9" rx="1"/></svg>แนวนอน</button>
+            </div></div>
+          <div class="bkRow"><label>พื้นหลัง</label>
+            <div class="seg bg" id="bkBg">${BGS.map(([v,t])=>`<button type="button" data-v="${v}"><canvas width="30" height="22" data-bg="${v}"></canvas>${t}</button>`).join('')}</div></div>
+          <div class="bkRow"><label for="bkCount">จำนวนหน้า</label>
+            <div class="stepper"><button type="button" data-d="-1" aria-label="ลด">−</button><input type="number" id="bkCount" min="1" max="200" value="1"><button type="button" data-d="1" aria-label="เพิ่ม">+</button></div></div>
+          ${ins?`<div class="bkRow"><label for="bkWhere">ตำแหน่ง</label>
+            <select id="bkWhere">
+              <option value="front">หน้าแรกสุด</option>
+              <option value="before">ก่อนหน้า ${n}</option>
+              <option value="after">หลังหน้า ${n}</option>
+              <option value="end">ท้ายสุด (หลังหน้า ${tot})</option>
+            </select></div>`:''}
+        </div>
+      </div>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok"></button></div>
+    </div>`;
+    const q=sel=>d.querySelector(sel), cv=q('.pv canvas');
+    // little ruled swatches on the background buttons
+    d.querySelectorAll('canvas[data-bg]').forEach(c=>{
+      const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,30,22); x.strokeStyle='#B8C2CE'; x.strokeRect(.5,.5,29,21);
+      drawRule(x,c.dataset.bg,30,22,30/(60*MM));
+    });
+    function drawRule(x,bg,W,H,k,thin=1){            // k = px per pt
+      const lw=Math.max(.5,k*.5);
+      rule(bg,W/k,H/k,(a,b,c,e,kind)=>{ const [r,g,bb]=RULE_INK[kind]; x.strokeStyle=`rgb(${r*255|0},${g*255|0},${bb*255|0})`;
+        x.lineWidth=kind==='major'?lw*1.4:lw; x.beginPath(); x.moveTo(a*k,b*k); x.lineTo(c*k,e*k); x.stroke(); },
+        (px,py)=>{ x.fillStyle='#8C99AB'; x.fillRect(px*k-.6,py*k-.6,1.2,1.2); }, thin);
+    }
+    function sync(){
+      q('#bkSize').value=o.size;
+      q('.bkCustom').hidden=o.size!=='custom';
+      q('#bkW').value=o.cw; q('#bkH').value=o.ch;
+      d.querySelectorAll('#bkOrient button').forEach(b=>{ b.classList.toggle('on',b.dataset.v===o.orient); b.disabled=o.size==='same'||o.size==='custom'; });
+      if(o.size==='same'||o.size==='custom'){ const {w,h}=blankSize(o); d.querySelectorAll('#bkOrient button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='l')===(w>h))); }
+      d.querySelectorAll('#bkBg button').forEach(b=>b.classList.toggle('on',b.dataset.v===o.bg));
+      q('#bkCount').value=o.count;
+      if(ins) q('#bkWhere').value=o.where;
+      const {w,h}=blankSize(o), k=Math.min(130/w,150/h);
+      cv.width=Math.max(2,Math.round(w*k)); cv.height=Math.max(2,Math.round(h*k));
+      const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height);
+      if(o.bg!=='none') drawRule(x,o.bg,cv.width,cv.height,k,Math.max(1,Math.ceil(3/(5*MM*k))));   // thinned when 5 mm is too fine to see
+      const name=o.size==='same'?'เท่าหน้าปัจจุบัน':o.size==='custom'?'กำหนดเอง':o.size;
+      q('.pvCap').innerHTML=`${name}<br>${fmtMM(w/MM)} × ${fmtMM(h/MM)} มม.`;
+      q('[data-act=ok]').textContent = ins ? `แทรก ${o.count} หน้า` : (o.count>1?`สร้างไฟล์ ${o.count} หน้า`:'สร้างไฟล์');
+    }
+    q('#bkSize').onchange=e=>{ o.size=e.target.value; sync(); if(o.size==='custom') q('#bkW').focus(); };
+    const num=(el,lo,hi,def)=>{ const v=Math.round(+el.value); return Number.isFinite(v)&&v>0 ? Math.max(lo,Math.min(hi,v)) : def; };
+    q('#bkW').oninput=()=>{ o.cw=num(q('#bkW'),20,5000,o.cw); syncSoft(); };
+    q('#bkH').oninput=()=>{ o.ch=num(q('#bkH'),20,5000,o.ch); syncSoft(); };
+    q('#bkCount').oninput=()=>{ o.count=num(q('#bkCount'),1,200,1); syncSoft(); };
+    function syncSoft(){ const a=document.activeElement, v=a?.value; sync(); if(a&&a.tagName==='INPUT'){ a.value=v; a.focus(); } }
+    d.querySelectorAll('#bkOrient button').forEach(b=>b.onclick=()=>{ o.orient=b.dataset.v; sync(); });
+    d.querySelectorAll('#bkBg button').forEach(b=>b.onclick=()=>{ o.bg=b.dataset.v; sync(); });
+    d.querySelectorAll('.stepper button').forEach(b=>b.onclick=()=>{ o.count=Math.max(1,Math.min(200,o.count+ +b.dataset.d)); sync(); });
+    if(ins) q('#bkWhere').onchange=e=>{ o.where=e.target.value; };
+    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
+    const ok=()=>{
+      if(o.size==='custom'){ o.cw=num(q('#bkW'),20,5000,210); o.ch=num(q('#bkH'),20,5000,297); }
+      o.count=num(q('#bkCount'),1,200,1);
+      Object.assign(blankPref,{size:o.size, orient:o.orient, bg:o.bg, cw:o.cw, ch:o.ch}); saveBlankPref();
+      done(o);
+    };
+    const key=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(null); }
+                   else if(e.key==='Enter'&&!e.target.closest?.('.bkBtns,.stepper')){ e.preventDefault(); ok(); } };   // Enter = confirm (except on the dialog's own buttons)
+    q('[data-act=ok]').onclick=ok; q('[data-act=cancel]').onclick=()=>done(null);
+    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(d); sync(); q('[data-act=ok]').focus();
+  });
+}
+async function insertBlank(where){
+  if(!pages.length) return newBlankFile();
+  const o=await blankDialog('insert', where); if(!o) return;
+  try{
+    const list=await blankPages(o, docs);
+    const at={front:0, before:current, after:current+1, end:pages.length}[o.where];
+    placePages(list, at);
+  }catch(err){ console.error(err); toast('สร้างหน้าเปล่าไม่สำเร็จ'); }
+}
+async function newBlankFile(){
+  const o=await blankDialog('new'); if(!o) return;
+  try{
+    const t=newTab(`ไม่มีชื่อ-${++untitledSeq}.pdf`, null); t.untitled=true;
+    t.pages=await blankPages(o, t.docs);
+    tabs.push(t);
+    await activateTab(t, true);
+    toast(`ไฟล์ใหม่ · ${t.pages.length} หน้า — กด Ctrl+S เพื่อบันทึก`);
+  }catch(err){ console.error(err); toast('สร้างไฟล์ใหม่ไม่สำเร็จ'); }
+}
+$('btnNew').onclick=newBlankFile; $('btnNew2').onclick=newBlankFile;
 
 /* ---------------- small UI kit: menus and choice dialogs ---------------- */
 let menuEl=null;
@@ -858,6 +1100,7 @@ function ask(title, note, options){
     const done=v=>{ d.remove(); document.removeEventListener('keydown',esc,true); res(v); };
     const esc=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(null); } };
     for(const o of options){
+      if(o.divider){ const t=document.createElement('span'); t.className='note'; t.style.cssText='text-align:center;margin:4px 0 0'; t.textContent=o.label; box.appendChild(t); continue; }
       const b=document.createElement('button'); b.className='btn'+(o.primary?' primary':'')+(o.link?' link':'');
       b.textContent=o.label;
       if(o.sub){ const sm=document.createElement('small'); sm.textContent=o.sub; b.appendChild(sm); b.style.flexDirection='column'; }
@@ -929,7 +1172,7 @@ async function renderStart(){
 $('btnOpenMenu').onclick=async e=>{
   e.stopPropagation();
   const recentL=canFS?await getRecent():[];
-  const items=[{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles}];
+  const items=[{label:'ไฟล์ใหม่ (หน้าเปล่า)…', action:newBlankFile},{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles}];
   if(recentL.length){ items.push({sep:true},{head:'ไฟล์ล่าสุด'});
     for(const r of recentL) items.push({label:r.name, sub:fmtTime(r.time), action:()=>openHandle(r.handle)}); }
   if(canFS){
@@ -974,7 +1217,7 @@ async function saveDoc({as=false}={}){
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
     const bytes=await buildPdf(pages);
-    if(!canFS){ downloadBytes(bytes, `${baseName}${as?'-save_as':'-edited'}.pdf`); return savedOk(t,'บันทึกไฟล์แล้ว ✓ (อยู่ในโฟลเดอร์ดาวน์โหลด)'); }
+    if(!canFS){ downloadBytes(bytes, `${baseName}${as?'-save_as':t.untitled?'':'-edited'}.pdf`); return savedOk(t,'บันทึกไฟล์แล้ว ✓ (อยู่ในโฟลเดอร์ดาวน์โหลด)'); }
     if(!as && t.handle){
       if(await canWrite(t.handle)){
         try{
@@ -987,7 +1230,7 @@ async function saveDoc({as=false}={}){
     const h=await pickSaveTarget(`${baseName}${(as||t.handle)?'-save_as':''}.pdf`, t.handle);
     if(!h) return false;
     await writeHandle(h, bytes);
-    t.handle=h; t.name=h.name; t.backedUp=true;       // the tab now stands for the new file
+    t.handle=h; t.name=h.name; t.backedUp=true; t.untitled=false;       // the tab now stands for the new file
     baseName=t.baseName=stripPdf(h.name);
     $('fname').textContent=t.name; document.title=`${t.name} — WY Pdf Box`;
     addRecent(h); saveSession();
@@ -1270,6 +1513,9 @@ function redrawOverlay(){
 
 function updatePager(){
   $('pgInfo').textContent=`${current+1} / ${pages.length}`;
+  const p=pages[current];
+  if(p){ const d=dispSize(p), w=d.w/MM, h=d.h/MM, P=PAPERS.find(q=>Math.abs(Math.min(w,h)-q[1])<2&&Math.abs(Math.max(w,h)-q[2])<2);
+         $('pgSize').textContent=`${P?P[0]+' · ':''}${fmtMM(w)} × ${fmtMM(h)} มม.`; $('pgSize').title='ขนาดหน้านี้'; }
   $('pgPrev').disabled=current===0;
   $('pgNext').disabled=current===pages.length-1;
 }
@@ -2153,7 +2399,7 @@ $('btnSaveMenu').onclick=e=>{
     {label:'บันทึก', key:'Ctrl+S', action:()=>saveDoc()},
     {label:'บันทึกเป็น…', key:'Ctrl+Shift+S', action:()=>saveDoc({as:true})},
     {label:n?`บันทึก ${n} หน้าที่เลือกเป็นไฟล์ใหม่…`:'บันทึกหน้าที่เลือกเป็นไฟล์ใหม่…', disabled:!n, action:saveSelectedPages},
-    {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:()=>$('btnCompress').click()},
+    {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:openCompress},
     {sep:true},
     {label:'พิมพ์…', key:'Ctrl+P', action:startPrint},
   ]);
@@ -2206,7 +2452,7 @@ async function buildPdf(list){
 }
 
 /* ---------------- compress ---------------- */
-$('btnCompress').onclick=()=>{ if(docs.length) $('cmpModal').style.display='flex'; };
+const openCompress=()=>{ if(docs.length) $('cmpModal').style.display='flex'; };
 $('cmpCancel').onclick=()=>{ $('cmpModal').style.display='none'; };
 document.querySelectorAll('#cmpModal [data-dpi]').forEach(b=>{
   b.onclick=()=>{ $('cmpModal').style.display='none'; compressSave(+b.dataset.dpi, +b.dataset.q); };
@@ -2328,6 +2574,9 @@ thumbsAside().addEventListener('contextmenu',e=>{
     {label:`บันทึก${n>1?` ${n} หน้า`:'หน้านี้'}เป็นไฟล์ใหม่…`, action:()=>saveSelectedPages(list)},
     {label:'คัดลอกรูปหน้านี้', action:async()=>{ await goToPage(i); snapshot('page'); }},
     {sep:true},
+    {label:'แทรกหน้าเปล่าก่อนหน้านี้…', action:async()=>{ await goToPage(i); insertBlank('before'); }},
+    {label:'แทรกหน้าเปล่าหลังหน้านี้…', action:async()=>{ await goToPage(i); insertBlank('after'); }},
+    {sep:true},
     {label:`ลบ${w}`, disabled:n>=pages.length, action:()=>deletePages(list)},
   ]);
 });
@@ -2354,6 +2603,7 @@ viewerEl.addEventListener('contextmenu',e=>{
     {label:'คัดลอกส่วนที่เห็นบนจอ', action:async()=>{ await go(); snapshot('view'); }},
     {label:'หมุนขวา 90°', action:()=>rotate([pages[k]],true)},
     {label:'หมุนซ้าย 90°', action:()=>rotate([pages[k]],false)},
+    {label:'แทรกหน้าเปล่าหลังหน้านี้…', action:async()=>{ await go(); insertBlank('after'); }},
     {sep:true},
     {label:'พิมพ์…', key:'Ctrl+P', action:startPrint});
   showMenu({x:e.clientX,y:e.clientY}, items);
