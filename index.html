@@ -348,6 +348,9 @@ aside{
   <div class="tgroup" id="textOpts" style="display:none">
     <select id="fontSel" title="ฟอนต์" aria-label="ฟอนต์"></select>
     <button class="tbtn" id="btnBold" title="ตัวหนา"><b style="font-size:14px">B</b></button>
+    <button class="tbtn" id="btnTxtCCW" title="หมุนข้อความซ้าย 90° (Ctrl+[) · กด [ = 15° · Shift+[ = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 6.2A5.2 5.2 0 1 1 3 9.6"/><path d="M2.6 2.8v3.6h3.6"/></svg></button>
+    <button class="tbtn" id="txtAng" title="มุมของข้อความ — คลิกเพื่อตั้งตรง (0°)" style="width:auto;min-width:38px;padding:0 6px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">0°</button>
+    <button class="tbtn" id="btnTxtCW" title="หมุนข้อความขวา 90° (Ctrl+]) · กด ] = 15° · Shift+] = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12.8 6.2A5.2 5.2 0 1 0 13 9.6"/><path d="M13.4 2.8v3.6H9.8"/></svg></button>
   </div>
 
   <button class="tbtn" id="btnUndo" title="ย้อนกลับ — รอยขีดเขียน, ลบ/ย้าย/เพิ่มหน้า (Ctrl+Z)">
@@ -531,7 +534,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.1.0-beta.1';
+const APP_VERSION = '2.2.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -1365,25 +1368,70 @@ function textBox(a){                                // page units, generous enou
   const w=mctx.measureText(a.text).width;
   return {x:a.x-4, y:a.y-a.size*1.1, w:w+8, h:a.size*1.5};
 }
+/* rotated text: a.rot (degrees, clockwise) turns the text about its pivot — the left end of its middle line,
+   so typing more or changing the size grows the text along its own direction */
+function textPivot(a){ return {x:a.x, y:a.y-a.size*.35}; }
+function rotPt(pt,c,deg){                          // turn pt about c by deg (clockwise on screen)
+  if(!deg) return {x:pt.x,y:pt.y};
+  const r=deg*Math.PI/180, co=Math.cos(r), si=Math.sin(r), dx=pt.x-c.x, dy=pt.y-c.y;
+  return {x:c.x+dx*co-dy*si, y:c.y+dx*si+dy*co};
+}
+function toLocal(a,pos){ return rotPt(pos,textPivot(a),-(a.rot||0)); }
+function toWorld(a,pt){ return rotPt(pt,textPivot(a),a.rot||0); }
+function inTextBox(a,pos){ const b=textBox(a), q=toLocal(a,pos); return q.x>=b.x&&q.x<=b.x+b.w&&q.y>=b.y&&q.y<=b.y+b.h; }
+function textCenter(a){ const b=textBox(a); return toWorld(a,{x:b.x+b.w/2,y:b.y+b.h/2}); }
+function setTextRot(a,deg,keepCenter=true){        // turn about the visual centre (what the hand expects)
+  deg=((Math.round(deg*10)/10)%360+360)%360;
+  const c=keepCenter&&textCenter(a); a.rot=deg||0;
+  if(c){ const n=textCenter(a); a.x+=c.x-n.x; a.y+=c.y-n.y; }
+}
 function hitText(p,pos){
   for(let i=p.annots.length-1;i>=0;i--){
-    const a=p.annots[i]; if(a.type!=='text') continue;
-    const b=textBox(a);
-    if(pos.x>=b.x&&pos.x<=b.x+b.w&&pos.y>=b.y&&pos.y<=b.y+b.h) return a;
+    const a=p.annots[i]; if(a.type==='text'&&inTextBox(a,pos)) return a;
   }
   return null;
 }
-let selText=null;                                   // placed text that is selected (text tool)
-function delHandle(a){ const b=textBox(a), r=10/zoom; return {x:b.x+b.w, y:b.y, r}; }
+let selText=null, textRot=0, rotLive=null;          // selected text · angle for new text · angle badge while turning
+function delHandle(a){ const b=textBox(a), d=toWorld(a,{x:b.x+b.w,y:b.y}); return {x:d.x, y:d.y, r:10/zoom}; }
+function rotHandle(a){
+  const b=textBox(a), k=1/zoom, top={x:b.x+b.w/2,y:b.y}, tip={x:b.x+b.w/2,y:b.y-26*k}, h=toWorld(a,tip);
+  return {x:h.x, y:h.y, r:8*k, stem:[toWorld(a,top),h]};
+}
+function onHandle(h,pos,f=1.6){ return Math.hypot(pos.x-h.x,pos.y-h.y)<=h.r*f; }
+const rightAngle=d=>{ const m=((d%90)+90)%90; return m<.05||m>89.95; };
 function drawSelection(ctx){
   const p=pages[current];
   if(!selText||!p||!p.annots.includes(selText)){ selText=null; return; }
   if(hiddenText.has(selText)) return;
-  const b=textBox(selText), k=1/zoom, d=delHandle(selText);
+  const a=selText, b=textBox(a), k=1/zoom, d=delHandle(a), h=rotHandle(a), P=textPivot(a);
+  const live=rotLive&&rotLive.a===a, snapped=live&&rightAngle(a.rot||0), blue=snapped?'#059669':'#2563EB';
   ctx.save();
-  ctx.strokeStyle='#2563EB'; ctx.lineWidth=1.5*k; ctx.setLineDash([5*k,4*k]);
+  if(live){                                          // faint level line through the centre while turning
+    const c=textCenter(a), L=Math.max(b.w,60*k)*.9;
+    ctx.strokeStyle='rgba(100,116,139,.55)'; ctx.lineWidth=k; ctx.setLineDash([3*k,4*k]);
+    ctx.beginPath(); ctx.moveTo(c.x-L,c.y); ctx.lineTo(c.x+L,c.y); ctx.moveTo(c.x,c.y-L); ctx.lineTo(c.x,c.y+L); ctx.stroke();
+  }
+  ctx.save(); ctx.translate(P.x,P.y); ctx.rotate((a.rot||0)*Math.PI/180); ctx.translate(-P.x,-P.y);
+  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k; ctx.setLineDash([5*k,4*k]);
   ctx.strokeRect(b.x,b.y,b.w,b.h);
-  ctx.setLineDash([]); ctx.fillStyle='#DC2626';
+  ctx.restore();
+  ctx.setLineDash([]);
+  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k;          // rotation handle on its stem
+  ctx.beginPath(); ctx.moveTo(h.stem[0].x,h.stem[0].y); ctx.lineTo(h.x,h.y); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,7); ctx.fill(); ctx.stroke();
+  const q2=h.r*.5;                                   // ↻ glyph
+  ctx.lineWidth=1.4*k; ctx.beginPath(); ctx.arc(h.x,h.y,q2,-.4*Math.PI,1.3*Math.PI); ctx.stroke();
+  ctx.fillStyle=blue; ctx.beginPath();
+  const ex=h.x+q2*Math.cos(-.4*Math.PI), ey=h.y+q2*Math.sin(-.4*Math.PI);
+  ctx.moveTo(ex+2.6*k,ey-.2*k); ctx.lineTo(ex-1.6*k,ey-2.4*k); ctx.lineTo(ex-1*k,ey+2.2*k); ctx.fill();
+  if(live){                                          // angle badge beside the handle
+    const txt=fmtDeg(a.rot||0); ctx.font=`600 ${12*k}px system-ui,sans-serif`;
+    const w=ctx.measureText(txt).width+12*k, bx=h.x+h.r+6*k, by=h.y-10*k;
+    ctx.fillStyle=snapped?'#059669':'#1E293B'; ctx.beginPath();
+    ctx.roundRect?ctx.roundRect(bx,by,w,20*k,10*k):ctx.rect(bx,by,w,20*k); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+6*k,by+10*k);
+  }
+  ctx.fillStyle='#DC2626';
   ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
   ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
   ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
@@ -1409,6 +1457,7 @@ function drawAnnots(ctx,annots){
       ctx.save();
       ctx.fillStyle=a.color;
       ctx.font=fontCss(a,a.size);
+      if(a.rot){ const P=textPivot(a); ctx.translate(P.x,P.y); ctx.rotate(a.rot*Math.PI/180); ctx.translate(-P.x,-P.y); }
       ctx.fillText(a.text,a.x,a.y);
       ctx.restore();
     }
@@ -1420,6 +1469,7 @@ function drawAnnots(ctx,annots){
    stylus : always draws (hand tool → the last drawing tool; barrel/eraser button → eraser)
    finger : draws only until a stylus has been seen; after that fingers pan and pinch
    two fingers anywhere = pinch zoom + pan                                          */
+let lastRotTap=0, lastRotTapA=null;
 let drawing=null, drawPid=null, panning=null, pinch=null, penSeen=false, glide=0;
 const touchPts=new Map();
 function capture(id){ try{ viewerEl.setPointerCapture(id); }catch(e){} }
@@ -1441,6 +1491,16 @@ function startDraw(e,t){
     if(selText){                                    // the red × deletes the selected text
       const d=delHandle(selText);
       if(Math.hypot(pos.x-d.x,pos.y-d.y)<=d.r*1.3){ deleteSelText(); return false; }
+      const h=rotHandle(selText);                   // the round handle turns it
+      if(onHandle(h,pos,e.pointerType==='mouse'?1.6:2.4)){
+        const a=selText, c=textCenter(a), now=performance.now();
+        if(now-lastRotTap<350&&lastRotTapA===a){     // double-tap the handle = straighten
+          pushUndo(p); setTextRot(a,0); textRot=0; redrawOverlay(); refreshThumbCanvas(current); updateTextUI(); lastRotTap=0; return false;
+        }
+        lastRotTap=now; lastRotTapA=a;
+        drawing={type:'rot', a, c, a0:Math.atan2(pos.y-c.y,pos.x-c.x), r0:a.rot||0, ox:a.x, oy:a.y, moved:false};
+        rotLive={a}; drawPid=e.pointerId; return true;
+      }
     }
     const hit=hitText(p,pos);
     if(!hit){
@@ -1458,11 +1518,17 @@ function cancelStroke(){               // a second finger landed: the stroke was
   const p=pages[current];
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
   else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='rot'){ const a=drawing.a; a.rot=drawing.r0; a.x=drawing.ox; a.y=drawing.oy; rotLive=null; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
 function endStroke(){
   if(!drawing) return;
+  if(drawing.type==='rot'){
+    const m=drawing; drawing=null; drawPid=null; rotLive=null;
+    if(m.moved){ textRot=m.a.rot||0; refreshThumbCanvas(current); lastRotTap=0; }   // only a plain tap counts toward a double-tap
+    redrawOverlay(); updateTextUI(); return;
+  }
   if(drawing.type==='move'){
     const m=drawing; drawing=null; drawPid=null;
     if(m.moved) refreshThumbCanvas(current);
@@ -1552,6 +1618,18 @@ viewerEl.addEventListener('pointermove',e=>{
     if(e.pointerId!==drawPid) return;
     const p=pages[current], pos=evPos(e);
     if(drawing.type==='erase'){ eraseAt(p,pos); return; }
+    if(drawing.type==='rot'){
+      const m=drawing, ang=Math.atan2(pos.y-m.c.y,pos.x-m.c.x);
+      if(!m.moved){ if(Math.hypot(pos.x-m.c.x,pos.y-m.c.y)*zoom<6) return; pushUndo(p); m.moved=true; }
+      let d=m.r0+(ang-m.a0)*180/Math.PI;
+      if(e.shiftKey) d=Math.round(d);                        // Shift = free (1°)
+      else{
+        const n=Math.round(d/90)*90;
+        d = Math.abs(d-n)<=6 ? n : Math.round(d/15)*15;       // 15° steps, strong pull to 0/90/180/270
+      }
+      if(d!==m.a.rot){ setTextRot(m.a,d); redrawOverlay(); $('txtAng').textContent=fmtDeg(m.a.rot||0); }
+      return;
+    }
     if(drawing.type==='move'){
       const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
       if(!m.moved){ if(Math.hypot(dx,dy)*zoom<4) return; pushUndo(p); m.moved=true; }
@@ -1562,7 +1640,18 @@ viewerEl.addEventListener('pointermove',e=>{
     return;
   }
   if(panning&&e.pointerId===panning.id) movePan(e);
+  else if(e.pointerType==='mouse'&&tool==='text'&&pages.length) hoverText(evPos(e));
 });
+function hoverText(pos){
+  let c='text';
+  if(selText&&pages[current]?.annots.includes(selText)){
+    if(onHandle(rotHandle(selText),pos)) c='grab';
+    else if(onHandle(delHandle(selText),pos,1.3)) c='pointer';
+    else if(inTextBox(selText,pos)) c='move';
+  }
+  if(c==='text'&&hitText(pages[current],pos)) c='pointer';
+  if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
+}
 function pointerEnd(e){
   touchPts.delete(e.pointerId);
   if(pinch){ if(touchPts.size<2) pinch=null; return; }   // lift both fingers before a new gesture
@@ -1588,10 +1677,7 @@ function distSeg(px,py,ax,ay,bx,by){
 function eraseAt(p,pos){
   const R=9/Math.max(zoom,.5)+4;
   const keep=p.annots.filter(a=>{
-    if(a.type==='text'){
-      const b=textBox(a);
-      return !(pos.x>=b.x&&pos.x<=b.x+b.w&&pos.y>=b.y&&pos.y<=b.y+b.h);
-    }
+    if(a.type==='text') return !inTextBox(a,pos);
     const th=R+a.width/2;
     if(a.pts.length===1) return Math.hypot(pos.x-a.pts[0].x,pos.y-a.pts[0].y)>th;
     for(let i=1;i<a.pts.length;i++)
@@ -1606,17 +1692,20 @@ function eraseAt(p,pos){
 
 /* text tool: new text, or edit placed text (its style travels in inStyle while the box is open) */
 let txtPos=null, editingText=null, inStyle=null;
-function curTextStyle(){ return {size:sizes.text, color, font:textFont, bold:textBold}; }
+function curTextStyle(){ return {size:sizes.text, color, font:textFont, bold:textBold, rot:textRot}; }
 function styleInput(){
   if(!inStyle||!txtPos) return;
   txtIn.style.left=(txtPos.x*zoom)+'px';
   txtIn.style.top=((txtPos.y-inStyle.size*1.05)*zoom-4)+'px';
   txtIn.style.font=fontCss(inStyle, inStyle.size*zoom);
   txtIn.style.color=inStyle.color;
+  const r=inStyle.rot||0;                          // the box leans like the text it will become
+  txtIn.style.transformOrigin=`0 ${inStyle.size*.7*zoom+4}px`;
+  txtIn.style.transform=r?`rotate(${r}deg)`:'';
 }
 function openTextInput(pos, a=null){
   txtPos={x:pos.x,y:pos.y}; editingText=a;
-  inStyle=a ? {size:a.size, color:a.color, font:a.font||'sys', bold:!!a.bold} : curTextStyle();
+  inStyle=a ? {size:a.size, color:a.color, font:a.font||'sys', bold:!!a.bold, rot:a.rot||0} : curTextStyle();
   if(a){ hiddenText.add(a); selText=a; redrawOverlay(); }
   loadFont(inStyle).then(styleInput);
   txtIn.style.display='block'; styleInput();
@@ -1632,15 +1721,16 @@ function commitText(){
   closeInput(); editingText=null; txtPos=null; inStyle=null;
   const p=pages[current];
   if(a){
-    const same = v===a.text && st.size===a.size && st.color===a.color && st.font===(a.font||'sys') && st.bold===!!a.bold;
+    const same = v===a.text && st.size===a.size && st.color===a.color && st.font===(a.font||'sys') && st.bold===!!a.bold && st.rot===(a.rot||0);
     if(!same){
       pushUndo(p);
       if(!v){ p.annots=p.annots.filter(x=>x!==a); selText=null; }
-      else Object.assign(a,{text:v, size:st.size, color:st.color, font:st.font, bold:st.bold});
+      else Object.assign(a,{text:v, size:st.size, color:st.color, font:st.font, bold:st.bold, rot:st.rot||0});
     }
   }else if(v&&pos){
     pushUndo(p);
     const t={type:'text',x:pos.x,y:pos.y,size:st.size,color:st.color,font:st.font,bold:st.bold,text:v};
+    if(st.rot) t.rot=st.rot;
     p.annots.push(t); selText=t;
   }
   redrawOverlay(); refreshThumbCanvas(current); updateTextUI();
@@ -1650,6 +1740,21 @@ function deleteSelText(){
   const p=pages[current]; if(!selText||!p) return;
   pushUndo(p); p.annots=p.annots.filter(x=>x!==selText); selText=null;
   redrawOverlay(); refreshThumbCanvas(current); updateTextUI();
+}
+/* turn the open box, the selected text, or (nothing in hand) the angle for the next text */
+const fmtDeg=d=>{ d=((d%360)+360)%360; return (Number.isInteger(d)?d:d.toFixed(1))+'°'; };
+function turnText(step, abs=null){
+  const turn=r=>abs!=null?abs:(r||0)+step;
+  if(txtIn.style.display==='block'&&inStyle){ inStyle.rot=((turn(inStyle.rot)%360)+360)%360; textRot=inStyle.rot; styleInput(); updateTextUI(); return; }
+  if(selText&&tool==='text'&&pages[current]?.annots.includes(selText)){
+    const p=pages[current], now=performance.now();
+    const nudge=abs==null&&Math.abs(step)<90;       // held [ ] nudges merge into one undo step; 90° turns and resets don't
+    if(!nudge||styleUndo.a!==selText||styleUndo.k!=='rot'||now-styleUndo.t>900) pushUndo(p);
+    styleUndo={a:selText,k:'rot',t:now,h:styleUndo.h};
+    setTextRot(selText,turn(selText.rot)); textRot=selText.rot||0; redrawOverlay();
+    clearTimeout(styleUndo.h); styleUndo.h=setTimeout(()=>refreshThumbCanvas(current),300);
+  }else textRot=((turn(textRot)%360)+360)%360;
+  updateTextUI();
 }
 /* a style change goes to the open text box, else to the selected text (undoable) */
 function applyTextStyle(ch){
@@ -1666,6 +1771,7 @@ function applyTextStyle(ch){
 }
 let styleUndo={a:null,k:'',t:0,h:0};
 txtIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();commitText();}
+                                      if((e.ctrlKey||e.metaKey)&&(e.code==='BracketLeft'||e.code==='BracketRight')){ e.preventDefault(); turnText(e.code==='BracketLeft'?-90:90); }
                                       if(e.key==='Escape'){e.preventDefault();cancelText();} });
 /* keep the box open while its style is being changed in the toolbar or palette */
 txtIn.addEventListener('blur',()=>setTimeout(()=>{
@@ -1803,11 +1909,16 @@ function textInHand(){ return (txtIn.style.display==='block'&&inStyle) || (tool=
 function updateTextUI(){
   const show=tool==='text';
   $('textOpts').style.display=show?'':'none';
-  const t=textInHand()||{font:textFont,bold:textBold};
+  const t=textInHand()||{font:textFont,bold:textBold,rot:textRot};
   fontSel.value=t.font||'sys';
   $('btnBold').classList.toggle('on',!!t.bold);
+  const r=t.rot!=null?t.rot:textRot;
+  $('txtAng').textContent=fmtDeg(r||0); $('txtAng').classList.toggle('on',!!r);
   updateSizeUI();
 }
+$('btnTxtCCW').onclick=()=>turnText(-90);
+$('btnTxtCW').onclick=()=>turnText(90);
+$('txtAng').onclick=()=>turnText(0,0);
 fontSel.addEventListener('change',()=>{
   textFont=fontSel.value; if(FONTS[textFont].web) linkFonts();
   applyTextStyle({font:textFont}); updateTextUI(); saveSettings();
@@ -1846,6 +1957,7 @@ document.addEventListener('keydown',e=>{
   if(mod&&(e.code==='Equal'||e.code==='NumpadAdd')){ e.preventDefault(); $('btnZoomIn').click(); return; }
   if(mod&&(e.code==='Minus'||e.code==='NumpadSubtract')){ e.preventDefault(); $('btnZoomOut').click(); return; }
   if(mod&&(e.code==='Digit0'||e.code==='Numpad0')){ e.preventDefault(); $('btnFit').click(); return; }
+  if(mod&&(e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText(e.code==='BracketLeft'?-90:90); return; }
   if(mod||e.altKey) return;
   const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
@@ -1853,6 +1965,7 @@ document.addEventListener('keydown',e=>{
   else if(pages.length&&e.code==='End'){ e.preventDefault(); goToPage(pages.length-1); }
   else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
+  else if((e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
   else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); goToPage(current+1); }
   else if(pages.length&&(e.code==='PageUp')){ e.preventDefault(); goToPage(current-1); }
 });
@@ -1866,7 +1979,10 @@ function rotAnnots(p,cw){
   const d=dispSize(p);                    // ขนาดก่อนหมุน
   const tf=cw? pt=>({x:d.h-pt.y,y:pt.x}) : pt=>({x:pt.y,y:d.w-pt.x});
   for(const a of p.annots){
-    if(a.type==='text'){const n=tf({x:a.x,y:a.y}); a.x=n.x; a.y=n.y;}
+    if(a.type==='text'){                  // turn the text with the page about its pivot
+      const n=tf(textPivot(a)); a.x=n.x; a.y=n.y+a.size*.35;
+      const r=(((a.rot||0)+(cw?90:-90))%360+360)%360; if(r) a.rot=r; else delete a.rot;
+    }
     else a.pts=a.pts.map(tf);
   }
 }
@@ -2227,7 +2343,10 @@ viewerEl.addEventListener('contextmenu',e=>{
   if(hit) items.push(
     {head:'ข้อความ'},
     {label:'แก้ไขข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; openTextInput({x:hit.x,y:hit.y},hit); }},
-    {label:'ลบข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; deleteSelText(); }},
+    {label:'หมุนข้อความซ้าย 90°', key:'Ctrl+[', action:async()=>{ await go(); setTool('text'); selText=hit; turnText(-90); }},
+    {label:'หมุนข้อความขวา 90°', key:'Ctrl+]', action:async()=>{ await go(); setTool('text'); selText=hit; turnText(90); }},
+    ...(hit.rot?[{label:'ตั้งข้อความตรง (0°)', sub:'ตอนนี้ '+fmtDeg(hit.rot), action:async()=>{ await go(); setTool('text'); selText=hit; turnText(0,0); }}]:[]),
+    {label:'ลบข้อความ', key:'Del', action:async()=>{ await go(); setTool('text'); selText=hit; deleteSelText(); }},
     {sep:true});
   items.push(
     {head:`หน้า ${k+1}`},
