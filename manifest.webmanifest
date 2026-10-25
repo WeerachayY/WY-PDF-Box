@@ -51,7 +51,13 @@
           "name": "file",
           "accept": [
             "application/pdf",
-            ".pdf"
+            ".pdf",
+            "image/*",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".heic"
           ]
         }
       ]

@@ -1,5 +1,5 @@
 /* WY Pdf Box — service worker: แคชตัวแอปและไลบรารีเพื่อใช้งานออฟไลน์ */
-const CACHE = 'wy-pdf-box-v14';
+const CACHE = 'wy-pdf-box-v15';
 const SHARE_CACHE = 'wy-pdf-box-share';
 const ASSETS = [
   './',
@@ -36,12 +36,18 @@ self.addEventListener('fetch', e => {
     e.respondWith((async () => {
       try {
         const form = await e.request.formData();
-        const file = form.getAll('file').find(f => f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || '')));
-        if (!file) return Response.redirect('./?shared=0', 303);
+        const ok = f => f && (f.type === 'application/pdf' || /^image\//.test(f.type || '') ||
+                              /\.(pdf|jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(f.name || ''));
+        const files = form.getAll('file').filter(ok);
+        if (!files.length) return Response.redirect('./?shared=0', 303);
         const c = await caches.open(SHARE_CACHE);
-        await c.put('shared-file', new Response(file, {
-          headers: { 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(file.name || 'shared.pdf') }
-        }));
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          await c.put('shared-' + i, new Response(f, {
+            headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(f.name || 'shared') }
+          }));
+        }
+        await c.put('shared-count', new Response(String(files.length)));
         return Response.redirect('./?shared=1', 303);
       } catch (err) {
         return Response.redirect('./?shared=0', 303);
