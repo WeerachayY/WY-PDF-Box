@@ -254,6 +254,12 @@ aside{
 .stepper button{width:32px;height:32px;border:1px solid var(--line);border-radius:var(--r);font-size:16px}
 .stepper input{width:64px !important;text-align:center}
 .bkBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.pvNav{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pvNav[hidden]{display:none}
+.pvNav button{width:28px;height:26px;border:1px solid var(--line);border-radius:6px;font-size:15px;line-height:1}
+.seg.q{flex-direction:column}
+.seg.q button{height:auto;min-height:34px;justify-content:space-between;padding:6px 10px}
+.seg.q small{font-size:11px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
 .bkBtns .btn{min-width:96px}
 @media (max-width:520px){ .bkBody{flex-direction:column;align-items:stretch} .bkPrev{flex:none} }
 #recentList{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
@@ -456,9 +462,9 @@ aside{
     <div id="empty">
       <div id="drop">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.4"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M13 3v6h6"/><path d="M9 14h6M9 17h4"/></svg>
-        <h1>เปิดไฟล์ PDF เพื่อเริ่มต้น</h1>
+        <h1>เปิดไฟล์ PDF หรือรูปภาพเพื่อเริ่มต้น</h1>
         <p>ลากไฟล์มาวางที่นี่ หรือกดปุ่มด้านล่าง<br>ไฟล์ถูกประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการอัปโหลด</p>
-        <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF</button>
+        <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF หรือรูปภาพ</button>
         <button class="btn" id="btnNew2" style="height:34px">สร้างไฟล์ใหม่จากหน้าเปล่า</button>
         <button class="btn" id="btnSession" style="display:none;height:34px"></button>
         <div id="recentWrap" style="display:none;width:100%">
@@ -467,7 +473,7 @@ aside{
         </div>
         <div class="feat">
           <span>ลบหน้า</span><span>สลับลำดับหน้า</span><span>หมุนหน้า</span>
-          <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>บันทึกเป็นไฟล์ใหม่</span>
+          <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>รูปเป็น PDF</span><span>บันทึกเป็นไฟล์ใหม่</span>
         </div>
       </div>
     </div>
@@ -488,7 +494,8 @@ aside{
   </div>
 </footer>
 
-<input type="file" id="fileIn" accept="application/pdf,.pdf" multiple hidden>
+<input type="file" id="fileIn" accept="application/pdf,.pdf,image/*" multiple hidden>
+<input type="file" id="imgIn" accept="image/*" multiple hidden>
 <div id="printRoot"></div>
 <input type="color" id="colorIn" tabindex="-1" aria-hidden="true">
 <div id="snapPop" role="dialog" aria-label="คัดลอกหน้าเป็นรูป">
@@ -588,7 +595,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.3.0-beta.1';
+const APP_VERSION = '2.4.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -620,6 +627,11 @@ function markDirty(){ if(activeTab&&!activeTab.dirty){ activeTab.dirty=true; ren
 const tabs=[]; let activeTab=null, tabSeq=0;
 const canFS='showOpenFilePicker' in window && 'showSaveFilePicker' in window;
 const PDF_TYPES=[{description:'PDF', accept:{'application/pdf':['.pdf']}}];
+const IMG_ACCEPT={'image/*':['.jpg','.jpeg','.png','.webp','.gif','.bmp','.heic','.heif','.avif']};
+const OPEN_TYPES=[{description:'PDF หรือรูปภาพ', accept:{'application/pdf':['.pdf'], ...IMG_ACCEPT}},
+                  {description:'PDF', accept:{'application/pdf':['.pdf']}}, {description:'รูปภาพ', accept:IMG_ACCEPT}];
+const isImage=f=>/^image\//.test(f.type||'')||/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(f.name||'');
+const isPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name||'');
 const stripPdf=n=>(n||'document').replace(/\.pdf$/i,'') || 'document';
 
 function newTab(name, handle){
@@ -793,17 +805,21 @@ const loadFile=f=>openDocument(f);              // (kept for older call sites)
 async function openFiles(){
   if(canFS){
     let hs;
-    try{ hs=await showOpenFilePicker({id:'wy-open', multiple:true, types:PDF_TYPES}); }
+    try{ hs=await showOpenFilePicker({id:'wy-open', multiple:true, types:OPEN_TYPES}); }
     catch(e){ if(e.name!=='AbortError') console.error(e); return; }
-    for(const h of hs) await openDocument(await h.getFile(), h);
+    const imgs=[];
+    for(const h of hs){ const f=await h.getFile(); if(isImage(f)) imgs.push(f); else await openDocument(f, h); }
+    if(imgs.length) imagesFlow(imgs,'new');                // pictures picked together become one new file
   } else { addMode=false; $('fileIn').click(); }
 }
 $('btnOpen').onclick=openFiles;
 $('btnOpen2').onclick=openFiles;
 $('fileIn').onchange=async e=>{
   const fs=[...e.target.files]; e.target.value='';
-  if(addMode&&pages.length&&fs[0]){ chooseInsertPlace({file:fs[0]}); return; }
-  for(const f of fs) await openDocument(f);
+  const imgs=fs.filter(isImage), pdfs=fs.filter(f=>!isImage(f));
+  if(addMode&&pages.length){ if(pdfs[0]) chooseInsertPlace({file:pdfs[0]}); else if(imgs.length) imagesFlow(imgs,'insert'); return; }
+  for(const f of pdfs) await openDocument(f);
+  if(imgs.length) imagesFlow(imgs,'new');
 };
 
 /* drop files: on the page list = insert into this file, anywhere else = open as tabs */
@@ -811,17 +827,19 @@ const dropEl=$('drop');
 ['dragover','dragenter'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>window.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===document.documentElement)dropEl.classList.remove('over');}));
 window.addEventListener('drop',async e=>{
-  const fs=[...(e.dataTransfer?.files||[])].filter(f=>/pdf$/i.test(f.name)||f.type==='application/pdf');
-  if(!fs.length||e.target.closest?.('.thumb')) return;   // thumbnails handle their own drag-reorder
-  if(pages.length && e.target.closest?.('aside')){ chooseInsertPlace({file:fs[0]}); return; }
+  const all=[...(e.dataTransfer?.files||[])], fs=all.filter(isPdf), imgs=all.filter(isImage);
+  if((!fs.length&&!imgs.length)||e.target.closest?.('.thumb')) return;   // thumbnails handle their own drag-reorder
+  if(pages.length && e.target.closest?.('aside')){ if(fs[0]) chooseInsertPlace({file:fs[0]}); else imagesFlow(imgs,'insert'); return; }
   for(const f of fs) await openDocument(f);
+  if(imgs.length) imagesFlow(imgs,'new');
 });
 
 /* ---------------- insert pages: from a file on disk or from another open tab ---------------- */
 $('btnAdd').onclick=async()=>{
   const others=tabs.filter(t=>t!==activeTab);
   const opts=[{label:'หน้าเปล่า…', sub:'เลือกขนาด แนว พื้นหลัง และจำนวน', value:'blank', primary:true},
-              {label:'จากไฟล์ในเครื่อง…', value:'disk'}];
+              {label:'จากรูปภาพ…', sub:'JPG, PNG, WebP · เลือกได้หลายรูป · หรือกด Ctrl+V วางรูป', value:'img'},
+              {label:'จากไฟล์ PDF ในเครื่อง…', value:'disk'}];
   if(others.length) opts.push({label:'— หรือดึงจากแท็บที่เปิดอยู่ —', value:undefined, divider:true});
   for(const t of others){
     const n=t.selected.size;
@@ -831,6 +849,7 @@ $('btnAdd').onclick=async()=>{
   const src = await ask('แทรกหน้า', others.length?'หน้าจากแท็บอื่นได้ตามสภาพปัจจุบันของแท็บนั้น รวมรอยขีดเขียนและการหมุน':'', opts);
   if(!src) return;
   if(src==='blank') return insertBlank();
+  if(src==='img'){ const fs=await pickImages(); if(fs.length) imagesFlow(fs,'insert'); return; }
   if(src==='disk'){
     if(canFS){
       let hs; try{ hs=await showOpenFilePicker({id:'wy-open', multiple:false, types:PDF_TYPES}); }
@@ -1061,6 +1080,256 @@ async function newBlankFile(){
   }catch(err){ console.error(err); toast('สร้างไฟล์ใหม่ไม่สำเร็จ'); }
 }
 $('btnNew').onclick=newBlankFile; $('btnNew2').onclick=newBlankFile;
+
+/* ---------------- pictures as pages ----------------
+   Each picture becomes one page, either the size of the picture or fitted onto a sheet of paper.
+   "ต้นฉบับ" puts the very same JPEG/PNG bytes into the PDF (turned by its EXIF flag, never re-encoded);
+   the two smaller settings only shrink pictures that are sharper than the sheet can show.          */
+let imgPref={size:'A4', orient:'auto', q:'orig'};
+try{ Object.assign(imgPref, JSON.parse(localStorage.getItem('wy-img')||'{}')); }catch(e){}
+const IMG_Q={orig:{dpi:0,jq:.95}, '300':{dpi:300,jq:.88}, '150':{dpi:150,jq:.8}};
+const FIT_DPI=150;                                   // "พอดีรูป": a picture's pixels at 150 dpi
+function pickImages(){
+  return new Promise(res=>{
+    const el=$('imgIn'); el.value=''; let done=false;
+    const fin=()=>{ if(done) return; done=true; res([...el.files]); };
+    el.onchange=fin;
+    el.oncancel=()=>setTimeout(fin,400);            // some browsers report "cancel" just before the files arrive
+    el.click();
+  });
+}
+async function probeImages(files){                  // one at a time: phone photos are large
+  const ok=[], bad=[];
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    if(files.length>3) toast(`กำลังอ่านรูป ${i+1}/${files.length}…`);
+    try{ const bm=await createImageBitmap(f,{imageOrientation:'from-image'}); ok.push({file:f, w:bm.width, h:bm.height}); bm.close(); }
+    catch(e){ bad.push(f.name||'รูป'); }
+  }
+  return {ok,bad};
+}
+function jpegOrientation(buf){                      // EXIF orientation tag of a JPEG (1 = upright)
+  try{
+    const v=new DataView(buf); if(v.getUint16(0)!==0xFFD8) return 1;
+    let o=2;
+    while(o+4<v.byteLength){
+      const m=v.getUint16(o), len=v.getUint16(o+2);
+      if(m===0xFFE1&&v.getUint32(o+4)===0x45786966){
+        const t=o+10, le=v.getUint16(t)===0x4949, ifd=t+v.getUint32(t+4,le), n=v.getUint16(ifd,le);
+        for(let i=0;i<n;i++){ const e=ifd+2+i*12; if(v.getUint16(e,le)===0x0112) return v.getUint16(e+8,le); }
+        return 1;
+      }
+      if((m&0xFF00)!==0xFF00||m===0xFFDA) break;
+      o+=2+len;
+    }
+  }catch(e){}
+  return 1;
+}
+const kindOf=f=>/png|gif|bmp/i.test(f.type||'')||/\.(png|gif|bmp)$/i.test(f.name||'') ? 'png'
+              : /jpe?g/i.test(f.type||'')||/\.jpe?g$/i.test(f.name||'') ? 'jpg' : 'other';
+/* where a picture goes: page size and the box it is drawn into (pt, PDF coordinates) */
+function imageLayout(im, o){
+  let pw,ph;
+  if(o.size==='fit'){ pw=im.w/FIT_DPI*72; ph=im.h/FIT_DPI*72; return {pw,ph,x:0,y:0,dw:pw,dh:ph}; }
+  if(o.size==='same'&&pages[current]){ const d=dispSize(pages[current]); pw=d.w; ph=d.h; }
+  else{
+    const P=PAPERS.find(p=>p[0]===o.size)||PAPERS[4]; pw=P[1]*MM; ph=P[2]*MM;
+    const land = o.orient==='auto' ? im.w>im.h : o.orient==='l';
+    if(land!==(pw>ph)) [pw,ph]=[ph,pw];
+  }
+  const m=10*MM, bw=pw-2*m, bh=ph-2*m, k=Math.min(bw/im.w, bh/im.h);
+  const dw=im.w*k, dh=im.h*k;
+  return {pw,ph,x:(pw-dw)/2,y:(ph-dh)/2,dw,dh};
+}
+/* how many pixels the picture keeps for a quality setting (0 = all of them) */
+function keepPx(im, o, L){
+  const q=IMG_Q[o.q]; if(!q.dpi) return 0;
+  const want = o.size==='fit' ? Math.round(q.dpi/300*3508) : Math.round(Math.max(L.dw,L.dh)/72*q.dpi);
+  return Math.max(im.w,im.h)>want ? want : 0;
+}
+function estimateBytes(list, o){
+  let b=0;
+  for(const im of list){
+    const L=imageLayout(im,o), cap=keepPx(im,o,L), kind=kindOf(im.file);
+    if(!cap){ b+= kind==='other' ? Math.min(im.w*im.h*.35, im.file.size*3) : im.file.size; continue; }
+    const r=cap/Math.max(im.w,im.h), f=o.q==='300'?1:.75;
+    b+= kind==='other' ? Math.min(im.w*im.h*r*r*(o.q==='300'?.22:.12), im.file.size*3*r*r) : im.file.size*r*r*f;   // never more than the original
+  }
+  return b;
+}
+const fmtBytes=b=>b>=1048576?`${(b/1048576).toFixed(b>=10485760?0:1)} MB`:`${Math.max(1,Math.round(b/1024))} KB`;
+async function encodePicture(file, maxPx, png, jq){ // decode (upright), shrink, re-encode
+  const bm=await createImageBitmap(file,{imageOrientation:'from-image'});
+  const k=maxPx?Math.min(1,maxPx/Math.max(bm.width,bm.height)):1;
+  const cv=document.createElement('canvas');
+  cv.width=Math.max(1,Math.round(bm.width*k)); cv.height=Math.max(1,Math.round(bm.height*k));
+  const c=cv.getContext('2d');
+  if(!png){ c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); }   // JPEG has no transparency
+  c.imageSmoothingQuality='high'; c.drawImage(bm,0,0,cv.width,cv.height); bm.close();
+  const blob=await new Promise(r=>cv.toBlob(r, png?'image/png':'image/jpeg', jq));
+  cv.width=cv.height=0;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+async function buildImagePdf(list, o){
+  const out=await PDFLib.PDFDocument.create(), q=IMG_Q[o.q];
+  for(let i=0;i<list.length;i++){
+    const im=list[i];
+    if(list.length>1) toast(`กำลังใส่รูป ${i+1}/${list.length}…`);
+    await new Promise(r=>setTimeout(r,0));
+    const L=imageLayout(im,o), cap=keepPx(im,o,L), kind=kindOf(im.file);
+    const pg=out.addPage([L.pw,L.ph]);
+    const yTop=L.ph-L.y-L.dh;                        // layout is top-down, PDF is bottom-up
+    let img=null, orient=1;
+    if(!cap&&kind==='jpg'){
+      const buf=await im.file.arrayBuffer(); orient=jpegOrientation(buf);
+      if([1,3,6,8].includes(orient)) img=await out.embedJpg(buf);          // the original bytes, untouched
+    } else if(!cap&&kind==='png'&&/png/i.test(im.file.type||im.file.name)){
+      img=await out.embedPng(await im.file.arrayBuffer());
+    }
+    if(img){
+      const {x,dw,dh}=L, y=yTop, D=PDFLib.degrees;
+      if(orient===6)      pg.drawImage(img,{x, y:y+dh, width:dh, height:dw, rotate:D(-90)});
+      else if(orient===8) pg.drawImage(img,{x:x+dw, y, width:dh, height:dw, rotate:D(90)});
+      else if(orient===3) pg.drawImage(img,{x:x+dw, y:y+dh, width:dw, height:dh, rotate:D(180)});
+      else                pg.drawImage(img,{x, y, width:dw, height:dh});
+    } else {
+      const png=kind==='png', bytes=await encodePicture(im.file, cap, png, q.jq);
+      let e;
+      if(cap&&bytes.length>=im.file.size&&(kind==='png'||(kind==='jpg'&&jpegOrientation(await im.file.arrayBuffer())===1)))
+        e=kind==='png'?await out.embedPng(await im.file.arrayBuffer()):await out.embedJpg(await im.file.arrayBuffer());   // shrinking did not help: keep the original
+      else e=png?await out.embedPng(bytes):await out.embedJpg(bytes);
+      pg.drawImage(e,{x:L.x, y:yTop, width:L.dw, height:L.dh});
+    }
+  }
+  out.setProducer('WY Pdf Box');
+  return new File([await out.save()], 'pictures.pdf', {type:'application/pdf'});
+}
+
+/* the dialog (same look as the blank-page one) */
+function imageDialog(list, mode, where){
+  return new Promise(res=>{
+    const ins=mode==='insert', canSame=ins&&!!pages[current], N=list.length;
+    const o={...imgPref, where: where ?? 'after'};
+    if(o.size==='same'&&!canSame) o.size='A4';
+    let shown=0;
+    const d=document.createElement('div'); d.className='dlg';
+    d.innerHTML=`<div class="box bk" role="dialog" aria-label="${ins?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'}">
+      <b>${ins?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'} · ${N} รูป</b>
+      <div class="bkBody">
+        <div class="bkPrev"><div class="pv"><canvas></canvas></div>
+          <div class="pvNav"${N>1?'':' hidden'}><button type="button" data-n="-1" aria-label="รูปก่อนหน้า">‹</button><span class="pvN"></span><button type="button" data-n="1" aria-label="รูปถัดไป">›</button></div>
+          <small class="pvCap"></small></div>
+        <div class="bkForm">
+          <div class="bkRow"><label for="imSize">ขนาดหน้า</label>
+            <select id="imSize">
+              <option value="fit">พอดีรูป (ไม่มีขอบ)</option>
+              ${canSame?`<option value="same">วางบนกระดาษเท่าหน้าปัจจุบัน</option>`:''}
+              <optgroup label="วางบนกระดาษ ISO">${PAPERS.slice(0,6).map(p=>`<option value="${p[0]}">${p[0]} · ${p[1]} × ${p[2]} มม.</option>`).join('')}</optgroup>
+              <optgroup label="วางบนกระดาษอเมริกา">${PAPERS.slice(6).map(p=>`<option value="${p[0]}">${p[0]}</option>`).join('')}</optgroup>
+            </select></div>
+          <div class="bkRow"><label>แนวกระดาษ</label>
+            <div class="seg" id="imOrient">
+              <button type="button" data-v="auto">อัตโนมัติตามรูป</button>
+              <button type="button" data-v="p">แนวตั้ง</button>
+              <button type="button" data-v="l">แนวนอน</button>
+            </div></div>
+          <div class="bkRow"><label>คุณภาพรูป</label>
+            <div class="seg q" id="imQ">
+              <button type="button" data-v="orig">ต้นฉบับ<small></small></button>
+              <button type="button" data-v="300">คมเท่าเดิม · 300 dpi<small></small></button>
+              <button type="button" data-v="150">ไฟล์เล็ก · 150 dpi<small></small></button>
+            </div></div>
+          ${ins?`<div class="bkRow"><label for="imWhere">ตำแหน่ง</label>
+            <select id="imWhere">
+              <option value="front">หน้าแรกสุด</option>
+              <option value="before">ก่อนหน้า ${current+1}</option>
+              <option value="after">หลังหน้า ${current+1}</option>
+              <option value="end">ท้ายสุด (หลังหน้า ${pages.length})</option>
+            </select></div>`:''}
+        </div>
+      </div>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok"></button></div>
+    </div>`;
+    const q=sel=>d.querySelector(sel), cv=q('.pv canvas'), thumbs=new Map(); let closed=false;
+    async function thumb(i){                          // small, upright copy for the preview
+      if(!thumbs.has(i)) thumbs.set(i, createImageBitmap(list[i].file,{imageOrientation:'from-image',
+        resizeWidth:Math.max(1,Math.round(list[i].w*Math.min(1,300/Math.max(list[i].w,list[i].h)))), resizeQuality:'medium'}).catch(()=>null));
+      return thumbs.get(i);
+    }
+    async function draw(){
+      const im=list[shown], L=imageLayout(im,o), k=Math.min(130/L.pw,150/L.ph);
+      cv.width=Math.max(2,Math.round(L.pw*k)); cv.height=Math.max(2,Math.round(L.ph*k));
+      const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height);
+      x.fillStyle='#DCE3EC'; x.fillRect(L.x*k,L.y*k,L.dw*k,L.dh*k);
+      const name=o.size==='fit'?'พอดีรูป':o.size==='same'?'เท่าหน้าปัจจุบัน':o.size;
+      q('.pvCap').innerHTML=`${name} · ${fmtMM(L.pw/MM)} × ${fmtMM(L.ph/MM)} มม.<br><span style="word-break:break-all">${(im.file.name||'').replace(/[<>&]/g,'')}</span> · ${im.w} × ${im.h} px`;
+      q('.pvN').textContent=`${shown+1} / ${N}`;
+      const at=shown, bm=await thumb(at); if(bm&&shown===at&&!closed) try{ x.drawImage(bm,L.x*k,L.y*k,L.dw*k,L.dh*k); }catch(e){}
+    }
+    function sync(){
+      q('#imSize').value=o.size;
+      const fixed=o.size==='fit'||o.size==='same';
+      d.querySelectorAll('#imOrient button').forEach(b=>{ b.classList.toggle('on',!fixed&&b.dataset.v===o.orient); b.disabled=fixed; });
+      d.querySelectorAll('#imQ button').forEach(b=>{
+        b.classList.toggle('on',b.dataset.v===o.q);
+        b.querySelector('small').textContent='≈ '+fmtBytes(estimateBytes(list,{...o,q:b.dataset.v}));
+      });
+      if(ins) q('#imWhere').value=o.where;
+      q('[data-act=ok]').textContent = ins ? `แทรก ${N} หน้า` : `สร้างไฟล์ ${N} หน้า`;
+      draw();
+    }
+    q('#imSize').onchange=e=>{ o.size=e.target.value; sync(); };
+    d.querySelectorAll('#imOrient button').forEach(b=>b.onclick=()=>{ o.orient=b.dataset.v; sync(); });
+    d.querySelectorAll('#imQ button').forEach(b=>b.onclick=()=>{ o.q=b.dataset.v; sync(); });
+    d.querySelectorAll('.pvNav button').forEach(b=>b.onclick=()=>{ shown=(shown+ +b.dataset.n+N)%N; draw(); });
+    if(ins) q('#imWhere').onchange=e=>{ o.where=e.target.value; };
+    const done=v=>{ closed=true; d.remove(); document.removeEventListener('keydown',key,true);
+      for(const p of thumbs.values()) p.then(bm=>bm&&bm.close()); res(v); };
+    const ok=()=>{ Object.assign(imgPref,{size:o.size, orient:o.orient, q:o.q});
+      try{ localStorage.setItem('wy-img', JSON.stringify(imgPref)); }catch(e){}
+      done(o); };
+    const key=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(null); }
+                   else if(e.key==='Enter'&&!e.target.closest?.('.bkBtns')){ e.preventDefault(); ok(); }
+                   else if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&N>1&&e.target.tagName!=='SELECT'){ e.preventDefault(); shown=(shown+(e.key==='ArrowLeft'?-1:1)+N)%N; draw(); } };
+    q('[data-act=ok]').onclick=ok; q('[data-act=cancel]').onclick=()=>done(null);
+    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(d); sync(); q('[data-act=ok]').focus();
+  });
+}
+let imagesBusy=false;
+async function imagesFlow(files, mode, where){
+  if(imagesBusy||!files.length) return; imagesBusy=true;
+  try{
+    const {ok,bad}=await probeImages(files);
+    if(bad.length) toast(`เปิดรูปไม่ได้ ${bad.length} ไฟล์ (${bad.slice(0,2).join(', ')}${bad.length>2?'…':''}) — เครื่องนี้อาจอ่านไฟล์ชนิดนี้ไม่ได้ เช่น HEIC`);
+    if(!ok.length) return;
+    if(mode==='insert'&&!pages.length) mode='new';
+    const o=await imageDialog(ok, mode, where); imagesBusy=false;   // only one dialog at a time; building may overlap
+    if(!o) return;
+    const file=await buildImagePdf(ok, o);
+    if(mode==='new'){
+      const nm = ok.length===1 ? stripPdf(ok[0].file.name.replace(/\.[^.]+$/,''))+'.pdf' : `รูปภาพ-${++untitledSeq}.pdf`;
+      const t=newTab(nm, null); t.untitled=true;
+      t.pages=await parsePdf(file, t.docs);
+      tabs.push(t); await activateTab(t, true);
+      toast(`สร้างไฟล์จากรูปแล้ว · ${t.pages.length} หน้า — กด Ctrl+S เพื่อบันทึก`);
+    } else {
+      const list=await parsePdf(file, docs);
+      placePages(list, {front:0, before:current, after:current+1, end:pages.length}[o.where]);
+    }
+  }catch(err){ console.error(err); toast('ใส่รูปไม่สำเร็จ'); }
+  finally{ imagesBusy=false; }
+}
+/* Ctrl+V a picture (screenshot, image copied from LINE / a browser / CAD) */
+document.addEventListener('paste',e=>{
+  if(document.querySelector('.dlg')) return;
+  const t=e.target; if(/^(INPUT|TEXTAREA)$/.test(t.tagName)||t.isContentEditable) return;
+  const fs=[...(e.clipboardData?.files||[])].filter(isImage);
+  if(!fs.length) return;
+  e.preventDefault();
+  imagesFlow(fs.map((f,i)=>new File([f], f.name&&f.name!=='image.png'?f.name:`วางจากคลิปบอร์ด${fs.length>1?'-'+(i+1):''}.png`, {type:f.type})), pages.length?'insert':'new');
+});
 
 /* ---------------- small UI kit: menus and choice dialogs ---------------- */
 let menuEl=null;
@@ -2637,15 +2906,23 @@ if ('launchQueue' in window) {
   const q = new URLSearchParams(location.search);
   if (!q.has('shared')) return;
   window.history.replaceState(null, '', location.pathname);   // (window. — the undo list used to shadow it)
-  if (q.get('shared') !== '1') { toast('ไม่พบไฟล์ PDF ในสิ่งที่แชร์มา'); return; }
+  if (q.get('shared') !== '1') { toast('ไม่พบไฟล์ PDF หรือรูปภาพในสิ่งที่แชร์มา'); return; }
   try {
     const c = await caches.open('wy-pdf-box-share');
-    const res = await c.match('shared-file');
-    if (!res) return;
-    const name = decodeURIComponent(res.headers.get('X-File-Name') || 'shared.pdf');
-    const file = new File([await res.blob()], name, {type:'application/pdf'});
-    await c.delete('shared-file');
-    openDocument(file);
+    const files = [];
+    const n = +((await (await c.match('shared-count'))?.text()) || 0);
+    for (let i = 0; i < n; i++) {
+      const res = await c.match('shared-' + i); if (!res) continue;
+      const name = decodeURIComponent(res.headers.get('X-File-Name') || 'shared');
+      files.push(new File([await res.blob()], name, {type: res.headers.get('Content-Type') || ''}));
+      await c.delete('shared-' + i);
+    }
+    await c.delete('shared-count');
+    const old = await c.match('shared-file');             // from an older service worker
+    if (old) { files.push(new File([await old.blob()], decodeURIComponent(old.headers.get('X-File-Name')||'shared.pdf'), {type:'application/pdf'})); await c.delete('shared-file'); }
+    const imgs = files.filter(isImage);
+    for (const f of files.filter(f => !isImage(f))) await openDocument(f);
+    if (imgs.length) imagesFlow(imgs, 'new');
   } catch(err){ console.error(err); toast('รับไฟล์ที่แชร์มาไม่สำเร็จ'); }
 })();
 </script>
