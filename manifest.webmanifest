@@ -36,6 +36,16 @@
         ]
       },
       "launch_type": "single-client"
+    },
+    {
+      "action": "./",
+      "accept": {
+        "image/jpeg": [".jpg", ".jpeg"],
+        "image/png": [".png"],
+        "image/bmp": [".bmp"],
+        "image/webp": [".webp"]
+      },
+      "launch_type": "single-client"
     }
   ],
   "launch_handler": {

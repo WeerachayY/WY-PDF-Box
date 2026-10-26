@@ -255,7 +255,7 @@ aside{
 .stepper input{width:64px !important;text-align:center}
 .bkBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .pvNav{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.pvNav[hidden]{display:none}
+.pvNav[hidden],.bkRow[hidden]{display:none}
 .pvNav button{width:28px;height:26px;border:1px solid var(--line);border-radius:6px;font-size:15px;line-height:1}
 .seg.q{flex-direction:column}
 .seg.q button{height:auto;min-height:34px;justify-content:space-between;padding:6px 10px}
@@ -595,7 +595,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.4.0-beta.1';
+const APP_VERSION = '2.5.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -1208,18 +1208,26 @@ async function buildImagePdf(list, o){
 /* the dialog (same look as the blank-page one) */
 function imageDialog(list, mode, where){
   return new Promise(res=>{
-    const ins=mode==='insert', canSame=ins&&!!pages[current], N=list.length;
-    const o={...imgPref, where: where ?? 'after'};
+    const N=list.length, canSame=!!pages[current];
+    // a file is already open: let the person choose — a new file (default) or into the open one
+    const offerDest=mode==='new'&&!!activeTab&&pages.length>0, hasWhere=mode==='insert'||offerDest;
+    const o={...imgPref, where: where ?? 'after', dest: mode==='insert'?'insert':'new'};
+    const isIns=()=>o.dest==='insert', esc=t=>String(t).replace(/[<>&"]/g,'');
     if(o.size==='same'&&!canSame) o.size='A4';
     let shown=0;
     const d=document.createElement('div'); d.className='dlg';
-    d.innerHTML=`<div class="box bk" role="dialog" aria-label="${ins?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'}">
-      <b>${ins?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'} · ${N} รูป</b>
+    d.innerHTML=`<div class="box bk" role="dialog" aria-label="รูปภาพ">
+      <b class="imTitle"></b>
       <div class="bkBody">
         <div class="bkPrev"><div class="pv"><canvas></canvas></div>
           <div class="pvNav"${N>1?'':' hidden'}><button type="button" data-n="-1" aria-label="รูปก่อนหน้า">‹</button><span class="pvN"></span><button type="button" data-n="1" aria-label="รูปถัดไป">›</button></div>
           <small class="pvCap"></small></div>
         <div class="bkForm">
+          ${offerDest?`<div class="bkRow"><label>ปลายทาง</label>
+            <div class="seg q" id="imDest">
+              <button type="button" data-v="new">สร้างไฟล์ใหม่<small>ไฟล์ที่เปิดอยู่ไม่ถูกแตะ</small></button>
+              <button type="button" data-v="insert">แทรกเข้าไฟล์ที่เปิดอยู่<small style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(activeTab.name)}</small></button>
+            </div></div>`:''}
           <div class="bkRow"><label for="imSize">ขนาดหน้า</label>
             <select id="imSize">
               <option value="fit">พอดีรูป (ไม่มีขอบ)</option>
@@ -1239,7 +1247,7 @@ function imageDialog(list, mode, where){
               <button type="button" data-v="300">คมเท่าเดิม · 300 dpi<small></small></button>
               <button type="button" data-v="150">ไฟล์เล็ก · 150 dpi<small></small></button>
             </div></div>
-          ${ins?`<div class="bkRow"><label for="imWhere">ตำแหน่ง</label>
+          ${hasWhere?`<div class="bkRow" id="imWhereRow"><label for="imWhere">ตำแหน่ง</label>
             <select id="imWhere">
               <option value="front">หน้าแรกสุด</option>
               <option value="before">ก่อนหน้า ${current+1}</option>
@@ -1274,15 +1282,18 @@ function imageDialog(list, mode, where){
         b.classList.toggle('on',b.dataset.v===o.q);
         b.querySelector('small').textContent='≈ '+fmtBytes(estimateBytes(list,{...o,q:b.dataset.v}));
       });
-      if(ins) q('#imWhere').value=o.where;
-      q('[data-act=ok]').textContent = ins ? `แทรก ${N} หน้า` : `สร้างไฟล์ ${N} หน้า`;
+      if(hasWhere){ q('#imWhere').value=o.where; q('#imWhereRow').hidden=!isIns(); }
+      if(offerDest) d.querySelectorAll('#imDest button').forEach(b=>b.classList.toggle('on',b.dataset.v===o.dest));
+      q('.imTitle').textContent=`${isIns()?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'} · ${N} รูป`;
+      q('[data-act=ok]').textContent = isIns() ? `แทรก ${N} หน้า` : `สร้างไฟล์ ${N} หน้า`;
       draw();
     }
     q('#imSize').onchange=e=>{ o.size=e.target.value; sync(); };
     d.querySelectorAll('#imOrient button').forEach(b=>b.onclick=()=>{ o.orient=b.dataset.v; sync(); });
     d.querySelectorAll('#imQ button').forEach(b=>b.onclick=()=>{ o.q=b.dataset.v; sync(); });
     d.querySelectorAll('.pvNav button').forEach(b=>b.onclick=()=>{ shown=(shown+ +b.dataset.n+N)%N; draw(); });
-    if(ins) q('#imWhere').onchange=e=>{ o.where=e.target.value; };
+    if(hasWhere) q('#imWhere').onchange=e=>{ o.where=e.target.value; };
+    if(offerDest) d.querySelectorAll('#imDest button').forEach(b=>b.onclick=()=>{ o.dest=b.dataset.v; sync(); });
     const done=v=>{ closed=true; d.remove(); document.removeEventListener('keydown',key,true);
       for(const p of thumbs.values()) p.then(bm=>bm&&bm.close()); res(v); };
     const ok=()=>{ Object.assign(imgPref,{size:o.size, orient:o.orient, q:o.q});
@@ -1308,7 +1319,7 @@ async function imagesFlow(files, mode, where){
     const o=await imageDialog(ok, mode, where); imagesBusy=false;   // only one dialog at a time; building may overlap
     if(!o) return;
     const file=await buildImagePdf(ok, o);
-    if(mode==='new'){
+    if(o.dest==='new'){
       const nm = ok.length===1 ? stripPdf(ok[0].file.name.replace(/\.[^.]+$/,''))+'.pdf' : `รูปภาพ-${++untitledSeq}.pdf`;
       const t=newTab(nm, null); t.untitled=true;
       t.pages=await parsePdf(file, t.docs);
@@ -2894,10 +2905,12 @@ if ('serviceWorker' in navigator) {
 /* ---------------- เปิดไฟล์จากระบบ (double click / Open with) ---------------- */
 if ('launchQueue' in window) {
   launchQueue.setConsumer(async params => {
+    const imgs=[];
     for (const h of (params.files||[])) {
-      try { await openDocument(await h.getFile(), h); }
+      try { const f=await h.getFile(); if(isImage(f)) imgs.push(f); else await openDocument(f, h); }
       catch(err){ console.error(err); toast('เปิดไฟล์ไม่สำเร็จ'); }
     }
+    if (imgs.length) imagesFlow(imgs, 'new');          // pictures picked together become one PDF (or go into the open file)
   });
 }
 
