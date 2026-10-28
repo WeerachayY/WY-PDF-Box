@@ -127,7 +127,12 @@ header{
 #fontSel{height:32px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:0 4px;max-width:132px}
 #sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
-#zoomPct{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* zoom: an editable box with a preset list, like Acrobat / PDF-XChange */
+.zcombo{display:flex;align-items:center;height:28px;border:1px solid var(--line);border-radius:6px;background:var(--panel);overflow:hidden}
+.zcombo:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+#zoomPct{width:52px;height:100%;border:none;outline:none;background:none;text-align:center;font:inherit;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;padding:0 2px}
+.zcaret{width:20px;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);border-left:1px solid var(--line)}
+.zcaret:hover{background:var(--bg);color:var(--ink)}
 .tlabel{font-size:11px;color:var(--muted);flex:0 0 auto;padding:0 2px}
 
 /* ---------- Layout ---------- */
@@ -190,8 +195,7 @@ aside{
 #pgInfo{cursor:text;border-radius:4px}
 #pgInfo:hover{background:var(--bg);color:var(--ink)}
 #pgEdit{width:52px;height:26px;border:1px solid var(--accent);border-radius:6px;text-align:center;font:inherit;font-size:12px}
-#zoomPct{cursor:pointer;border-radius:4px}
-#zoomPct:hover{background:var(--bg);color:var(--ink)}
+
 
 /* ---------- Tabs ---------- */
 #tabs{display:none;flex:0 0 auto;align-items:flex-end;gap:2px;padding:6px 10px 0;background:var(--bg);
@@ -488,9 +492,12 @@ aside{
   </div>
   <div class="sgroup zoombox">
     <button class="tbtn" id="btnZoomOut" title="ซูมออก (Ctrl −)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9"/></svg></button>
-    <span id="zoomPct" title="เลือกขนาดซูม">100%</span>
+    <div class="zcombo" title="พิมพ์ขนาดซูมแล้วกด Enter · ปุ่ม ▾ เลือกขนาดสำเร็จรูป">
+      <input id="zoomPct" value="–" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="ขนาดซูม (%)">
+      <button class="zcaret" id="zoomMenu" title="ขนาดซูมสำเร็จรูป" aria-label="ขนาดซูมสำเร็จรูป"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
+    </div>
     <button class="tbtn" id="btnZoomIn" title="ซูมเข้า (Ctrl +) · Ctrl+ล้อเมาส์ ซูมตรงจุด"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
-    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl 0) · คลิกตัวเลข % เพื่อเลือกขนาดอื่น" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
+    <button class="tbtn" id="btnFit" title="พอดีความกว้าง (Ctrl+2) · พอดีทั้งหน้า Ctrl+0 · ขนาดจริง Ctrl+1" style="width:auto;padding:0 8px;font-size:11px;font-weight:600">พอดีจอ</button>
   </div>
 </footer>
 
@@ -595,7 +602,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.5.0-beta.1';
+const APP_VERSION = '2.6.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -704,7 +711,7 @@ function showEmpty(){
   $('empty').style.display='';
   ['btnSave','btnSaveMenu','btnAdd','btnSnap','btnPrint'].forEach(id=>$(id).disabled=true);
   $('fname').textContent=''; document.title='WY Pdf Box';
-  $('statusbar').classList.add('off'); $('pgSize').textContent='';
+  $('statusbar').classList.add('off'); $('pgSize').textContent=''; showZoom();
   $('pgInfo').textContent='–'; $('btnSaveSel').style.display='none';
   renderTabs(); saveSession(); renderStart();
 }
@@ -1729,7 +1736,7 @@ async function showPage(i){
   current=Math.max(0,Math.min(i,pages.length-1));
   const p=pages[current], seq=++renderSeq;
   if(fitMode) zoom=fitZoom();
-  $('zoomPct').textContent=Math.round(zoom*100)+'%';
+  showZoom();
   attachWrap(current);
   layoutSlots();
   const d=dispSize(p);
@@ -2482,7 +2489,9 @@ document.addEventListener('keydown',e=>{
   if(mod&&e.code==='KeyC'&&pages.length&&!String(getSelection())){ e.preventDefault(); snapshot('page'); return; }
   if(mod&&(e.code==='Equal'||e.code==='NumpadAdd')){ e.preventDefault(); $('btnZoomIn').click(); return; }
   if(mod&&(e.code==='Minus'||e.code==='NumpadSubtract')){ e.preventDefault(); $('btnZoomOut').click(); return; }
-  if(mod&&(e.code==='Digit0'||e.code==='Numpad0')){ e.preventDefault(); $('btnFit').click(); return; }
+  if(mod&&!e.shiftKey&&(e.code==='Digit0'||e.code==='Numpad0')){ e.preventDefault(); fitTo('page'); return; }
+  if(mod&&!e.shiftKey&&(e.code==='Digit1'||e.code==='Numpad1')){ e.preventDefault(); if(pages.length) zoomTo(1); return; }
+  if(mod&&!e.shiftKey&&(e.code==='Digit2'||e.code==='Numpad2')){ e.preventDefault(); fitTo('width'); return; }
   if(mod&&(e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText(e.code==='BracketLeft'?-90:90); return; }
   if(mod||e.altKey) return;
   const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
@@ -2655,7 +2664,7 @@ function applyZoom(z, cx, cy, fx, fy, k){
   zoom=Math.max(ZMIN,Math.min(ZMAX,z)); fitMode=false;
   trackHold=performance.now()+300;
   layoutSlots(); setCssSize(dispSize(pages[current]));
-  $('zoomPct').textContent=Math.round(zoom*100)+'%';
+  showZoom();
   const o=slotOrigin(k);                            // keep the point under the cursor in place
   viewerEl.scrollLeft+=o.x+fx*zoom-cx;
   viewerEl.scrollTop +=o.y+fy*zoom-cy;
@@ -2825,15 +2834,40 @@ function editPage(){
   inp.onblur=()=>end(true);
 }
 $('pgInfo').onclick=editPage;
-$('zoomPct').onclick=e=>{
+/* zoom box: type a number (85, 85%, 62.5) + Enter; Esc puts the old value back; ▾ = presets */
+const zIn=$('zoomPct');
+function fmtZoom(z){ const p=Math.round(z*1000)/10; return (Number.isInteger(p)?p:p.toFixed(1))+'%'; }
+function showZoom(){ const el=$('zoomPct'); if(document.activeElement!==el) el.value=pages.length?fmtZoom(zoom):'–'; }
+function zoomTo(z){ const r=viewerEl.getBoundingClientRect(); applyZoom(z, r.left+r.width/2, r.top+r.height/2); }
+function fitTo(m){ if(!pages.length) return; fitMode=m; goToPage(current); }
+function commitZoom(){
+  const m=zIn.value.replace(',','.').match(/\d+(\.\d+)?/);
+  if(!m||!pages.length){ showZoom(); return; }
+  const want=+m[0]/100, z=Math.max(ZMIN,Math.min(ZMAX,want));
+  if(z!==want) toast(`ซูมได้ ${ZMIN*100}% ถึง ${ZMAX*100}%`);
+  if(Math.abs(z-zoom)>1e-4||fitMode) zoomTo(z);
+  showZoom();
+}
+let zJustFocused=false;
+zIn.addEventListener('focus',()=>{ if(!pages.length){ zIn.blur(); return; } zIn.value=zIn.value.replace('%',''); zIn.select(); zJustFocused=true; });
+zIn.addEventListener('mouseup',e=>{ if(zJustFocused){ e.preventDefault(); zJustFocused=false; } });   // keep the whole number selected after the click
+/* the page area swallows pointer events (pan / draw), so leave the box explicitly when clicking elsewhere */
+document.addEventListener('pointerdown',e=>{ if(document.activeElement===zIn&&!e.target.closest?.('.zcombo')) zIn.blur(); },true);
+zIn.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); commitZoom(); zIn.blur(); }
+  else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); zIn.dataset.cancel='1'; zIn.blur(); }
+  else if(e.key==='ArrowUp'||e.key==='ArrowDown'){ e.preventDefault(); zoomTo(zoom*(e.key==='ArrowUp'?1.25:.8)); zIn.value=fmtZoom(zoom).replace('%',''); zIn.select(); }
+});
+zIn.addEventListener('blur',()=>{ if(zIn.dataset.cancel){ delete zIn.dataset.cancel; showZoom(); } else commitZoom(); });
+$('zoomMenu').onclick=e=>{
   if(!pages.length) return;
   e.stopPropagation();
-  const set=z=>{ const r=viewerEl.getBoundingClientRect(); applyZoom(z, r.left+r.width/2, r.top+r.height/2); };
-  showMenu($('zoomPct'),[
-    {label:'พอดีความกว้าง', key:'Ctrl+0', checked:fitMode==='width', action:()=>{ fitMode='width'; goToPage(current); }},
-    {label:'พอดีทั้งหน้า', checked:fitMode==='page', action:()=>{ fitMode='page'; goToPage(current); }},
+  showMenu($('zoomMenu'),[
+    {label:'พอดีทั้งหน้า', key:'Ctrl+0', checked:fitMode==='page', action:()=>fitTo('page')},
+    {label:'พอดีความกว้าง', key:'Ctrl+2', checked:fitMode==='width', action:()=>fitTo('width')},
+    {label:'ขนาดจริง', key:'Ctrl+1', checked:!fitMode&&Math.abs(zoom-1)<.005, action:()=>zoomTo(1)},
     {sep:true},
-    ...[.5,.75,1,1.25,1.5,2,3,4].map(z=>({label:`${Math.round(z*100)}%`+(z===1?' (ขนาดจริง)':''), checked:!fitMode&&Math.abs(zoom-z)<.005, action:()=>set(z)})),
+    ...[.25,.5,.75,1,1.25,1.5,2,3,4,5].map(z=>({label:`${Math.round(z*100)}%`, checked:!fitMode&&Math.abs(zoom-z)<.005, action:()=>zoomTo(z)})),
   ]);
 };
 
