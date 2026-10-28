@@ -117,7 +117,7 @@ header{
 #palette .pmore:hover{background:var(--bg)}
 #palette .pmore i{width:16px;height:16px;border-radius:50%;
   background:conic-gradient(#ef4444,#eab308,#22c55e,#06b6d4,#3b82f6,#a855f7,#ef4444)}
-#colorIn{position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0}
+#colorIn{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
 .sizebox{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--r);padding:0 10px;height:38px;flex:0 0 auto}
 .sizebox.off{opacity:.4;pointer-events:none}
 .szdotBox{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
@@ -602,7 +602,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.6.0-beta.1';
+const APP_VERSION = '2.6.1-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
@@ -2409,7 +2409,14 @@ $('btnPalette').onclick=e=>{ e.stopPropagation(); palette.classList.contains('op
 document.addEventListener('pointerdown',e=>{
   if(palette.classList.contains('open') && !palette.contains(e.target) && !$('btnPalette').contains(e.target)) closePalette();
 });
-$('btnColorMore').onclick=()=>{ colorIn.value=color; closePalette(); colorIn.click(); };
+/* the browser opens its colour picker at the (hidden) input: park it under the palette button
+   first, so the picker drops down from there instead of the window's top-left corner */
+$('btnColorMore').onclick=()=>{
+  colorIn.value=color; closePalette();
+  const r=$('btnPalette').getBoundingClientRect();
+  Object.assign(colorIn.style,{left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px'});
+  try{ colorIn.showPicker(); }catch(e){ colorIn.click(); }
+};
 colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); applyTextStyle({color}); });
 colorIn.addEventListener('change',()=>setColor(colorIn.value,true));
 
