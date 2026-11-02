@@ -186,6 +186,7 @@ aside{
 #pageWrap{position:absolute;inset:0}
 #pdfCanvas{display:block}
 #ovCanvas{position:absolute;inset:0;mix-blend-mode:multiply}
+#imgCanvas{position:absolute;inset:0;pointer-events:none}
 #txtIn{
   position:absolute;display:none;border:1px dashed var(--accent);background:rgba(255,255,255,.9);
   padding:1px 4px;border-radius:4px;outline:none;font-family:inherit;min-width:60px;z-index:5;
@@ -260,6 +261,14 @@ aside{
 .bkBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .pvNav{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .pvNav[hidden],.bkRow[hidden]{display:none}
+/* keyboard shortcuts sheet */
+.dlg .box.keys{width:min(760px,100%);gap:6px}
+.keysGrid{columns:2 300px;column-gap:28px}
+.keysGrid section{break-inside:avoid;margin-bottom:12px}
+.keysGrid h4{font-size:12px;color:var(--accent);margin:0 0 4px;font-weight:700}
+.keysGrid .kr{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.keysGrid kbd{font:600 11px/1 system-ui,sans-serif;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:3px 5px;white-space:nowrap;color:var(--ink)}
+.keysGrid .kk{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
 .pvNav button{width:28px;height:26px;border:1px solid var(--line);border-radius:6px;font-size:15px;line-height:1}
 .seg.q{flex-direction:column}
 .seg.q button{height:auto;min-height:34px;justify-content:space-between;padding:6px 10px}
@@ -385,6 +394,9 @@ aside{
     <button class="tbtn on" data-tool="pan" title="เลื่อนดู / ลากเพื่อเลื่อน (V)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7.5V3.2a1 1 0 0 1 2 0v3.6m0-2.3a1 1 0 0 1 2 0v2.6m0-1.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5c-2 0-3-.8-3.9-2.3L2.3 9.7a1 1 0 0 1 1.6-1.2L6 10.5"/></svg>
     </button>
+    <button class="tbtn" data-tool="select" title="เลือก — ย้าย ย่อขยาย หมุน ลบ รูปและข้อความบนหน้า (S)">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 2.2 12.6 8l-4 1-2.2 3.9L3.5 2.2Z"/></svg>
+    </button>
     <button class="tbtn" data-tool="pen" title="ปากกา (P)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9.7 3.3 3 3L6 13l-3.6.6L3 10l6.7-6.7Z"/><path d="m8.5 4.5 3 3"/></svg>
     </button>
@@ -459,6 +471,7 @@ aside{
     <div id="stage" class="stage">
       <div id="pageWrap" style="display:none">
         <canvas id="pdfCanvas"></canvas>
+        <canvas id="imgCanvas"></canvas>
         <canvas id="ovCanvas"></canvas>
         <input id="txtIn" placeholder="พิมพ์ข้อความ…">
       </div>
@@ -484,7 +497,7 @@ aside{
   </section>
 </main>
 <footer id="statusbar" class="off">
-  <div class="sleft"><button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button><span id="pgSize"></span></div>
+  <div class="sleft"><button class="tbtn" id="btnKeys" title="คีย์ลัดทั้งหมด (? หรือ F1)" aria-label="คีย์ลัด"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="4" width="13" height="8.5" rx="1.5"/><path d="M4 6.6h.01M6.5 6.6h.01M9 6.6h.01M11.5 6.6h.01M4.5 9.8h7" stroke-width="1.6" stroke-linecap="round"/></svg></button><button class="tbtn" id="btnViewMode" title="สลับโหมด: เลื่อนต่อเนื่อง / ทีละหน้า"></button><span id="pgSize"></span></div>
   <div class="sgroup" id="pager">
     <button class="tbtn" id="pgPrev" title="หน้าก่อนหน้า" disabled><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m10 3-5 5 5 5"/></svg></button>
     <span id="pgInfo" title="คลิกเพื่อพิมพ์เลขหน้า (Ctrl+G)">–</span>
@@ -589,7 +602,7 @@ const FONTS = {
     if(/^#[0-9a-f]{6}$/i.test(s.color)) color = s.color;
     if(Array.isArray(s.recent) && s.recent.length) recent = s.recent.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,5);
     for(const k of Object.keys(sizes)) if(Number.isFinite(s.sizes?.[k])) sizes[k] = s.sizes[k];
-    if(['pan','pen','hl','text','eraser'].includes(s.tool)) tool = s.tool;
+    if(['pan','select','pen','hl','text','eraser'].includes(s.tool)) tool = s.tool;
     if(FONTS[s.textFont]) textFont = s.textFont;
     textBold = !!s.textBold;
     if(s.snapQ==='high') snapQ='high';
@@ -602,10 +615,11 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.6.1-beta.1';
+const APP_VERSION = '2.7.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
-      pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn');
+      pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
+      imgCv=$('imgCanvas'), ictx=imgCv.getContext('2d');
 /* the active tab's thumbnail list and page area (each tab has its own pair) */
 let stage=$('stage'), thumbList=$('thumbList');
 const emptyStage=stage, emptyThumbs=thumbList;
@@ -658,7 +672,7 @@ function stashTab(){
 function leaveTab(){
   if(!activeTab) return;
   if(txtIn.style.display==='block') commitText();
-  if(selText){ selText=null; redrawOverlay(); }
+  if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
   stashTab();
   slotIO.disconnect(); nearSlots.clear();
   slots.forEach(freeSlot);
@@ -669,6 +683,7 @@ function leaveTab(){
     for(const [dst,src] of [[cs.cp,pdfCv],[cs.co,ovCv]]){
       dst.width=Math.max(1,Math.round(src.width*k)); dst.height=Math.max(1,Math.round(src.height*k));
       dst.getContext('2d').drawImage(src,0,0,dst.width,dst.height);
+      if(src===pdfCv) dst.getContext('2d').drawImage(imgCv,0,0,dst.width,dst.height);
     }
     cs.rs=rs*k; cs.z=null; cs.v=-1;
   }
@@ -846,6 +861,7 @@ $('btnAdd').onclick=async()=>{
   const others=tabs.filter(t=>t!==activeTab);
   const opts=[{label:'หน้าเปล่า…', sub:'เลือกขนาด แนว พื้นหลัง และจำนวน', value:'blank', primary:true},
               {label:'จากรูปภาพ…', sub:'JPG, PNG, WebP · เลือกได้หลายรูป · หรือกด Ctrl+V วางรูป', value:'img'},
+              {label:'วางรูปจากคลิปบอร์ด…', sub:'รูปที่คัดลอกไว้ หรือภาพแคปหน้าจอ', value:'clip'},
               {label:'จากไฟล์ PDF ในเครื่อง…', value:'disk'}];
   if(others.length) opts.push({label:'— หรือดึงจากแท็บที่เปิดอยู่ —', value:undefined, divider:true});
   for(const t of others){
@@ -857,6 +873,7 @@ $('btnAdd').onclick=async()=>{
   if(!src) return;
   if(src==='blank') return insertBlank();
   if(src==='img'){ const fs=await pickImages(); if(fs.length) imagesFlow(fs,'insert'); return; }
+  if(src==='clip'){ const fs=await clipboardImages(); if(fs.length) imagesFlow(fs,'insert'); return; }
   if(src==='disk'){
     if(canFS){
       let hs; try{ hs=await showOpenFilePicker({id:'wy-open', multiple:false, types:PDF_TYPES}); }
@@ -1212,13 +1229,19 @@ async function buildImagePdf(list, o){
   return new File([await out.save()], 'pictures.pdf', {type:'application/pdf'});
 }
 
+function placeLayout(im){                           // preview of a picture stuck on the current page
+  const d=dispSize(pages[current]), k=Math.min(.75, d.w*.45/im.w, d.h*.45/im.h);
+  const dw=im.w*k, dh=im.h*k; return {pw:d.w, ph:d.h, x:(d.w-dw)/2, y:(d.h-dh)/2, dw, dh};
+}
 /* the dialog (same look as the blank-page one) */
-function imageDialog(list, mode, where){
+function imageDialog(list, mode, where, opt={}){
   return new Promise(res=>{
     const N=list.length, canSame=!!pages[current];
+    // pasted pictures: stick them on this page (default) or make new pages
+    const offerPlace=!!opt.place&&pages.length>0;
     // a file is already open: let the person choose — a new file (default) or into the open one
-    const offerDest=mode==='new'&&!!activeTab&&pages.length>0, hasWhere=mode==='insert'||offerDest;
-    const o={...imgPref, where: where ?? 'after', dest: mode==='insert'?'insert':'new'};
+    const offerDest=!offerPlace&&mode==='new'&&!!activeTab&&pages.length>0, hasWhere=mode==='insert'||offerDest||offerPlace;
+    const o={...imgPref, where: where ?? 'after', dest: offerPlace ? (imgPref.pasteDest||'place') : mode==='insert'?'insert':'new'};
     const isIns=()=>o.dest==='insert', esc=t=>String(t).replace(/[<>&"]/g,'');
     if(o.size==='same'&&!canSame) o.size='A4';
     let shown=0;
@@ -1230,6 +1253,11 @@ function imageDialog(list, mode, where){
           <div class="pvNav"${N>1?'':' hidden'}><button type="button" data-n="-1" aria-label="รูปก่อนหน้า">‹</button><span class="pvN"></span><button type="button" data-n="1" aria-label="รูปถัดไป">›</button></div>
           <small class="pvCap"></small></div>
         <div class="bkForm">
+          ${offerPlace?`<div class="bkRow"><label>วางรูปเป็น</label>
+            <div class="seg q" id="imDest">
+              <button type="button" data-v="place">แปะบนหน้า ${current+1}<small>ย้าย ย่อขยาย หมุนได้</small></button>
+              <button type="button" data-v="insert">หน้าใหม่ในไฟล์นี้<small>1 รูปต่อ 1 หน้า</small></button>
+            </div></div>`:''}
           ${offerDest?`<div class="bkRow"><label>ปลายทาง</label>
             <div class="seg q" id="imDest">
               <button type="button" data-v="new">สร้างไฟล์ใหม่<small>ไฟล์ที่เปิดอยู่ไม่ถูกแตะ</small></button>
@@ -1272,11 +1300,11 @@ function imageDialog(list, mode, where){
       return thumbs.get(i);
     }
     async function draw(){
-      const im=list[shown], L=imageLayout(im,o), k=Math.min(130/L.pw,150/L.ph);
+      const im=list[shown], L=o.dest==='place' ? placeLayout(im) : imageLayout(im,o), k=Math.min(130/L.pw,150/L.ph);
       cv.width=Math.max(2,Math.round(L.pw*k)); cv.height=Math.max(2,Math.round(L.ph*k));
       const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height);
       x.fillStyle='#DCE3EC'; x.fillRect(L.x*k,L.y*k,L.dw*k,L.dh*k);
-      const name=o.size==='fit'?'พอดีรูป':o.size==='same'?'เท่าหน้าปัจจุบัน':o.size;
+      const name=o.dest==='place'?`หน้า ${current+1}`:o.size==='fit'?'พอดีรูป':o.size==='same'?'เท่าหน้าปัจจุบัน':o.size;
       q('.pvCap').innerHTML=`${name} · ${fmtMM(L.pw/MM)} × ${fmtMM(L.ph/MM)} มม.<br><span style="word-break:break-all">${(im.file.name||'').replace(/[<>&]/g,'')}</span> · ${im.w} × ${im.h} px`;
       q('.pvN').textContent=`${shown+1} / ${N}`;
       const at=shown, bm=await thumb(at); if(bm&&shown===at&&!closed) try{ x.drawImage(bm,L.x*k,L.y*k,L.dw*k,L.dh*k); }catch(e){}
@@ -1289,10 +1317,12 @@ function imageDialog(list, mode, where){
         b.classList.toggle('on',b.dataset.v===o.q);
         b.querySelector('small').textContent='≈ '+fmtBytes(estimateBytes(list,{...o,q:b.dataset.v}));
       });
+      const placing=o.dest==='place';
       if(hasWhere){ q('#imWhere').value=o.where; q('#imWhereRow').hidden=!isIns(); }
-      if(offerDest) d.querySelectorAll('#imDest button').forEach(b=>b.classList.toggle('on',b.dataset.v===o.dest));
-      q('.imTitle').textContent=`${isIns()?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'} · ${N} รูป`;
-      q('[data-act=ok]').textContent = isIns() ? `แทรก ${N} หน้า` : `สร้างไฟล์ ${N} หน้า`;
+      if(offerDest||offerPlace) d.querySelectorAll('#imDest button').forEach(b=>b.classList.toggle('on',b.dataset.v===o.dest));
+      q('#imSize').closest('.bkRow').hidden=placing; q('#imOrient').closest('.bkRow').hidden=placing;
+      q('.imTitle').textContent= placing ? `วางรูปจากคลิปบอร์ด · ${N} รูป` : `${isIns()?'แทรกรูปเป็นหน้า':'ไฟล์ใหม่จากรูปภาพ'} · ${N} รูป`;
+      q('[data-act=ok]').textContent = placing ? `แปะ${N>1?` ${N} `:''}รูปบนหน้า ${current+1}` : isIns() ? `แทรก ${N} หน้า` : `สร้างไฟล์ ${N} หน้า`;
       draw();
     }
     q('#imSize').onchange=e=>{ o.size=e.target.value; sync(); };
@@ -1300,10 +1330,10 @@ function imageDialog(list, mode, where){
     d.querySelectorAll('#imQ button').forEach(b=>b.onclick=()=>{ o.q=b.dataset.v; sync(); });
     d.querySelectorAll('.pvNav button').forEach(b=>b.onclick=()=>{ shown=(shown+ +b.dataset.n+N)%N; draw(); });
     if(hasWhere) q('#imWhere').onchange=e=>{ o.where=e.target.value; };
-    if(offerDest) d.querySelectorAll('#imDest button').forEach(b=>b.onclick=()=>{ o.dest=b.dataset.v; sync(); });
+    if(offerDest||offerPlace) d.querySelectorAll('#imDest button').forEach(b=>b.onclick=()=>{ o.dest=b.dataset.v; sync(); });
     const done=v=>{ closed=true; d.remove(); document.removeEventListener('keydown',key,true);
       for(const p of thumbs.values()) p.then(bm=>bm&&bm.close()); res(v); };
-    const ok=()=>{ Object.assign(imgPref,{size:o.size, orient:o.orient, q:o.q});
+    const ok=()=>{ Object.assign(imgPref,{size:o.size, orient:o.orient, q:o.q}); if(offerPlace) imgPref.pasteDest=o.dest;
       try{ localStorage.setItem('wy-img', JSON.stringify(imgPref)); }catch(e){}
       done(o); };
     const key=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(null); }
@@ -1316,15 +1346,16 @@ function imageDialog(list, mode, where){
   });
 }
 let imagesBusy=false;
-async function imagesFlow(files, mode, where){
+async function imagesFlow(files, mode, where, opt={}){
   if(imagesBusy||!files.length) return; imagesBusy=true;
   try{
     const {ok,bad}=await probeImages(files);
     if(bad.length) toast(`เปิดรูปไม่ได้ ${bad.length} ไฟล์ (${bad.slice(0,2).join(', ')}${bad.length>2?'…':''}) — เครื่องนี้อาจอ่านไฟล์ชนิดนี้ไม่ได้ เช่น HEIC`);
     if(!ok.length) return;
     if(mode==='insert'&&!pages.length) mode='new';
-    const o=await imageDialog(ok, mode, where); imagesBusy=false;   // only one dialog at a time; building may overlap
+    const o=await imageDialog(ok, mode, where, opt); imagesBusy=false;   // only one dialog at a time; building may overlap
     if(!o) return;
+    if(o.dest==='place') return placeImagesOnPage(ok.map(x=>x.file), null, o.q);
     const file=await buildImagePdf(ok, o);
     if(o.dest==='new'){
       const nm = ok.length===1 ? stripPdf(ok[0].file.name.replace(/\.[^.]+$/,''))+'.pdf' : `รูปภาพ-${++untitledSeq}.pdf`;
@@ -1342,11 +1373,11 @@ async function imagesFlow(files, mode, where){
 /* Ctrl+V a picture (screenshot, image copied from LINE / a browser / CAD) */
 document.addEventListener('paste',e=>{
   if(document.querySelector('.dlg')) return;
-  const t=e.target; if(/^(INPUT|TEXTAREA)$/.test(t.tagName)||t.isContentEditable) return;
+  const t=e.target; if(t===txtIn||t.tagName==='TEXTAREA'||t.isContentEditable) return;   // typing text: a normal paste
   const fs=[...(e.clipboardData?.files||[])].filter(isImage);
-  if(!fs.length) return;
-  e.preventDefault();
-  imagesFlow(fs.map((f,i)=>new File([f], f.name&&f.name!=='image.png'?f.name:`วางจากคลิปบอร์ด${fs.length>1?'-'+(i+1):''}.png`, {type:f.type})), pages.length?'insert':'new');
+  if(!fs.length) return;                             // (the zoom / page boxes take no pictures, so pictures still land here)
+  e.preventDefault(); if(t.tagName==='INPUT') t.blur();
+  imagesFlow(fs.map((f,i)=>new File([f], f.name&&f.name!=='image.png'?f.name:`วางจากคลิปบอร์ด${fs.length>1?'-'+(i+1):''}.png`, {type:f.type})), pages.length?'insert':'new', undefined, {place:true});
 });
 
 /* ---------------- small UI kit: menus and choice dialogs ---------------- */
@@ -1638,7 +1669,7 @@ async function renderThumb(p,cv){
     cv.width=vp.width; cv.height=vp.height;
     await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
     const c=cv.getContext('2d');
-    c.save(); c.scale(scale,scale); c.globalAlpha=.9; drawAnnots(c,p.annots); c.restore();
+    c.save(); c.scale(scale,scale); c.globalAlpha=.9; drawAnnots(c,p.annots,true); c.restore();
   }catch(e){}
 }
 function refreshThumbCanvas(i){
@@ -1704,10 +1735,11 @@ function layoutSlots(){
 /* move the working canvases into slot i; the page being left keeps its picture */
 function attachWrap(i){
   const to=slots[i]; if(!to||to.el.contains(wrap)) return false;
-  if(selText){ selText=null; redrawOverlay(); }
+  if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
   const from=slots.find(sl=>sl.el.contains(wrap));
   if(from&&pdfCv.width>1){
     from.cp.width=pdfCv.width; from.cp.height=pdfCv.height; from.cp.getContext('2d').drawImage(pdfCv,0,0);
+    from.cp.getContext('2d').drawImage(imgCv,0,0);   // pictures placed on the page belong to its picture layer
     from.co.width=ovCv.width;  from.co.height=ovCv.height;  from.co.getContext('2d').drawImage(ovCv,0,0);
     const fi=slots.indexOf(from);
     from.z=rsZoom; from.v=pages[fi]?._v||0; from.rs=rs;
@@ -1717,7 +1749,7 @@ function attachWrap(i){
     pdfCv.width=to.cp.width; pdfCv.height=to.cp.height; pdfCv.getContext('2d').drawImage(to.cp,0,0);
     rs=to.rs; rsZoom=to.z;
   }else{ pdfCv.getContext('2d').clearRect(0,0,pdfCv.width,pdfCv.height); }
-  ovCv.width=pdfCv.width; ovCv.height=pdfCv.height;
+  ovCv.width=imgCv.width=pdfCv.width; ovCv.height=imgCv.height=pdfCv.height;
   return true;
 }
 function fitZoom(){
@@ -1765,7 +1797,7 @@ async function showPage(i){
   pdfCv.width=off.width; pdfCv.height=off.height;
   pdfCv.getContext('2d').drawImage(off,0,0);
   off.width=off.height=0;
-  ovCv.width=pdfCv.width; ovCv.height=pdfCv.height;
+  ovCv.width=imgCv.width=pdfCv.width; ovCv.height=imgCv.height=pdfCv.height;
   setCssSize(dispSize(pages[current]));            // zoom may have moved while rendering
   redrawOverlay();
   schedulePump();
@@ -1788,6 +1820,7 @@ function setCssSize(d){
   const w=(d.w*zoom)+'px', h=(d.h*zoom)+'px';
   pdfCv.style.width=w; pdfCv.style.height=h;
   ovCv.style.width=w;  ovCv.style.height=h;
+  imgCv.style.width=w; imgCv.style.height=h;
 }
 function redrawOverlay(){
   const p=pages[current]; if(!p) return;
@@ -1795,6 +1828,8 @@ function redrawOverlay(){
   octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
   octx.setTransform(rs,0,0,rs,0,0);
   drawAnnots(octx,p.annots);
+  ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,imgCv.width,imgCv.height);
+  ictx.setTransform(rs,0,0,rs,0,0); drawImgs(ictx,p.annots);
   drawSelection(octx);
 }
 
@@ -1852,6 +1887,7 @@ async function renderSlot(i){
     await page.render({canvasContext:off.getContext('2d'), viewport:vp}).promise;
     if(slots[i]!==sl||sl.el.contains(wrap)||!nearSlots.has(i)){ return; }
     sl.cp.width=off.width; sl.cp.height=off.height; sl.cp.getContext('2d').drawImage(off,0,0);
+    if(p.annots.some(a=>a.type==='img')){ const c=sl.cp.getContext('2d'); c.save(); c.setTransform(scale,0,0,scale,0,0); drawImgs(c,p.annots); c.restore(); }
     if(p.annots.length){
       await fontsFor([p]);
       sl.co.width=off.width; sl.co.height=off.height;
@@ -1932,7 +1968,8 @@ function rotHandle(a){
 }
 function onHandle(h,pos,f=1.6){ return Math.hypot(pos.x-h.x,pos.y-h.y)<=h.r*f; }
 const rightAngle=d=>{ const m=((d%90)+90)%90; return m<.05||m>89.95; };
-function drawSelection(ctx){
+function drawSelection(ctx){ drawImgSelection(ctx); drawTextSelection(ctx); }
+function drawTextSelection(ctx){
   const p=pages[current];
   if(!selText||!p||!p.annots.includes(selText)){ selText=null; return; }
   if(hiddenText.has(selText)) return;
@@ -1970,7 +2007,8 @@ function drawSelection(ctx){
   ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
   ctx.restore();
 }
-function drawAnnots(ctx,annots){
+function drawAnnots(ctx,annots,withImgs=false){
+  if(withImgs) drawImgs(ctx,annots);
   for(const a of annots){
     if(a.type==='pen'||a.type==='hl'){
       ctx.save();
@@ -1997,6 +2035,209 @@ function drawAnnots(ctx,annots){
   }
 }
 
+/* ---------------- pictures placed on a page ----------------
+   An annotation {type:'img', id, x, y, w, h, rot} (page units, x/y = top-left before turning about the centre).
+   The picture itself lives once in imgStore (bytes for the saved PDF + a bitmap for the screen), so undo
+   snapshots and copies between tabs stay small.  On screen pictures sit on their own layer under the
+   pen/highlighter layer; when saved they are put into the PDF at full resolution, not flattened.        */
+const imgStore=new Map(); let imgSeq=0, selImg=null;
+async function storeImage(file, q='orig'){
+  const kind=kindOf(file), probe=await createImageBitmap(file,{imageOrientation:'from-image'});
+  const W=probe.width, H=probe.height; probe.close();
+  const cap = q==='150'?1500 : q==='300'?3000 : 6000;          // a placed picture never needs more than this
+  let bytes, png=kind==='png';
+  const raw=new Uint8Array(await file.arrayBuffer());
+  const upright = kind==='png' || (kind==='jpg' && jpegOrientation(raw.buffer)===1);
+  if(upright && Math.max(W,H)<=cap && (kind==='jpg'||/png/i.test(file.type||file.name))) bytes=raw;
+  else bytes=await encodePicture(file, Math.max(W,H)>cap?cap:0, png, .92);
+  if(!png&&!(bytes[0]===0xFF&&bytes[1]===0xD8)) png=true;
+  const bm=await createImageBitmap(new Blob([bytes],{type:png?'image/png':'image/jpeg'}));
+  const id='im'+(++imgSeq)+'_'+Date.now().toString(36);
+  imgStore.set(id,{bytes, png, w:bm.width, h:bm.height, bm});
+  return id;
+}
+function drawImgs(ctx,annots){
+  for(const a of annots){
+    if(a.type!=='img') continue;
+    const st=imgStore.get(a.id); if(!st) continue;
+    ctx.save();
+    ctx.translate(a.x+a.w/2,a.y+a.h/2); if(a.rot) ctx.rotate(a.rot*Math.PI/180);
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(st.bm,-a.w/2,-a.h/2,a.w,a.h);
+    ctx.restore();
+  }
+}
+const imgCenter=a=>({x:a.x+a.w/2,y:a.y+a.h/2});
+const imgPt=(a,lx,ly)=>rotPt({x:a.x+lx,y:a.y+ly},imgCenter(a),a.rot||0);   // local corner offsets -> page
+function inImgBox(a,pos){ const q=rotPt(pos,imgCenter(a),-(a.rot||0)); return q.x>=a.x&&q.x<=a.x+a.w&&q.y>=a.y&&q.y<=a.y+a.h; }
+function imgDelHandle(a){ const k=1/zoom, d=imgPt(a,a.w+14*k,-14*k); return {x:d.x,y:d.y,r:10*k}; }
+function imgRotHandle(a){ const k=1/zoom, h=imgPt(a,a.w/2,-26*k); return {x:h.x,y:h.y,r:8*k,stem:[imgPt(a,a.w/2,0),h]}; }
+const CORNERS={tl:[0,0],tr:[1,0],br:[1,1],bl:[0,1]};
+function imgCorner(a,pos,touch){
+  const r=(touch?14:7)/zoom;
+  for(const [c,[u,v]] of Object.entries(CORNERS)){ const q=imgPt(a,u*a.w,v*a.h); if(Math.hypot(pos.x-q.x,pos.y-q.y)<=r) return c; }
+  return null;
+}
+function hitObj(p,pos){
+  for(let i=p.annots.length-1;i>=0;i--){
+    const a=p.annots[i];
+    if(a.type==='text'&&inTextBox(a,pos)) return a;
+    if(a.type==='img'&&inImgBox(a,pos)) return a;
+  }
+  return null;
+}
+function drawImgSelection(ctx){
+  const p=pages[current];
+  if(!selImg||!p||!p.annots.includes(selImg)){ selImg=null; return; }
+  const a=selImg, k=1/zoom, live=rotLive&&rotLive.a===a, snapped=live&&rightAngle(a.rot||0), blue=snapped?'#059669':'#2563EB';
+  ctx.save();
+  ctx.save(); ctx.translate(a.x+a.w/2,a.y+a.h/2); ctx.rotate((a.rot||0)*Math.PI/180);
+  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k; ctx.setLineDash([5*k,4*k]); ctx.strokeRect(-a.w/2,-a.h/2,a.w,a.h);
+  ctx.setLineDash([]); ctx.fillStyle='#fff';
+  for(const [u,v] of Object.values(CORNERS)){ const x=(u-.5)*a.w, y=(v-.5)*a.h; ctx.fillRect(x-4*k,y-4*k,8*k,8*k); ctx.strokeRect(x-4*k,y-4*k,8*k,8*k); }
+  ctx.restore();
+  const h=imgRotHandle(a);
+  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k;
+  ctx.beginPath(); ctx.moveTo(h.stem[0].x,h.stem[0].y); ctx.lineTo(h.x,h.y); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,7); ctx.fill(); ctx.stroke();
+  ctx.lineWidth=1.4*k; ctx.beginPath(); ctx.arc(h.x,h.y,h.r*.5,-.4*Math.PI,1.3*Math.PI); ctx.stroke();
+  if(live){
+    const txt=fmtDeg(a.rot||0); ctx.font=`600 ${12*k}px system-ui,sans-serif`;
+    const w=ctx.measureText(txt).width+12*k, bx=h.x+h.r+6*k, by=h.y-10*k;
+    ctx.fillStyle=snapped?'#059669':'#1E293B'; ctx.beginPath(); ctx.roundRect?ctx.roundRect(bx,by,w,20*k,10*k):ctx.rect(bx,by,w,20*k); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+6*k,by+10*k);
+  }
+  const d=imgDelHandle(a); ctx.fillStyle='#DC2626';
+  ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
+  ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
+  ctx.restore();
+}
+/* select tool: handles of the selection first, then whatever is under the pointer, else move the view */
+function startSelect(e,p,pos){
+  const touch=e.pointerType!=='mouse';
+  const rotStart=(a,c)=>{
+    const now=performance.now();
+    if(now-lastRotTap<350&&lastRotTapA===a){               // double-tap the handle = straighten
+      pushUndo(p); if(a.type==='img') a.rot=0; else setTextRot(a,0);
+      redrawOverlay(); refreshThumbCanvas(current); lastRotTap=0; return false;
+    }
+    lastRotTap=now; lastRotTapA=a;
+    drawing={type:'rot', a, c, a0:Math.atan2(pos.y-c.y,pos.x-c.x), r0:a.rot||0, ox:a.x, oy:a.y, moved:false};
+    rotLive={a}; drawPid=e.pointerId; return true;
+  };
+  if(selImg&&p.annots.includes(selImg)){
+    const a=selImg;
+    if(onHandle(imgDelHandle(a),pos,1.3)){ deleteSelImg(); return false; }
+    if(onHandle(imgRotHandle(a),pos,touch?2.4:1.6)) return rotStart(a,imgCenter(a));
+    const c=imgCorner(a,pos,touch);
+    if(c){
+      const [u,v]=CORNERS[c], anchor=imgPt(a,(1-u)*a.w,(1-v)*a.h);
+      drawing={type:'resize', a, anchor, sx:u?1:-1, sy:v?1:-1, w0:a.w, h0:a.h, o0:{x:a.x,y:a.y,w:a.w,h:a.h}, px:pos.x, py:pos.y, moved:false};
+      drawPid=e.pointerId; return true;
+    }
+  }
+  if(selText&&p.annots.includes(selText)){
+    const a=selText;
+    if(onHandle(delHandle(a),pos,1.3)){ deleteSelText(); return false; }
+    if(onHandle(rotHandle(a),pos,touch?2.4:1.6)) return rotStart(a,textCenter(a));
+  }
+  const hit=hitObj(p,pos);
+  if(!hit){ if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); } return 'pan'; }
+  const wasSel=hit===selText||hit===selImg;
+  if(hit.type==='img'){ selImg=hit; selText=null; } else { selText=hit; selImg=null; }
+  redrawOverlay();
+  drawing={type:'move', a:hit, sx:pos.x, sy:pos.y, ox:hit.x, oy:hit.y, moved:false, wasSel:wasSel&&hit.type==='text', sid:e.pointerId};
+  drawPid=e.pointerId; return true;
+}
+function resizeMove(m,pos,free){
+  const p=pages[current];
+  if(!m.moved){ if(Math.hypot(pos.x-m.px,pos.y-m.py)*zoom<3) return; pushUndo(p); m.moved=true; }
+  const a=m.a, r=a.rot||0, v=rotPt(pos,m.anchor,-r), min=12/zoom;
+  let w=Math.max(min,(v.x-m.anchor.x)*m.sx), h=Math.max(min,(v.y-m.anchor.y)*m.sy);
+  if(!free){ const k=Math.max(w/m.w0,h/m.h0); w=Math.max(min,m.w0*k); h=Math.max(min,m.h0*k); }   // Shift = stretch freely
+  const c=rotPt({x:m.anchor.x+m.sx*w/2,y:m.anchor.y+m.sy*h/2},m.anchor,r);
+  Object.assign(a,{x:c.x-w/2,y:c.y-h/2,w,h});
+  redrawOverlay();
+}
+function hoverSelect(pos){
+  let c='default';
+  const p=pages[current];
+  if(selImg&&p?.annots.includes(selImg)){
+    if(onHandle(imgRotHandle(selImg),pos)) c='grab';
+    else if(onHandle(imgDelHandle(selImg),pos,1.3)) c='pointer';
+    else { const k=imgCorner(selImg,pos,false); if(k) c=(k==='tl'||k==='br')?'nwse-resize':'nesw-resize'; }
+  }
+  if(c==='default'&&selText&&p?.annots.includes(selText)){
+    if(onHandle(rotHandle(selText),pos)) c='grab'; else if(onHandle(delHandle(selText),pos,1.3)) c='pointer';
+  }
+  if(c==='default'&&p&&hitObj(p,pos)) c='move';
+  if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
+}
+function deleteSelImg(){
+  const p=pages[current]; if(!selImg||!p) return;
+  pushUndo(p); p.annots=p.annots.filter(x=>x!==selImg); selImg=null;
+  redrawOverlay(); refreshThumbCanvas(current);
+}
+function turnImg(step){
+  const p=pages[current]; if(!selImg||!p) return;
+  pushUndo(p); selImg.rot=(((selImg.rot||0)+step)%360+360)%360;
+  redrawOverlay(); refreshThumbCanvas(current);
+}
+let nudgeT=0;
+function nudgeSel(code, n){
+  const a=selImg||selText, p=pages[current]; if(!a||!p) return;
+  if(performance.now()-nudgeT>800) pushUndo(p);              // a burst of arrow presses = one undo step
+  nudgeT=performance.now();
+  const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[code];
+  a.x+=d[0]*n; a.y+=d[1]*n; redrawOverlay();
+  clearTimeout(nudgeSel.t); nudgeSel.t=setTimeout(()=>refreshThumbCanvas(current),300);
+}
+/* where on the current page the person is looking (page units) */
+function visibleCenter(){
+  const v=viewerEl.getBoundingClientRect(), o=slotOrigin(current), d=dispSize(pages[current]);
+  const x0=Math.max(0,(v.left-o.x)/zoom), y0=Math.max(0,(v.top-o.y)/zoom);
+  const x1=Math.min(d.w,(v.right-o.x)/zoom), y1=Math.min(d.h,(v.bottom-o.y)/zoom);
+  return {x:(x0+Math.max(x0,x1))/2, y:(y0+Math.max(y0,y1))/2, vw:Math.max(1,x1-x0), vh:Math.max(1,y1-y0)};
+}
+/* put pictures on the current page: at a point (right-click "วางรูปตรงนี้") or in the middle of the view */
+async function placeImagesOnPage(files, at=null, q='orig'){
+  const p=pages[current]; if(!p||!files.length) return;
+  try{
+    const vc=visibleCenter(), d=dispSize(p), list=[];
+    for(const f of files) list.push(await storeImage(f,q));
+    pushUndo(p);
+    let last=null;
+    list.forEach((id,i)=>{
+      const st=imgStore.get(id), nat=Math.max(st.w,st.h)>0?.75:1;          // natural size at 96 dpi
+      const k=Math.min(st.w*nat/st.w, (vc.vw*.5)/st.w, (vc.vh*.5)/st.h, (d.w*.9)/st.w, (d.h*.9)/st.h);
+      const w=st.w*k, h=st.h*k, c=at||vc, off=i*18/zoom;
+      const a={type:'img', id, x:Math.max(0,Math.min(d.w-w,c.x-w/2+off)), y:Math.max(0,Math.min(d.h-h,c.y-h/2+off)), w, h, rot:0};
+      p.annots.push(a); last=a;
+    });
+    setTool('select'); selText=null; selImg=last;
+    redrawOverlay(); refreshThumbCanvas(current);
+    toast(list.length>1?`แปะรูปแล้ว ${list.length} รูป`:'แปะรูปแล้ว — ลากย้าย, ลากมุมเพื่อย่อขยาย, ✕ เพื่อลบ');
+  }catch(err){ console.error(err); toast('แปะรูปไม่สำเร็จ'); }
+}
+/* read pictures from the clipboard (for menus; Ctrl+V gets them from the paste event) */
+async function clipboardImages(){
+  try{
+    const items=await navigator.clipboard.read(), out=[];
+    for(const it of items){
+      const t=it.types.find(x=>/^image\//.test(x)); if(!t) continue;
+      const b=await it.getType(t);
+      out.push(new File([b], `วางจากคลิปบอร์ด${out.length?'-'+(out.length+1):''}.${t.split('/')[1].replace('jpeg','jpg')}`, {type:t}));
+    }
+    if(!out.length) toast('ในคลิปบอร์ดไม่มีรูป — คัดลอกรูปหรือแคปหน้าจอก่อน');
+    return out;
+  }catch(err){
+    console.error(err);
+    toast('อ่านคลิปบอร์ดไม่ได้ — ให้อนุญาตการเข้าถึงคลิปบอร์ด หรือกด Ctrl+V แทน');
+    return [];
+  }
+}
+
 /* ---------------- pointer input: draw · pan · pinch ----------------
    mouse  : drawing tools draw; hand tool (or middle button) drags the page
    stylus : always draws (hand tool → the last drawing tool; barrel/eraser button → eraser)
@@ -2020,6 +2261,8 @@ function startDraw(e,t){
   }else if(t==='eraser'){
     drawing={type:'erase',hit:false,snapshot:JSON.stringify(p.annots)};
     eraseAt(p,pos);
+  }else if(t==='select'){
+    return startSelect(e,p,pos);
   }else if(t==='text'){
     if(selText){                                    // the red × deletes the selected text
       const d=delHandle(selText);
@@ -2052,6 +2295,7 @@ function cancelStroke(){               // a second finger landed: the stroke was
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
   else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='rot'){ const a=drawing.a; a.rot=drawing.r0; a.x=drawing.ox; a.y=drawing.oy; rotLive=null; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='resize'){ Object.assign(drawing.a,drawing.o0); if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
@@ -2059,8 +2303,11 @@ function endStroke(){
   if(!drawing) return;
   if(drawing.type==='rot'){
     const m=drawing; drawing=null; drawPid=null; rotLive=null;
-    if(m.moved){ textRot=m.a.rot||0; refreshThumbCanvas(current); lastRotTap=0; }   // only a plain tap counts toward a double-tap
+    if(m.moved){ if(m.a.type==='text') textRot=m.a.rot||0; refreshThumbCanvas(current); lastRotTap=0; }   // only a plain tap counts toward a double-tap
     redrawOverlay(); updateTextUI(); return;
+  }
+  if(drawing.type==='resize'){
+    const m=drawing; drawing=null; drawPid=null; if(m.moved) refreshThumbCanvas(current); redrawOverlay(); return;
   }
   if(drawing.type==='move'){
     const m=drawing; drawing=null; drawPid=null;
@@ -2125,7 +2372,7 @@ viewerEl.addEventListener('pointerdown',e=>{
   }
   let t=tool;
   if(e.pointerType==='pen'){ if(e.buttons&32) t='eraser'; else if(t==='pan') t=lastDrawTool; }
-  const fingerPans = e.pointerType==='touch' && penSeen;
+  const fingerPans = e.pointerType==='touch' && penSeen && t!=='select';
   const mainButton = e.pointerType!=='mouse' || e.button===0;
   let onPage=e.target===ovCv;
   if(!onPage && t!=='pan' && !fingerPans && mainButton){
@@ -2134,7 +2381,9 @@ viewerEl.addEventListener('pointerdown',e=>{
   }
   if(onPage && t!=='pan' && !fingerPans && mainButton){
     e.preventDefault();
-    if(startDraw(e,t)) capture(e.pointerId);
+    const r=startDraw(e,t);
+    if(r==='pan'){ startPan(e); capture(e.pointerId); }     // select tool on empty paper = move the view
+    else if(r) capture(e.pointerId);
     return;
   }
   const canPan = e.pointerType==='touch' ||
@@ -2160,9 +2409,11 @@ viewerEl.addEventListener('pointermove',e=>{
         const n=Math.round(d/90)*90;
         d = Math.abs(d-n)<=6 ? n : Math.round(d/15)*15;       // 15° steps, strong pull to 0/90/180/270
       }
-      if(d!==m.a.rot){ setTextRot(m.a,d); redrawOverlay(); $('txtAng').textContent=fmtDeg(m.a.rot||0); }
+      if(d!==m.a.rot){ if(m.a.type==='img') m.a.rot=((d%360)+360)%360; else setTextRot(m.a,d);
+                       redrawOverlay(); $('txtAng').textContent=fmtDeg(m.a.rot||0); }
       return;
     }
+    if(drawing.type==='resize'){ resizeMove(drawing,pos,e.shiftKey); return; }
     if(drawing.type==='move'){
       const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
       if(!m.moved){ if(Math.hypot(dx,dy)*zoom<4) return; pushUndo(p); m.moved=true; }
@@ -2174,6 +2425,7 @@ viewerEl.addEventListener('pointermove',e=>{
   }
   if(panning&&e.pointerId===panning.id) movePan(e);
   else if(e.pointerType==='mouse'&&tool==='text'&&pages.length) hoverText(evPos(e));
+  else if(e.pointerType==='mouse'&&tool==='select'&&pages.length&&!panning) hoverSelect(evPos(e));
 });
 function hoverText(pos){
   let c='text';
@@ -2211,6 +2463,7 @@ function eraseAt(p,pos){
   const R=9/Math.max(zoom,.5)+4;
   const keep=p.annots.filter(a=>{
     if(a.type==='text') return !inTextBox(a,pos);
+    if(a.type==='img') return !inImgBox(a,pos);
     const th=R+a.width/2;
     if(a.pts.length===1) return Math.hypot(pos.x-a.pts[0].x,pos.y-a.pts[0].y)>th;
     for(let i=1;i<a.pts.length;i++)
@@ -2247,7 +2500,8 @@ function openTextInput(pos, a=null){
   txtIn.focus(); if(a) txtIn.select();
   setTimeout(()=>{ if(txtIn.style.display==='block'&&document.activeElement!==txtIn) txtIn.focus(); },10);
 }
-function closeInput(){ txtIn.style.display='none'; if(editingText) hiddenText.delete(editingText); }
+function closeInput(){ txtIn.style.display='none'; if(editingText) hiddenText.delete(editingText);
+  if(document.activeElement===txtIn) txtIn.blur(); }   // so single-key shortcuts (S, P, T…) work straight after Enter
 function commitText(){
   if(txtIn.style.display!=='block') return;
   const v=txtIn.value.trim(), a=editingText, st=inStyle, pos=txtPos;
@@ -2279,7 +2533,7 @@ const fmtDeg=d=>{ d=((d%360)+360)%360; return (Number.isInteger(d)?d:d.toFixed(1
 function turnText(step, abs=null){
   const turn=r=>abs!=null?abs:(r||0)+step;
   if(txtIn.style.display==='block'&&inStyle){ inStyle.rot=((turn(inStyle.rot)%360)+360)%360; textRot=inStyle.rot; styleInput(); updateTextUI(); return; }
-  if(selText&&tool==='text'&&pages[current]?.annots.includes(selText)){
+  if(selText&&(tool==='text'||tool==='select')&&pages[current]?.annots.includes(selText)){
     const p=pages[current], now=performance.now();
     const nudge=abs==null&&Math.abs(step)<90;       // held [ ] nudges merge into one undo step; 90° turns and resets don't
     if(!nudge||styleUndo.a!==selText||styleUndo.k!=='rot'||now-styleUndo.t>900) pushUndo(p);
@@ -2363,10 +2617,11 @@ const toolBtns=[...document.querySelectorAll('#toolGroup .tbtn')];
 function setTool(t){
   if(txtIn.style.display==='block') txtIn.blur();
   tool=t;
-  if(t!=='pan') lastDrawTool=t;
-  if(t!=='text'&&selText){ selText=null; redrawOverlay(); }
+  if(t!=='pan'&&t!=='select') lastDrawTool=t;
+  if(t!=='text'&&t!=='select'&&selText){ selText=null; redrawOverlay(); }
+  if(t!=='select'&&selImg){ selImg=null; redrawOverlay(); }
   toolBtns.forEach(x=>x.classList.toggle('on',x.dataset.tool===t));
-  ovCv.style.cursor = t==='pan' ? '' : (t==='text'?'text':'crosshair');
+  ovCv.style.cursor = t==='pan' ? '' : t==='select' ? 'default' : (t==='text'?'text':'crosshair');
   viewerEl.classList.toggle('panTool', t==='pan');
   updateTextUI(); saveSettings();
 }
@@ -2487,9 +2742,11 @@ document.addEventListener('keydown',e=>{
       return;
     }
   }
+  if(e.code==='F1'){ e.preventDefault(); if(!document.querySelector('.dlg')) showKeys(); return; }
   if(document.querySelector('.dlg')) return;       // a dialog is open
   const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&e.target.type!=='range' || e.target.isContentEditable;
   if(typing) return;
+  if(e.key==='?'&&!mod){ e.preventDefault(); showKeys(); return; }
   if(mod&&e.code==='KeyZ'&&!e.shiftKey){ e.preventDefault(); undo(); return; }
   if(mod&&(e.code==='KeyY'||(e.code==='KeyZ'&&e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(mod&&e.code==='KeyG'){ e.preventDefault(); editPage(); return; }
@@ -2500,12 +2757,18 @@ document.addEventListener('keydown',e=>{
   if(mod&&!e.shiftKey&&(e.code==='Digit1'||e.code==='Numpad1')){ e.preventDefault(); if(pages.length) zoomTo(1); return; }
   if(mod&&!e.shiftKey&&(e.code==='Digit2'||e.code==='Numpad2')){ e.preventDefault(); fitTo('width'); return; }
   if(mod&&(e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText(e.code==='BracketLeft'?-90:90); return; }
+  if(mod&&(e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='select'&&(selImg||selText)){ e.preventDefault();
+    if(selImg) turnImg(e.code==='BracketLeft'?-90:90); else turnText(e.code==='BracketLeft'?-90:90); return; }
   if(mod||e.altKey) return;
-  const map={KeyV:'pan',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
+  const map={KeyV:'pan',KeyS:'select',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
   else if(pages.length&&e.code==='Home'){ e.preventDefault(); goToPage(0); }
   else if(pages.length&&e.code==='End'){ e.preventDefault(); goToPage(pages.length-1); }
-  else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap(); if(selText){ selText=null; redrawOverlay(); updateTextUI(); } }
+  else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap(); if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); updateTextUI(); } }
+  else if((e.code==='Delete'||e.code==='Backspace')&&selImg&&tool==='select'){ e.preventDefault(); deleteSelImg(); }
+  else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='select'){ e.preventDefault(); deleteSelText(); }
+  else if((e.code==='BracketLeft'||e.code==='BracketRight')&&selImg&&tool==='select'){ e.preventDefault(); turnImg((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
+  else if(e.code.startsWith('Arrow')&&tool==='select'&&(selImg||selText)){ e.preventDefault(); nudgeSel(e.code, e.shiftKey?10:1); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
   else if((e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
   else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); goToPage(current+1); }
@@ -2524,6 +2787,10 @@ function rotAnnots(p,cw){
     if(a.type==='text'){                  // turn the text with the page about its pivot
       const n=tf(textPivot(a)); a.x=n.x; a.y=n.y+a.size*.35;
       const r=(((a.rot||0)+(cw?90:-90))%360+360)%360; if(r) a.rot=r; else delete a.rot;
+    }
+    else if(a.type==='img'){              // pictures turn with the page about their centre
+      const c=tf({x:a.x+a.w/2,y:a.y+a.h/2}); a.x=c.x-a.w/2; a.y=c.y-a.h/2;
+      a.rot=(((a.rot||0)+(cw?90:-90))%360+360)%360;
     }
     else a.pts=a.pts.map(tf);
   }
@@ -2604,7 +2871,7 @@ async function renderSnap(mode){
   await page.render({canvasContext:c, viewport:vp}).promise;
   await fontsFor([p]);
   c.setTransform(scale,0,0,scale,-x0*scale,-y0*scale);
-  drawAnnots(c,p.annots);
+  drawAnnots(c,p.annots,true);
   const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
   cv.width=cv.height=0;
   if(!blob) throw new Error('toBlob failed');
@@ -2714,19 +2981,43 @@ async function saveSelectedPages(list){
 }
 /* the PDF bytes for a list of pages: original pages copied as they are (text stays text),
    rotation applied, strokes and text laid over as an image */
+/* draw placed pictures into a saved page: map screen (display) coordinates to PDF space for the page rotation R */
+async function embedPlacedImages(out,pg,p,R,embedded){
+  const d=dispSize(p), L=PDFLib;
+  const opt = R===0?[0,0] : R===90?[d.h,0] : R===180?[d.w,d.h] : [0,d.w];
+  const th=R*Math.PI/180, co=Math.cos(th), si=Math.sin(th);
+  // display (dx,dy) -> pdf: (x0,y0) + Rot(R)·(dx, d.h-dy)
+  const M=[[co,si],[si,-co]], t0=[opt[0]+(-si*d.h), opt[1]+(co*d.h)];
+  const mul=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0], A[0][0]*B[0][1]+A[0][1]*B[1][1]],
+                    [A[1][0]*B[0][0]+A[1][1]*B[1][0], A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+  const app=(A,v)=>[A[0][0]*v[0]+A[0][1]*v[1], A[1][0]*v[0]+A[1][1]*v[1]];
+  for(const a of p.annots){
+    if(a.type!=='img') continue;
+    const st=imgStore.get(a.id); if(!st) continue;
+    let img=embedded.get(a.id);
+    if(!img){ img=st.png?await out.embedPng(st.bytes):await out.embedJpg(st.bytes); embedded.set(a.id,img); }
+    const f=(a.rot||0)*Math.PI/180, D=[[Math.cos(f),-Math.sin(f)],[Math.sin(f),Math.cos(f)]];
+    const S=[[a.w,0],[0,-a.h]], A=mul(mul(M,D),S);
+    const c=[a.x+a.w/2,a.y+a.h/2], o=app(D,[-a.w/2,a.h/2]), e=app(M,[c[0]+o[0],c[1]+o[1]]);
+    const name=pg.node.newXObject('Image', img.ref);
+    pg.pushOperators(L.pushGraphicsState(), L.concatTransformationMatrix(A[0][0],A[1][0],A[0][1],A[1][1],e[0]+t0[0],e[1]+t0[1]),
+                     L.drawObject(name), L.popGraphicsState());
+  }
+}
 async function buildPdf(list){
   {
     await fontsFor(list);
     const srcLibs=[];
     for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
-    const out=await PDFLib.PDFDocument.create();
+    const out=await PDFLib.PDFDocument.create(), embedded=new Map();
     for(let i=0;i<list.length;i++){
       const p=list[i];
       const [pg]=await out.copyPages(srcLibs[p.doc],[p.srcIndex]);
       out.addPage(pg);
       const R=totalRot(p);
       pg.setRotation(PDFLib.degrees(R));
-      if(p.annots.length){
+      if(p.annots.some(a=>a.type==='img')) await embedPlacedImages(out,pg,p,R,embedded);
+      if(p.annots.some(a=>a.type!=='img')){
         // overlay image resolution: 2 px/pt for strokes, up to 5 px/pt when there is text (crisp when zoomed or printed)
         const d=dispSize(p), hasText=p.annots.some(a=>a.type==='text');
         const Q=Math.max(1,Math.min(hasText?5:2, Math.sqrt(40e6/(d.w*d.h))));
@@ -2773,7 +3064,7 @@ async function compressSave(dpi, q){
       c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
       await page.render({canvasContext:c, viewport:vp}).promise;
       c.setTransform(scale,0,0,scale,0,0);
-      drawAnnots(c, p.annots);
+      drawAnnots(c,p.annots,true);
       const img=await out.embedJpg(cv.toDataURL('image/jpeg', q));
       const d=dispSize(p);
       const pg=out.addPage([d.w, d.h]);
@@ -2816,7 +3107,7 @@ async function startPrint(){
       const cv=document.createElement('canvas'); cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
       const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
       await page.render({canvasContext:c, viewport:vp}).promise;
-      c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots);
+      c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots,true);
       const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92)); cv.width=cv.height=0;
       const img=new Image(); img.src=URL.createObjectURL(blob); root.appendChild(img);
     }
@@ -2878,6 +3169,34 @@ $('zoomMenu').onclick=e=>{
   ]);
 };
 
+/* ---------------- keyboard shortcuts sheet (? / F1 / ⌨) ---------------- */
+const KEYS=[
+  ['ไฟล์',[['ไฟล์ใหม่จากหน้าเปล่า','ปุ่ม ใหม่'],['เปิดไฟล์','Ctrl+O'],['บันทึก (ทับไฟล์เดิม)','Ctrl+S'],['บันทึกเป็น…','Ctrl+Shift+S'],['พิมพ์','Ctrl+P'],
+          ['สลับแท็บ','Ctrl+Tab|Ctrl+PgDn'],['แท็บก่อนหน้า','Ctrl+Shift+Tab|Ctrl+PgUp']]],
+  ['แก้ไข',[['ย้อนกลับ','Ctrl+Z'],['ทำซ้ำ','Ctrl+Y|Ctrl+Shift+Z'],['คัดลอกทั้งหน้าเป็นรูป','Ctrl+C'],['วางรูปจากคลิปบอร์ด','Ctrl+V'],['ยกเลิก / ปิดเมนู','Esc']]],
+  ['เครื่องมือ',[['มือ — เลื่อนดู','V'],['เลือก — ย้าย ย่อขยาย หมุน','S'],['ปากกา','P'],['ไฮไลต์','H'],['ข้อความ','T'],['ยางลบ','E']]],
+  ['รูปและข้อความที่เลือก',[['ลบ','Delete'],['ย้ายทีละนิด','← ↑ → ↓'],['ย้ายทีละมาก','Shift+ลูกศร'],['หมุน 15°','[ ]'],['หมุน 1°','Shift+[ ]'],['หมุน 90°','Ctrl+[ ]'],
+          ['ย่อขยายไม่ล็อกสัดส่วน','Shift+ลากมุม'],['หมุนอิสระ','Shift+ลากจุดหมุน'],['ตั้งตรง 0°','ดับเบิลคลิกจุดหมุน'],['แก้ไขข้อความ','แตะข้อความที่เลือกอยู่']]],
+  ['หน้า',[['ไปหน้า…','Ctrl+G'],['หน้าถัดไป / ก่อนหน้า','PgDn|PgUp'],['หน้าแรก / หน้าสุดท้าย','Home|End']]],
+  ['มุมมอง',[['พอดีทั้งหน้า','Ctrl+0'],['ขนาดจริง 100%','Ctrl+1'],['พอดีความกว้าง','Ctrl+2'],['ซูมเข้า / ออก','Ctrl++|Ctrl+−'],['ซูมตรงจุด','Ctrl+ล้อเมาส์'],['พิมพ์ % ซูม','คลิกตัวเลข %'],['คีย์ลัดทั้งหมด','?|F1']]],
+];
+function showKeys(){
+  if(document.querySelector('.dlg')) return;
+  const d=document.createElement('div'); d.className='dlg';
+  const kb=k=>k.split('|').map(x=>`<kbd>${x}</kbd>`).join('<span style="color:var(--muted)">/</span>');
+  d.innerHTML=`<div class="box keys" role="dialog" aria-label="คีย์ลัด"><b>คีย์ลัด</b>
+    <span class="note">Ctrl+1 และ Ctrl+2 ใช้ได้แน่นอนในแอปที่ติดตั้งแล้ว · บน Mac ใช้ ⌘ แทน Ctrl</span>
+    <div class="keysGrid">${KEYS.map(([h,rows])=>`<section><h4>${h}</h4>${rows.map(([n,k])=>`<div class="kr"><span>${n}</span><span class="kk">${kb(k)}</span></div>`).join('')}</section>`).join('')}</div>
+    <div class="bkBtns"><button class="btn primary" data-act="ok">ปิด</button></div></div>`;
+  const done=()=>{ d.remove(); document.removeEventListener('keydown',key,true); };
+  const key=e=>{ if(e.key==='Escape'||e.key==='Enter'||e.key==='?'||e.code==='F1'){ e.preventDefault(); e.stopPropagation(); done(); } };
+  d.querySelector('[data-act=ok]').onclick=done;
+  d.addEventListener('pointerdown',e=>{ if(e.target===d) done(); });
+  document.addEventListener('keydown',key,true);
+  document.body.appendChild(d); d.querySelector('[data-act=ok]').focus({preventScroll:true}); d.querySelector('.box').scrollTop=0;
+}
+$('btnKeys').onclick=showKeys;
+
 /* ---------------- right-click menus ---------------- */
 thumbsAside().addEventListener('contextmenu',e=>{
   const el=e.target.closest('.thumb'); if(!el||!pages.length) return;
@@ -2895,6 +3214,7 @@ thumbsAside().addEventListener('contextmenu',e=>{
     {label:`บันทึก${n>1?` ${n} หน้า`:'หน้านี้'}เป็นไฟล์ใหม่…`, action:()=>saveSelectedPages(list)},
     {label:'คัดลอกรูปหน้านี้', action:async()=>{ await goToPage(i); snapshot('page'); }},
     {sep:true},
+    {label:'วางรูปเป็นหน้าใหม่หลังหน้านี้…', action:async()=>{ const fs=await clipboardImages(); if(!fs.length) return; await goToPage(i); imagesFlow(fs,'insert','after'); }},
     {label:'แทรกหน้าเปล่าก่อนหน้านี้…', action:async()=>{ await goToPage(i); insertBlank('before'); }},
     {label:'แทรกหน้าเปล่าหลังหน้านี้…', action:async()=>{ await goToPage(i); insertBlank('after'); }},
     {sep:true},
@@ -2909,7 +3229,14 @@ viewerEl.addEventListener('contextmenu',e=>{
   const go=async()=>{ if(k>=0&&k!==current) await goToPage(k); };
   const pos=()=>{ const r=sl.getBoundingClientRect(); return {x:(e.clientX-r.left-sl.clientLeft)/zoom, y:(e.clientY-r.top-sl.clientTop)/zoom}; };
   const hit=k>=0?hitText(pages[k],pos()):null;
+  const hitI=k>=0&&!hit?[...pages[k].annots].reverse().find(a=>a.type==='img'&&inImgBox(a,pos())):null;
   const items=[];
+  if(hitI) items.push(
+    {head:'รูปภาพ'},
+    {label:'หมุนรูปซ้าย 90°', action:async()=>{ await go(); setTool('select'); selImg=hitI; turnImg(-90); }},
+    {label:'หมุนรูปขวา 90°', action:async()=>{ await go(); setTool('select'); selImg=hitI; turnImg(90); }},
+    {label:'ลบรูป', key:'Del', action:async()=>{ await go(); setTool('select'); selImg=hitI; deleteSelImg(); }},
+    {sep:true});
   if(hit) items.push(
     {head:'ข้อความ'},
     {label:'แก้ไขข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; openTextInput({x:hit.x,y:hit.y},hit); }},
@@ -2920,6 +3247,8 @@ viewerEl.addEventListener('contextmenu',e=>{
     {sep:true});
   items.push(
     {head:`หน้า ${k+1}`},
+    {label:'วางรูปตรงนี้', key:'Ctrl+V', action:async()=>{ const at=pos(); const fs=await clipboardImages(); if(!fs.length) return; await go(); placeImagesOnPage(fs, at); }},
+    {sep:true},
     {label:'คัดลอกรูปทั้งหน้า', key:'Ctrl+C', action:async()=>{ await go(); snapshot('page'); }},
     {label:'คัดลอกส่วนที่เห็นบนจอ', action:async()=>{ await go(); snapshot('view'); }},
     {label:'หมุนขวา 90°', action:()=>rotate([pages[k]],true)},
