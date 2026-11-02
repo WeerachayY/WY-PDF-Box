@@ -44,7 +44,7 @@ header{
 }
 .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:.2px;white-space:nowrap}
 .brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
-.brand small{font-weight:400;color:var(--muted);font-size:12px}
+.brand small{font-weight:500;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 .spacer{flex:1}
 .fname{color:var(--muted);font-size:12px;max-width:26vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .btn{
@@ -339,7 +339,7 @@ aside{
   <button class="btn" id="btnThumbs" title="หน้า (Thumbnail)">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2" width="5" height="5" rx="1"/><rect x="9.5" y="2" width="5" height="5" rx="1"/><rect x="1.5" y="9" width="5" height="5" rx="1"/><rect x="9.5" y="9" width="5" height="5" rx="1"/></svg>
   </button>
-  <div class="brand"><span class="dot"></span>WY Pdf Box <small>จัดหน้า · ขีดเขียน</small></div>
+  <div class="brand"><span class="dot"></span>WY Pdf Box <small id="appVer"></small></div>
   <div class="spacer"></div>
   <span class="fname" id="fname"></span>
   <div class="hgroup" aria-label="ไฟล์">
@@ -615,7 +615,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.7.0-beta.1';
+const APP_VERSION = '2.7.1-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -1914,6 +1914,7 @@ $('btnViewMode').onclick=()=>{
 };
 applyViewMode();
 document.querySelector('.brand').title='WY Pdf Box '+APP_VERSION;
+$('appVer').textContent='v'+APP_VERSION;   // the version shows next to the name, so testers can tell which build they have
 $('pgPrev').onclick=()=>goToPage(current-1);
 $('pgNext').onclick=()=>goToPage(current+1);
 
