@@ -275,10 +275,23 @@ aside{
 .seg.q small{font-size:11px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
 .bkBtns .btn{min-width:96px}
 @media (max-width:520px){ .bkBody{flex-direction:column;align-items:stretch} .bkPrev{flex:none} }
-#recentList{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
-#recentList button{display:flex;flex-direction:column;align-items:flex-start;padding:7px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
-#recentList button:hover{background:var(--accent-soft)}
-#recentList small{font-size:11px;color:var(--muted)}
+.recentList{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
+.rrow{display:flex;align-items:center;border-radius:8px}
+.rrow:hover,.rrow:focus-within{background:var(--accent-soft)}
+.rrow .ropen{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:7px 10px;font-size:13px;color:var(--ink);text-align:left}
+.rrow .rname{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow small{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.rbadge{font-size:10px;font-weight:600;color:#047857;background:#D1FAE5;border-radius:999px;padding:0 6px}
+.rrow .ract{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);opacity:.0;flex:0 0 auto}
+.rrow:hover .ract,.rrow:focus-within .ract,.rrow .ract.on{opacity:1}
+.rrow .ract:hover{background:var(--panel);color:var(--ink)}
+.rrow .ract.on{color:var(--accent)}
+@media (hover:none){ .rrow .ract{opacity:.75} }
+.rhead{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px}
+.rhead p{font-size:12px;margin:0}
+.rlink{font-size:12px;color:var(--accent);padding:2px 4px;border-radius:4px}
+.rlink:hover{background:var(--accent-soft)}
+.dlg .box.recent{width:min(560px,100%)}
 #printRoot{display:none}
 @media print{
   html,body{height:auto!important;overflow:visible!important;display:block!important;background:#fff!important}
@@ -485,8 +498,8 @@ aside{
         <button class="btn" id="btnNew2" style="height:34px">สร้างไฟล์ใหม่จากหน้าเปล่า</button>
         <button class="btn" id="btnSession" style="display:none;height:34px"></button>
         <div id="recentWrap" style="display:none;width:100%">
-          <p style="font-size:12px;margin-bottom:4px">ไฟล์ล่าสุด</p>
-          <div id="recentList"></div>
+          <div class="rhead"><p>ไฟล์ล่าสุด</p><button class="rlink" id="recentAll"></button></div>
+          <div id="recentList" class="recentList"></div>
         </div>
         <div class="feat">
           <span>ลบหน้า</span><span>สลับลำดับหน้า</span><span>หมุนหน้า</span>
@@ -615,7 +628,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.7.1-beta.1';
+const APP_VERSION = '2.8.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -1445,12 +1458,107 @@ const idb=(()=>{
     const q=fn(db.transaction('kv',mode).objectStore('kv')); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); };
   return { get:k=>tx('readonly',s=>s.get(k)).catch(()=>undefined), set:(k,v)=>tx('readwrite',s=>s.put(v,k)).catch(()=>{}) };
 })();
-async function getRecent(){ return (await idb.get('recent'))||[]; }
+/* recent files: pinned ones first (never pushed out), then the newest; 20 kept */
+const MAX_RECENT=20;
+const sortRecent=l=>[...l].sort((a,b)=>(!!b.pinned-!!a.pinned)||(b.time-a.time));
+async function getRecent(){ return sortRecent((await idb.get('recent'))||[]); }
+async function setRecent(list){
+  const pinned=list.filter(r=>r.pinned), rest=sortRecent(list.filter(r=>!r.pinned));
+  await idb.set('recent', sortRecent([...pinned, ...rest.slice(0,Math.max(0,MAX_RECENT-pinned.length))]));
+}
 async function addRecent(handle){
-  const list=await getRecent(), out=[{name:handle.name, handle, time:Date.now()}];
-  for(const r of list){ if(out.length>=10) break; if(!(await r.handle.isSameEntry(handle).catch(()=>false))) out.push(r); }
-  await idb.set('recent', out);
+  const list=await getRecent(); let pinned=false;
+  const out=[];
+  for(const r of list){ if(await r.handle.isSameEntry(handle).catch(()=>false)) pinned=!!r.pinned; else out.push(r); }
+  out.unshift({name:handle.name, handle, time:Date.now(), pinned});
+  await setRecent(out);
   renderStart();
+}
+async function sameRecent(a,h){ return a.handle===h || await a.handle.isSameEntry(h).catch(()=>false); }
+async function editRecent(h, fn){                    // fn(entry) -> entry | null (= remove)
+  const out=[];
+  for(const r of await getRecent()){ if(await sameRecent(r,h)){ const n=fn(r); if(n) out.push(n); } else out.push(r); }
+  await setRecent(out); renderStart(); refreshRecentDialog();
+}
+const togglePin=h=>editRecent(h, r=>({...r, pinned:!r.pinned}));
+const forgetRecent=h=>editRecent(h, ()=>null);
+async function clearRecent(){
+  const l=await getRecent(), np=l.filter(r=>!r.pinned).length; if(!np) return;
+  const ok=await ask('ล้างรายการไฟล์ล่าสุด?', `เอาชื่อไฟล์ ${np} รายการออกจากรายการ (ไฟล์จริงไม่ถูกลบ · รายการที่ปักหมุดยังอยู่)`,
+    [{label:'ล้างรายการ', value:true, primary:true},{label:'ยกเลิก', value:null, link:true}]);
+  if(!ok) return;
+  await idb.set('recent', l.filter(r=>r.pinned)); renderStart(); refreshRecentDialog();
+}
+/* the tab that already shows this file, if any */
+async function tabOf(h){ for(const t of tabs) if(t.handle&&await t.handle.isSameEntry(h).catch(()=>false)) return t; return null; }
+async function openRecent(h){ const t=await tabOf(h); if(t){ closeRecentDialog(); return activateTab(t); } closeRecentDialog(); return openHandle(h); }
+/* open the system file dialog in the folder of a known file (the browser cannot open Explorer itself) */
+async function openFromFolder(h){
+  let hs; try{ hs=await showOpenFilePicker({id:'wy-open', startIn:h, multiple:true, types:OPEN_TYPES}); }
+  catch(e){ if(e.name!=='AbortError'){ console.error(e); toast('เปิดโฟลเดอร์ของไฟล์นี้ไม่ได้ — ไฟล์อาจถูกย้ายไปแล้ว'); } return; }
+  closeRecentDialog();
+  const imgs=[];
+  for(const x of hs){ const f=await x.getFile(); if(isImage(f)) imgs.push(f); else await openDocument(f, x); }
+  if(imgs.length) imagesFlow(imgs,'new');
+}
+function recentMenu(r, at){
+  showMenu(at,[
+    {head:r.name},
+    {label:'เปิด', action:()=>openRecent(r.handle)},
+    {label:'เปิดไฟล์อื่นในโฟลเดอร์นี้…', action:()=>openFromFolder(r.handle)},
+    {sep:true},
+    {label:r.pinned?'เลิกปักหมุด':'ปักหมุดไว้บนสุด', action:()=>togglePin(r.handle)},
+    {label:'เอาออกจากรายการ', sub:'ไฟล์จริงไม่ถูกลบ', action:()=>forgetRecent(r.handle)},
+  ]);
+}
+const ICO_FOLDER='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5V4a1.5 1.5 0 0 1 1.5-1.5h3L8 4h4.5A1.5 1.5 0 0 1 14 5.5v1"/><path d="M2 6.5h12l-1.2 6a1.5 1.5 0 0 1-1.5 1.2H4.7a1.5 1.5 0 0 1-1.5-1.2L2 6.5Z"/></svg>';
+const ICO_PIN='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10.2 1.8 14.2 5.8 11.6 7l-2.2 2.2.4 3.2-1.2 1.2-2.6-2.6L3 14 2 13l3-3-2.6-2.6 1.2-1.2 3.2.4L9 4.4l1.2-2.6Z"/></svg>';
+const ICO_X='<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg>';
+/* one row: open · 📂 other files in its folder · 📌 pin · ✕ forget; right-click = the same as a menu */
+function recentRow(r, open){
+  const row=document.createElement('div'); row.className='rrow';
+  const b=document.createElement('button'); b.className='ropen'; b.title=open?'เปิดอยู่ — คลิกเพื่อสลับไปแท็บนั้น':'เปิดไฟล์';
+  const nm=document.createElement('span'); nm.className='rname'; nm.textContent=(r.pinned?'📌 ':'')+r.name;
+  const sm=document.createElement('small'); sm.textContent=fmtTime(r.time);
+  if(open){ const bd=document.createElement('span'); bd.className='rbadge'; bd.textContent='เปิดอยู่'; sm.appendChild(bd); }
+  b.append(nm,sm); b.onclick=()=>openRecent(r.handle);
+  const act=(ico,title,fn,on)=>{ const x=document.createElement('button'); x.className='ract'+(on?' on':''); x.innerHTML=ico; x.title=title; x.setAttribute('aria-label',title);
+    x.onclick=e=>{ e.stopPropagation(); fn(); }; return x; };
+  row.append(b,
+    act(ICO_FOLDER,'เปิดไฟล์อื่นในโฟลเดอร์นี้',()=>openFromFolder(r.handle)),
+    act(ICO_PIN, r.pinned?'เลิกปักหมุด':'ปักหมุดไว้บนสุด',()=>togglePin(r.handle), r.pinned),
+    act(ICO_X,'เอาออกจากรายการ (ไฟล์จริงไม่ถูกลบ)',()=>forgetRecent(r.handle)));
+  row.oncontextmenu=e=>{ e.preventDefault(); recentMenu(r,{x:e.clientX,y:e.clientY}); };
+  return row;
+}
+async function fillRecent(box, list){
+  box.replaceChildren();
+  for(const r of list) box.appendChild(recentRow(r, !!(await tabOf(r.handle))));
+}
+/* every recent file, in a dialog (from the start screen or the open ▾ menu) */
+let recentDlg=null;
+function closeRecentDialog(){ if(recentDlg){ recentDlg.remove(); recentDlg=null; } }
+async function refreshRecentDialog(){
+  if(!recentDlg) return;
+  const l=await getRecent(); await fillRecent(recentDlg.querySelector('.recentList'), l);
+  recentDlg.querySelector('.rcount').textContent=`${l.length} ไฟล์`;
+}
+async function showRecentDialog(){
+  closeRecentDialog();
+  const d=document.createElement('div'); d.className='dlg';
+  d.innerHTML=`<div class="box recent" role="dialog" aria-label="ไฟล์ล่าสุด">
+    <div class="rhead"><b>ไฟล์ล่าสุด <small class="rcount" style="font-weight:400;color:var(--muted)"></small></b><button class="rlink" data-act="clear">ล้างรายการ</button></div>
+    <span class="note">คลิกเพื่อเปิด · 📂 เปิดไฟล์อื่นในโฟลเดอร์เดียวกัน · 📌 ปักหมุดไว้บนสุด · ✕ เอาชื่อออกจากรายการ (ไฟล์จริงไม่ถูกลบ) · คลิกขวาที่ชื่อก็ได้</span>
+    <div class="recentList"></div>
+    <div class="bkBtns"><button class="btn" data-act="close">ปิด</button></div></div>`;
+  recentDlg=d;
+  const esc=e=>{ if(e.key==='Escape'&&recentDlg===d&&!menuEl){ e.stopPropagation(); closeRecentDialog(); document.removeEventListener('keydown',esc,true); } };
+  d.querySelector('[data-act=close]').onclick=closeRecentDialog;
+  d.querySelector('[data-act=clear]').onclick=clearRecent;
+  d.addEventListener('pointerdown',e=>{ if(e.target===d) closeRecentDialog(); });
+  document.addEventListener('keydown',esc,true);
+  document.body.appendChild(d);
+  await refreshRecentDialog();
 }
 async function openHandle(h){
   try{
@@ -1478,21 +1586,24 @@ async function renderStart(){
     sb.style.display=''; sb.textContent=`เปิดไฟล์ชุดเดิมต่อ (${sess.length} ไฟล์)`;
     sb.onclick=async()=>{ for(const s of sess) await openHandle(s.handle); };
   } else sb.style.display='none';
-  const box=$('recentList'); box.replaceChildren();
   $('recentWrap').style.display=recentL.length?'':'none';
-  for(const r of recentL.slice(0,6)){
-    const b=document.createElement('button');
-    b.textContent=r.name; const sm=document.createElement('small'); sm.textContent=fmtTime(r.time); b.appendChild(sm);
-    b.onclick=()=>openHandle(r.handle);
-    box.appendChild(b);
-  }
+  const shown=recentL.slice(0,Math.max(6,recentL.filter(r=>r.pinned).length));
+  await fillRecent($('recentList'), shown);
+  const all=$('recentAll');
+  all.textContent = recentL.length>shown.length ? `ดูทั้งหมด (${recentL.length})` : 'จัดการ…';
+  all.onclick=showRecentDialog;
 }
 $('btnOpenMenu').onclick=async e=>{
   e.stopPropagation();
   const recentL=canFS?await getRecent():[];
   const items=[{label:'ไฟล์ใหม่ (หน้าเปล่า)…', action:newBlankFile},{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles}];
   if(recentL.length){ items.push({sep:true},{head:'ไฟล์ล่าสุด'});
-    for(const r of recentL) items.push({label:r.name, sub:fmtTime(r.time), action:()=>openHandle(r.handle)}); }
+    for(const r of recentL.slice(0,10)){
+      const t=await tabOf(r.handle);
+      items.push({label:(r.pinned?'📌 ':'')+r.name, sub:fmtTime(r.time)+(t?' · เปิดอยู่':''), action:()=>openRecent(r.handle)});
+    }
+    items.push({label:`ไฟล์ล่าสุดทั้งหมด… (${recentL.length})`, sub:'ปักหมุด · เปิดไฟล์อื่นในโฟลเดอร์เดียวกัน · เอาออกจากรายการ', action:showRecentDialog});
+  }
   if(canFS){
     items.push({sep:true},
       {label:'กู้คืนไฟล์ก่อนบันทึก…', action:showBackups},
