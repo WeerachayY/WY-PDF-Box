@@ -137,6 +137,17 @@ header{
 
 /* ---------- Layout ---------- */
 main{flex:1;display:flex;min-height:0;position:relative}
+/* find bar (Ctrl+F), floating over the top-right of the page area like Acrobat / PDF-XChange */
+#findBar{position:absolute;top:10px;right:18px;z-index:25;display:flex;align-items:center;gap:4px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:4px 4px 4px 10px;box-shadow:0 6px 24px rgba(15,23,42,.14);color:var(--muted)}
+#findBar[hidden]{display:none}
+#findIn{width:220px;height:30px;border:none;outline:none;background:none;font:inherit;font-size:13px;color:var(--ink)}
+#findCount{font-size:12px;min-width:54px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#findCount.none{color:var(--danger)}
+#findBar .tbtn{width:30px;height:30px}
+#findCase{font-size:12px;font-weight:700}
+#findCase.on{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:520px){ #findBar{left:8px;right:8px} #findIn{width:auto;flex:1;min-width:0} }
 aside{
   width:172px;flex:0 0 auto;background:var(--panel);border-right:1px solid var(--line);
   display:flex;flex-direction:column;min-height:0;
@@ -407,7 +418,7 @@ aside{
     <button class="tbtn on" data-tool="pan" title="เลื่อนดู / ลากเพื่อเลื่อน (V)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7.5V3.2a1 1 0 0 1 2 0v3.6m0-2.3a1 1 0 0 1 2 0v2.6m0-1.6a1 1 0 0 1 2 0V10a4.5 4.5 0 0 1-4.5 4.5c-2 0-3-.8-3.9-2.3L2.3 9.7a1 1 0 0 1 1.6-1.2L6 10.5"/></svg>
     </button>
-    <button class="tbtn" data-tool="select" title="เลือก — ย้าย ย่อขยาย หมุน ลบ รูปและข้อความบนหน้า (S)">
+    <button class="tbtn" data-tool="select" title="เลือก (S) — ลากบนตัวหนังสือเพื่อเลือกและคัดลอกข้อความ · ย้าย ย่อขยาย หมุน ลบ รูปและข้อความที่วางไว้">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 2.2 12.6 8l-4 1-2.2 3.9L3.5 2.2Z"/></svg>
     </button>
     <button class="tbtn" data-tool="pen" title="ปากกา (P)">
@@ -462,12 +473,26 @@ aside{
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M6.5 4.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1M4.5 4.5 5 13a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l.5-8.5M6.7 7v4.5M9.3 7v4.5"/></svg>
     </button>
   </div>
+  <div class="spacer"></div>
+  <button class="tbtn wide" id="btnFind" title="ค้นหาข้อความในไฟล์ (Ctrl+F)">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.6"/><path d="m10.4 10.4 3.8 3.8"/></svg>
+    <span>ค้นหา</span>
+  </button>
 
 </div>
 
 <div id="tabs" role="tablist"></div>
 
 <main>
+  <div id="findBar" hidden role="search">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.6"/><path d="m10.4 10.4 3.8 3.8"/></svg>
+    <input id="findIn" placeholder="ค้นหาในไฟล์…" autocomplete="off" spellcheck="false" aria-label="คำที่ต้องการค้นหา">
+    <span id="findCount" aria-live="polite"></span>
+    <button class="tbtn" id="findCase" title="ตรงตัวพิมพ์เล็ก/ใหญ่ (สำหรับภาษาอังกฤษ)" aria-pressed="false">Aa</button>
+    <button class="tbtn" id="findPrev" title="ผลก่อนหน้า (Shift+Enter · Shift+F3)"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3.5 10 4.5-4.5 4.5 4.5"/></svg></button>
+    <button class="tbtn" id="findNext" title="ผลถัดไป (Enter · F3)"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
+    <button class="tbtn" id="findClose" title="ปิด (Esc)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg></button>
+  </div>
   <aside id="sidebar">
     <div class="thumbHead">
       <span id="selInfo">หน้า</span>
@@ -628,7 +653,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.8.0-beta.1';
+const APP_VERSION = '2.9.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -727,6 +752,7 @@ function activateTab(t, fresh=false){
     refreshSelInfo();
   }
   renderTabs(); saveSession();
+  if(!$('findBar').hidden&&$('findIn').value) Promise.resolve(done).then(()=>runFind());   // results belong to this tab now
   return done;
 }
 function rebuildSlotsIfNeeded(){ if(slots.length!==pages.length) rebuildSlots(); else layoutSlots(); }
@@ -1846,7 +1872,7 @@ function layoutSlots(){
 /* move the working canvases into slot i; the page being left keeps its picture */
 function attachWrap(i){
   const to=slots[i]; if(!to||to.el.contains(wrap)) return false;
-  if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
+  if(selText||selImg||textSel){ selText=null; selImg=null; textSel=null; redrawOverlay(); }
   const from=slots.find(sl=>sl.el.contains(wrap));
   if(from&&pdfCv.width>1){
     from.cp.width=pdfCv.width; from.cp.height=pdfCv.height; from.cp.getContext('2d').drawImage(pdfCv,0,0);
@@ -1941,11 +1967,13 @@ function redrawOverlay(){
   drawAnnots(octx,p.annots);
   ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,imgCv.width,imgCv.height);
   ictx.setTransform(rs,0,0,rs,0,0); drawImgs(ictx,p.annots);
+  drawFindHits(octx,p); drawTextSel(octx,p);
   drawSelection(octx);
 }
 
 function updatePager(){
   $('pgInfo').textContent=`${current+1} / ${pages.length}`;
+  if(pages[current]) pageText(pages[current]).then(()=>{}).catch(()=>{});   // ready for selecting / hovering
   const p=pages[current];
   if(p){ const d=dispSize(p), w=d.w/MM, h=d.h/MM, P=PAPERS.find(q=>Math.abs(Math.min(w,h)-q[1])<2&&Math.abs(Math.max(w,h)-q[2])<2);
          $('pgSize').textContent=`${P?P[0]+' · ':''}${fmtMM(w)} × ${fmtMM(h)} มม.`; $('pgSize').title='ขนาดหน้านี้'; }
@@ -2255,7 +2283,14 @@ function startSelect(e,p,pos){
     if(onHandle(rotHandle(a),pos,touch?2.4:1.6)) return rotStart(a,textCenter(a));
   }
   const hit=hitObj(p,pos);
-  if(!hit){ if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); } return 'pan'; }
+  if(!hit){
+    if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
+    const L=pageTextSync(p), u=L?unitAt(L,pos):-1;
+    if(u>=0) return startTextSel(e,p,pos,L,u);       // on the page's own text: select it
+    if(textSel){ textSel=null; redrawOverlay(); }
+    return 'pan';
+  }
+  if(textSel){ textSel=null; }
   const wasSel=hit===selText||hit===selImg;
   if(hit.type==='img'){ selImg=hit; selText=null; } else { selText=hit; selImg=null; }
   redrawOverlay();
@@ -2284,6 +2319,7 @@ function hoverSelect(pos){
     if(onHandle(rotHandle(selText),pos)) c='grab'; else if(onHandle(delHandle(selText),pos,1.3)) c='pointer';
   }
   if(c==='default'&&p&&hitObj(p,pos)) c='move';
+  if(c==='default'&&p){ const L=pageTextSync(p); if(L&&unitAt(L,pos)>=0) c='text'; }
   if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
 }
 function deleteSelImg(){
@@ -2350,6 +2386,315 @@ async function clipboardImages(){
   }
 }
 
+/* ---------------- the page's own text: select, copy, find ----------------
+   pdf.js gives each page's text as runs ("items") with a position, size and angle. Each run is cut into
+   grapheme clusters (so Thai vowels and tone marks stay with their consonant), measured, and laid out in
+   page units for the page's current rotation. Selection and search work on that list; the highlights are
+   drawn on the overlay. Thai text from some Word PDFs uses private-use glyph codes (shifted tone marks,
+   ฐ/ญ without tails) and a split sara am — those are put back to normal Thai when copying and searching.   */
+const textCache=new WeakMap();                         // doc -> Map(srcIndex -> entry)
+let textSel=null;                                       // {p, a, b} caret positions on the current page
+const segG=('Segmenter' in Intl)?new Intl.Segmenter('th',{granularity:'grapheme'}):null;
+const segW=('Segmenter' in Intl)?new Intl.Segmenter('th',{granularity:'word'}):null;
+const graphemes=s=>segG?[...segG.segment(s)].map(x=>x.segment):[...s];
+const mctxT=document.createElement('canvas').getContext('2d');
+function textEntry(p){
+  const d=docs[p.doc]; if(!d) return null;
+  let m=textCache.get(d); if(!m){ m=new Map(); textCache.set(d,m); }
+  let en=m.get(p.srcIndex);
+  if(!en){
+    en={ready:false, layouts:{}};
+    en.promise=d.pdf.getPage(p.srcIndex+1).then(async pg=>{ en.page=pg; en.tc=await pg.getTextContent(); en.ready=true; return en; })
+                  .catch(err=>{ console.error(err); en.tc={items:[],styles:{}}; en.ready=true; return en; });
+    m.set(p.srcIndex,en);
+  }
+  return en;
+}
+async function pageText(p){ const en=textEntry(p); if(!en) return null; await en.promise; return layoutOf(en,totalRot(p)); }
+function pageTextSync(p){ const en=textEntry(p); return en&&en.ready ? layoutOf(en,totalRot(p)) : null; }
+const PUA={0xF700:'ฐ',0xF701:'ิ',0xF702:'ี',0xF703:'ึ',0xF704:'ื',0xF705:'่',0xF706:'้',0xF707:'๊',0xF708:'๋',0xF709:'์',
+  0xF70A:'่',0xF70B:'้',0xF70C:'๊',0xF70D:'๋',0xF70E:'์',0xF70F:'ญ',0xF710:'ั',0xF711:'ํ',0xF712:'็',0xF713:'่',0xF714:'้',
+  0xF715:'๊',0xF716:'๋',0xF717:'์',0xF718:'ุ',0xF719:'ู',0xF71A:'ฺ'};
+const thaiRank=c=>/[ัิ-ฺ็]/.test(c)?1:/[่-๎]/.test(c)?2:0;
+function normUnits(units){                              // per-unit text, Thai repaired
+  for(const u of units){
+    let t=u.s.replace(/[-]/g,c=>PUA[c.charCodeAt(0)]||c);
+    if(t.length>1&&/[ัิ-ฺ็-๎]/.test(t)){   // vowel above/below before tone mark
+      const base=t[0], marks=[...t.slice(1)];
+      if(marks.every(c=>thaiRank(c))) t=base+marks.sort((a,b)=>thaiRank(a)-thaiRank(b)).join('');
+    }
+    u.t=t;
+  }
+  for(let i=0;i+1<units.length;i++){                     // ◌ํ + า  ->  ◌ำ  (sara am split in two)
+    const a=units[i], b=units[i+1];
+    if(/ํ[่-๋]?$/.test(a.t)&&b.t[0]==='า'){
+      const tone=(a.t.match(/[่-๋]$/)||[''])[0];
+      a.t=a.t.replace(/ํ[่-๋]?$/,tone); b.t='ำ'+b.t.slice(1);
+    }
+  }
+}
+function layoutOf(en,rot){
+  if(en.layouts[rot]) return en.layouts[rot];
+  const vp=en.page.getViewport({scale:1, rotation:rot}), items=[], units=[];
+  for(const it of en.tc.items){
+    if(!it.str) continue;
+    const st=en.tc.styles[it.fontName]||{};
+    const tx=pdfjsLib.Util.transform(vp.transform, it.transform);
+    const h=Math.hypot(tx[2],tx[3])||Math.hypot(tx[0],tx[1]); if(!(h>0)) continue;
+    const ang=Math.atan2(tx[1],tx[0]), co=Math.cos(ang), si=Math.sin(ang);
+    const asc=st.ascent?st.ascent:(st.descent?1+st.descent:.8);
+    const w=Math.abs(it.width||0)||h*it.str.length*.5;
+    const gs=graphemes(it.str);
+    mctxT.font=`100px ${st.fontFamily||'sans-serif'}`;
+    const ws=gs.map(g=>Math.max(0,mctxT.measureText(g).width)), M=ws.reduce((a,b)=>a+b,0);
+    const k=M>0?w/M:0, item={x:tx[4], y:tx[5], co, si, h, asc, w, u0:units.length, n:gs.length};
+    let pos=0;
+    gs.forEach((g,i)=>{ const dw=k?ws[i]*k:w/gs.length; units.push({s:g, it:items.length, a:pos, b:pos+dw}); pos+=dw; });
+    // a loose axis-aligned box for quick rejects
+    const cx=[], cy=[];
+    for(const [u,v] of [[0,-asc*h],[w,-asc*h],[w,(1-asc)*h],[0,(1-asc)*h]]){ cx.push(item.x+co*u-si*v); cy.push(item.y+si*u+co*v); }
+    item.bb=[Math.min(...cx),Math.min(...cy),Math.max(...cx),Math.max(...cy)];
+    items.push(item);
+  }
+  normUnits(units);
+  return en.layouts[rot]={items, units};
+}
+/* a point in an item's own frame: u along the baseline, v below it (negative = above) */
+function itemLocal(it,pos){ const dx=pos.x-it.x, dy=pos.y-it.y; return {u:dx*it.co+dy*it.si, v:-dx*it.si+dy*it.co}; }
+function itemPt(it,u,v){ return {x:it.x+it.co*u-it.si*v, y:it.y+it.si*u+it.co*v}; }
+function unitAt(L,pos){
+  for(let i=L.items.length-1;i>=0;i--){
+    const it=L.items[i], m=2/zoom;
+    if(pos.x<it.bb[0]-m||pos.x>it.bb[2]+m||pos.y<it.bb[1]-m||pos.y>it.bb[3]+m) continue;
+    const q=itemLocal(it,pos);
+    if(q.u<-m||q.u>it.w+m||q.v<-it.asc*it.h-m||q.v>(1-it.asc)*it.h+m) continue;
+    for(let j=it.u0;j<it.u0+it.n;j++){ const un=L.units[j]; if(q.u<un.b||j===it.u0+it.n-1) return j; }
+  }
+  return -1;
+}
+/* caret (0..units.length) nearest a point: the closest run, then the side of the nearest character */
+function caretAt(L,pos){
+  let best=null, bd=Infinity;
+  for(const it of L.items){
+    const q=itemLocal(it,pos), top=-it.asc*it.h, bot=(1-it.asc)*it.h;
+    const du=q.u<0?-q.u:q.u>it.w?q.u-it.w:0, dv=q.v<top?top-q.v:q.v>bot?q.v-bot:0;
+    const d=Math.hypot(du,dv*3);                         // prefer the same line
+    if(d<bd){ bd=d; best={it,q}; }
+  }
+  if(!best) return 0;
+  const {it,q}=best;
+  for(let j=it.u0;j<it.u0+it.n;j++){ const un=L.units[j]; if(q.u<(un.a+un.b)/2) return j; }
+  return it.u0+it.n;
+}
+function sameLine(a,b){ return Math.abs(a.co-b.co)<.01&&Math.abs(a.si-b.si)<.01&&Math.abs(-(b.x-a.x)*a.si+(b.y-a.y)*a.co)<.5*Math.max(a.h,b.h); }
+function textOfRange(L,s,e){
+  let out='', prev=null;
+  for(let j=s;j<e;j++){
+    const un=L.units[j], it=L.items[un.it];
+    if(prev&&prev.it!==un.it){
+      const pi=L.items[prev.it];
+      if(!sameLine(pi,it)) out=out.replace(/[ \t]+$/,'')+'\n';
+      else{
+        const end=itemPt(pi,prev.b,0), st=itemPt(it,un.a,0);
+        const gap=(st.x-end.x)*pi.co+(st.y-end.y)*pi.si;
+        if(gap>.2*Math.max(pi.h,it.h)&&!/\s$/.test(out)&&!/^\s/.test(un.t)) out+=' ';
+      }
+    }
+    out+=un.t; prev=un;
+  }
+  return out.replace(/[ \t]+\n/g,'\n').trim();
+}
+function selectedText(){ const p=pages[current], L=textSel&&p&&textSel.p===p?pageTextSync(p):null; if(!L) return '';
+  return textOfRange(L,Math.min(textSel.a,textSel.b),Math.max(textSel.a,textSel.b)); }
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;left:-9999px;opacity:0';
+    document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} ta.remove(); }
+}
+async function copySelectedText(){
+  const t=selectedText(); if(!t) return;
+  await copyText(t);
+  toast(`คัดลอกข้อความแล้ว · ${[...t].length.toLocaleString()} ตัวอักษร`);
+}
+async function selectAllText(){
+  const p=pages[current]; if(!p) return;
+  const L=await pageText(p);
+  if(!L||!L.units.length){ toast('หน้านี้ไม่มีตัวหนังสือให้เลือก — อาจเป็นภาพสแกนหรือแบบที่ตัวหนังสือถูกแปลงเป็นเส้น'); return; }
+  if(tool!=='select') setTool('select');
+  selText=null; selImg=null; textSel={p, a:0, b:L.units.length}; redrawOverlay();
+  toast('เลือกข้อความทั้งหน้าแล้ว — กด Ctrl+C เพื่อคัดลอก');
+}
+/* click / double-click (word) / triple-click (line) — counted by hand, the pointer events don't */
+let lastTextClick={t:0,x:0,y:0,n:0}, longPress=null;
+function clickCount(e){
+  const now=performance.now(), c=lastTextClick;
+  const n=(now-c.t<450&&Math.hypot(e.clientX-c.x,e.clientY-c.y)<6)?c.n+1:1;
+  lastTextClick={t:now,x:e.clientX,y:e.clientY,n}; return n;
+}
+function wordRange(L,u){
+  if(!segW) return [u,u+1];
+  const [la,lb]=lineRange(L,u);                        // the line's text, unit by unit
+  const starts=[]; let txt='';
+  for(let j=la;j<lb;j++){ starts.push(txt.length); txt+=L.units[j].t; }
+  const off=starts[u-la];
+  for(const sg of segW.segment(txt)){
+    if(off>=sg.index&&off<sg.index+sg.segment.length){
+      if(!sg.isWordLike&&/^\s+$/.test(sg.segment)) return [u,u+1];
+      let a=u, b=u+1;
+      while(a>la&&starts[a-1-la]>=sg.index) a--;
+      while(b<lb&&starts[b-la]<sg.index+sg.segment.length) b++;
+      return [a,b];
+    }
+  }
+  return [u,u+1];
+}
+function lineRange(L,u){
+  const it=L.items[L.units[u].it]; let a=Infinity, b=-1;
+  L.items.forEach(o=>{ if(sameLine(it,o)){ a=Math.min(a,o.u0); b=Math.max(b,o.u0+o.n); } });
+  return [a,b];
+}
+function startTextSel(e,p,pos,L,u){
+  if(e.pointerType==='touch'){                          // fingers: a plain drag scrolls; hold to select a word
+    cancelLongPress();
+    longPress={id:e.pointerId, x:e.clientX, y:e.clientY, t:setTimeout(()=>{
+      if(!longPress) return;
+      const id=longPress.id; longPress=null;
+      if(panning){ viewerEl.classList.remove('grabbing'); panning=null; }
+      const [a,b]=wordRange(L,u);
+      textSel={p,a,b}; drawing={type:'textsel', L, anchor:a, word:[a,b]}; drawPid=id;
+      try{ navigator.vibrate?.(12); }catch(_){}
+      redrawOverlay();
+    },450)};
+    return 'pan';
+  }
+  const n=clickCount(e);
+  let a,b;
+  if(n===2) [a,b]=wordRange(L,u);
+  else if(n>=3) [a,b]=lineRange(L,u);
+  else { a=b=caretAt(L,pos); }
+  textSel={p,a,b}; drawing={type:'textsel', L, anchor:a, word:n>1?[a,b]:null};
+  drawPid=e.pointerId; redrawOverlay();
+  return true;
+}
+function cancelLongPress(){ if(longPress){ clearTimeout(longPress.t); longPress=null; } }
+function textSelMove(m,pos){
+  const c=caretAt(m.L,pos);
+  if(m.word){ const [a,b]=m.word; textSel.a=c<a?b:a; textSel.b=c<a?c:Math.max(c,b); }   // extend a word / line selection
+  else textSel.b=c;
+  redrawOverlay();
+}
+function fillRange(ctx,L,s,e){
+  for(let j=s;j<e;){
+    const it=L.items[L.units[j].it], end=Math.min(e,it.u0+it.n);
+    const a=L.units[j].a, b=L.units[end-1].b, top=-it.asc*it.h, bot=(1-it.asc)*it.h;
+    const P=[itemPt(it,a,top),itemPt(it,b,top),itemPt(it,b,bot),itemPt(it,a,bot)];
+    ctx.beginPath(); ctx.moveTo(P[0].x,P[0].y); for(const q of P.slice(1)) ctx.lineTo(q.x,q.y); ctx.closePath(); ctx.fill();
+    j=end;
+  }
+}
+function drawTextSel(ctx,p){
+  if(!textSel||textSel.p!==p||textSel.a===textSel.b) return;
+  const L=pageTextSync(p); if(!L) return;
+  ctx.save(); ctx.fillStyle='rgba(37,99,235,.30)';
+  fillRange(ctx,L,Math.min(textSel.a,textSel.b),Math.max(textSel.a,textSel.b));
+  ctx.restore();
+}
+
+/* ---- find (Ctrl+F): whitespace and case don't matter, Thai repaired the same way as copying ---- */
+const findState={q:'', cs:false, hits:[], idx:-1, run:0, busy:false};
+function searchKey(t,cs){ let o=''; for(const ch of t){ if(/\s/.test(ch)) continue; o+=cs?ch:ch.toLowerCase(); } return o; }
+function searchIndex(L,cs){
+  const k=cs?'sc':'si'; if(L[k]) return L[k];
+  let str='', map=[];
+  L.units.forEach((un,j)=>{ for(const ch of un.t){ if(/\s/.test(ch)) continue; const c=cs?ch:ch.toLowerCase(); for(const _ of c){ str+=_; map.push(j); } } });
+  return L[k]={str,map};
+}
+function openFind(q){
+  const bar=$('findBar'), inp=$('findIn');
+  bar.hidden=false;
+  if(q!=null){ inp.value=q; runFind(); }
+  else if(textSel&&textSel.a!==textSel.b){ const t=selectedText().replace(/\s+/g,' ').trim(); if(t&&t.length<=80){ inp.value=t; runFind(); } }
+  inp.focus(); inp.select();
+}
+function closeFind(){
+  $('findBar').hidden=true; findState.run++; findState.hits=[]; findState.idx=-1; findState.q=''; $('findCount').textContent='';
+  redrawOverlay();
+}
+let findT=0;
+async function runFind(){
+  const q=searchKey($('findIn').value.normalize('NFC').replace(/[-]/g,c=>PUA[c.charCodeAt(0)]||c), findState.cs);
+  const run=++findState.run, cnt=$('findCount');
+  findState.q=q; findState.hits=[]; findState.idx=-1; cnt.classList.remove('none');
+  if(!q){ cnt.textContent=''; redrawOverlay(); return; }
+  const list=[...pages], start=current; let jumped=false, any=false;
+  for(let i=0;i<list.length;i++){
+    if(run!==findState.run) return;
+    if(list.length>8) cnt.textContent=`ค้นหา… ${i+1}/${list.length}`;
+    const L=await pageText(list[i]); if(run!==findState.run) return;
+    if(!L) continue;
+    if(L.units.length) any=true;
+    const S=searchIndex(L,findState.cs);
+    for(let k=S.str.indexOf(q);k>=0;k=S.str.indexOf(q,k+q.length))
+      findState.hits.push({p:list[i], a:S.map[k], b:S.map[k+q.length-1]+1});
+    if(!jumped&&i>=start&&findState.hits.length){       // first result at or after the page you are on
+      const at=findState.hits.findIndex(h=>pages.indexOf(h.p)>=start); if(at>=0){ jumped=true; showHit(at); }
+    }
+    if(i%4===3) await new Promise(r=>setTimeout(r,0));
+  }
+  if(run!==findState.run) return;
+  if(findState.hits.length&&!jumped) showHit(0);      // nothing after this page: wrap to the first one
+  updateFindCount(any);
+  redrawOverlay();
+}
+function updateFindCount(any=true){
+  const cnt=$('findCount'), n=findState.hits.length;
+  if(!findState.q){ cnt.textContent=''; return; }
+  cnt.classList.toggle('none',!n);
+  cnt.textContent = n ? `${findState.idx+1} / ${n}` : any ? 'ไม่พบ' : 'ไม่มีตัวหนังสือ';
+  cnt.title = !n&&!any ? 'ไฟล์นี้ไม่มีตัวหนังสือให้ค้นหา — อาจเป็นภาพสแกน หรือแบบที่ตัวหนังสือถูกแปลงเป็นเส้น' : '';
+}
+async function showHit(i){
+  const h=findState.hits[i]; if(!h) return;
+  const pi=pages.indexOf(h.p); if(pi<0){ runFind(); return; }
+  findState.idx=i; updateFindCount();
+  if(pi!==current) await goToPage(pi);
+  const L=pageTextSync(h.p); if(!L) return;
+  const it=L.items[L.units[h.a].it], un=L.units[h.a];
+  const c=itemPt(it,(un.a+L.units[Math.min(h.b,it.u0+it.n)-1].b)/2,(.5-it.asc)*it.h);
+  const o=slotOrigin(current), v=viewerEl.getBoundingClientRect(), sx=o.x+c.x*zoom, sy=o.y+c.y*zoom;
+  const pad=60;
+  if(sx<v.left+pad||sx>v.right-pad) viewerEl.scrollLeft+=sx-(v.left+v.width/2);
+  if(sy<v.top+pad||sy>v.bottom-pad*1.5){ viewerEl.scrollTop+=sy-(v.top+v.height/2); trackHold=performance.now()+300; navTop=viewerEl.scrollTop; }
+  redrawOverlay();
+}
+function findStep(d){
+  const n=findState.hits.length; if(!n) return;
+  let i=findState.idx;
+  if(i<0){ i=d>0?findState.hits.findIndex(h=>pages.indexOf(h.p)>=current):-1; if(i<0) i=d>0?0:n-1; }
+  else i=(i+d+n)%n;
+  showHit(i);
+}
+function drawFindHits(ctx,p){
+  if(!findState.hits.length||$('findBar').hidden) return;
+  const L=pageTextSync(p); if(!L) return;
+  ctx.save();
+  findState.hits.forEach((h,i)=>{ if(h.p!==p) return;
+    ctx.fillStyle = i===findState.idx ? 'rgba(249,115,22,.55)' : 'rgba(250,204,21,.45)';
+    fillRange(ctx,L,h.a,h.b); });
+  ctx.restore();
+}
+$('btnFind').onclick=()=>{ if(pages.length) openFind(); };
+$('findIn').addEventListener('input',()=>{ clearTimeout(findT); findT=setTimeout(runFind,250); });
+$('findIn').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); if(findState.q!==searchKey($('findIn').value,findState.cs)){ clearTimeout(findT); runFind(); } else findStep(e.shiftKey?-1:1); }
+  else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); closeFind(); $('findIn').blur(); }
+  else if(e.code==='F3'){ e.preventDefault(); findStep(e.shiftKey?-1:1); }
+});
+$('findNext').onclick=()=>findStep(1);
+$('findPrev').onclick=()=>findStep(-1);
+$('findClose').onclick=closeFind;
+$('findCase').onclick=()=>{ findState.cs=!findState.cs; $('findCase').classList.toggle('on',findState.cs); $('findCase').setAttribute('aria-pressed',findState.cs); runFind(); $('findIn').focus(); };
+
 /* ---------------- pointer input: draw · pan · pinch ----------------
    mouse  : drawing tools draw; hand tool (or middle button) drags the page
    stylus : always draws (hand tool → the last drawing tool; barrel/eraser button → eraser)
@@ -2408,6 +2753,7 @@ function cancelStroke(){               // a second finger landed: the stroke was
   else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='rot'){ const a=drawing.a; a.rot=drawing.r0; a.x=drawing.ox; a.y=drawing.oy; rotLive=null; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='resize'){ Object.assign(drawing.a,drawing.o0); if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='textsel'){ textSel=null; }
   else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
@@ -2421,6 +2767,7 @@ function endStroke(){
   if(drawing.type==='resize'){
     const m=drawing; drawing=null; drawPid=null; if(m.moved) refreshThumbCanvas(current); redrawOverlay(); return;
   }
+  if(drawing.type==='textsel'){ drawing=null; drawPid=null; if(textSel&&textSel.a===textSel.b) textSel=null; redrawOverlay(); return; }
   if(drawing.type==='move'){
     const m=drawing; drawing=null; drawPid=null;
     if(m.moved) refreshThumbCanvas(current);
@@ -2526,6 +2873,7 @@ viewerEl.addEventListener('pointermove',e=>{
       return;
     }
     if(drawing.type==='resize'){ resizeMove(drawing,pos,e.shiftKey); return; }
+    if(drawing.type==='textsel'){ textSelMove(drawing,pos); return; }
     if(drawing.type==='move'){
       const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
       if(!m.moved){ if(Math.hypot(dx,dy)*zoom<4) return; pushUndo(p); m.moved=true; }
@@ -2535,6 +2883,7 @@ viewerEl.addEventListener('pointermove',e=>{
     if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6/Math.max(zoom,.5)){ drawing.pts.push(pos); redrawOverlay(); }
     return;
   }
+  if(longPress&&e.pointerId===longPress.id&&Math.hypot(e.clientX-longPress.x,e.clientY-longPress.y)>8) cancelLongPress();
   if(panning&&e.pointerId===panning.id) movePan(e);
   else if(e.pointerType==='mouse'&&tool==='text'&&pages.length) hoverText(evPos(e));
   else if(e.pointerType==='mouse'&&tool==='select'&&pages.length&&!panning) hoverSelect(evPos(e));
@@ -2550,6 +2899,7 @@ function hoverText(pos){
   if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
 }
 function pointerEnd(e){
+  if(longPress&&e.pointerId===longPress.id) cancelLongPress();
   touchPts.delete(e.pointerId);
   if(pinch){ if(touchPts.size<2) pinch=null; return; }   // lift both fingers before a new gesture
   if(drawing&&e.pointerId===drawPid) endStroke();
@@ -2849,12 +3199,14 @@ document.addEventListener('keydown',e=>{
   if(mod&&!e.altKey){
     const fileKey={KeyO:()=>openFiles(), KeyS:()=>pages.length&&saveDoc({as:e.shiftKey}), KeyP:()=>pages.length&&startPrint()}[e.code];
     if(fileKey){ e.preventDefault(); if(txtIn.style.display==='block') commitText(); fileKey(); return; }
+    if(e.code==='KeyF'&&!e.shiftKey){ e.preventDefault(); if(pages.length&&!document.querySelector('.dlg')) openFind(); return; }
     if(e.code==='Tab'||e.code==='PageDown'||e.code==='PageUp'){
       if(tabs.length>1){ e.preventDefault(); cycleTab(e.code==='PageUp'||(e.code==='Tab'&&e.shiftKey)?-1:1); }
       return;
     }
   }
   if(e.code==='F1'){ e.preventDefault(); if(!document.querySelector('.dlg')) showKeys(); return; }
+  if(e.code==='F3'){ e.preventDefault(); if(pages.length){ if(findState.hits.length) findStep(e.shiftKey?-1:1); else openFind(); } return; }
   if(document.querySelector('.dlg')) return;       // a dialog is open
   const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&e.target.type!=='range' || e.target.isContentEditable;
   if(typing) return;
@@ -2862,7 +3214,9 @@ document.addEventListener('keydown',e=>{
   if(mod&&e.code==='KeyZ'&&!e.shiftKey){ e.preventDefault(); undo(); return; }
   if(mod&&(e.code==='KeyY'||(e.code==='KeyZ'&&e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(mod&&e.code==='KeyG'){ e.preventDefault(); editPage(); return; }
+  if(mod&&e.code==='KeyC'&&pages.length&&textSel&&textSel.a!==textSel.b){ e.preventDefault(); copySelectedText(); return; }
   if(mod&&e.code==='KeyC'&&pages.length&&!String(getSelection())){ e.preventDefault(); snapshot('page'); return; }
+  if(mod&&e.code==='KeyA'&&pages.length){ e.preventDefault(); selectAllText(); return; }
   if(mod&&(e.code==='Equal'||e.code==='NumpadAdd')){ e.preventDefault(); $('btnZoomIn').click(); return; }
   if(mod&&(e.code==='Minus'||e.code==='NumpadSubtract')){ e.preventDefault(); $('btnZoomOut').click(); return; }
   if(mod&&!e.shiftKey&&(e.code==='Digit0'||e.code==='Numpad0')){ e.preventDefault(); fitTo('page'); return; }
@@ -2876,7 +3230,9 @@ document.addEventListener('keydown',e=>{
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
   else if(pages.length&&e.code==='Home'){ e.preventDefault(); goToPage(0); }
   else if(pages.length&&e.code==='End'){ e.preventDefault(); goToPage(pages.length-1); }
-  else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap(); if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); updateTextUI(); } }
+  else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap();
+    if(selText||selImg||textSel){ selText=null; selImg=null; textSel=null; redrawOverlay(); updateTextUI(); }
+    else if(!$('findBar').hidden) closeFind(); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selImg&&tool==='select'){ e.preventDefault(); deleteSelImg(); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='select'){ e.preventDefault(); deleteSelText(); }
   else if((e.code==='BracketLeft'||e.code==='BracketRight')&&selImg&&tool==='select'){ e.preventDefault(); turnImg((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
@@ -3285,10 +3641,11 @@ $('zoomMenu').onclick=e=>{
 const KEYS=[
   ['ไฟล์',[['ไฟล์ใหม่จากหน้าเปล่า','ปุ่ม ใหม่'],['เปิดไฟล์','Ctrl+O'],['บันทึก (ทับไฟล์เดิม)','Ctrl+S'],['บันทึกเป็น…','Ctrl+Shift+S'],['พิมพ์','Ctrl+P'],
           ['สลับแท็บ','Ctrl+Tab|Ctrl+PgDn'],['แท็บก่อนหน้า','Ctrl+Shift+Tab|Ctrl+PgUp']]],
-  ['แก้ไข',[['ย้อนกลับ','Ctrl+Z'],['ทำซ้ำ','Ctrl+Y|Ctrl+Shift+Z'],['คัดลอกทั้งหน้าเป็นรูป','Ctrl+C'],['วางรูปจากคลิปบอร์ด','Ctrl+V'],['ยกเลิก / ปิดเมนู','Esc']]],
-  ['เครื่องมือ',[['มือ — เลื่อนดู','V'],['เลือก — ย้าย ย่อขยาย หมุน','S'],['ปากกา','P'],['ไฮไลต์','H'],['ข้อความ','T'],['ยางลบ','E']]],
+  ['แก้ไข',[['ย้อนกลับ','Ctrl+Z'],['ทำซ้ำ','Ctrl+Y|Ctrl+Shift+Z'],['คัดลอกข้อความที่เลือก (ไม่มีที่เลือก = ทั้งหน้าเป็นรูป)','Ctrl+C'],['เลือกข้อความทั้งหน้า','Ctrl+A'],
+          ['ค้นหาในไฟล์','Ctrl+F'],['ผลถัดไป / ก่อนหน้า','F3|Shift+F3'],['วางรูปจากคลิปบอร์ด','Ctrl+V'],['ยกเลิก / ปิดเมนู','Esc']]],
+  ['เครื่องมือ',[['มือ — เลื่อนดู','V'],['เลือก — ลากเลือกตัวหนังสือ, ย้าย/ย่อขยายของที่วาง','S'],['ปากกา','P'],['ไฮไลต์','H'],['ข้อความ','T'],['ยางลบ','E']]],
   ['รูปและข้อความที่เลือก',[['ลบ','Delete'],['ย้ายทีละนิด','← ↑ → ↓'],['ย้ายทีละมาก','Shift+ลูกศร'],['หมุน 15°','[ ]'],['หมุน 1°','Shift+[ ]'],['หมุน 90°','Ctrl+[ ]'],
-          ['ย่อขยายไม่ล็อกสัดส่วน','Shift+ลากมุม'],['หมุนอิสระ','Shift+ลากจุดหมุน'],['ตั้งตรง 0°','ดับเบิลคลิกจุดหมุน'],['แก้ไขข้อความ','แตะข้อความที่เลือกอยู่']]],
+          ['ย่อขยายไม่ล็อกสัดส่วน','Shift+ลากมุม'],['หมุนอิสระ','Shift+ลากจุดหมุน'],['ตั้งตรง 0°','ดับเบิลคลิกจุดหมุน'],['แก้ไขข้อความ','แตะข้อความที่เลือกอยู่'],['เลือกทั้งคำ / ทั้งบรรทัด','ดับเบิลคลิก|คลิก 3 ครั้ง'],['แท็บเล็ต: เลือกตัวหนังสือ','แตะค้าง แล้วลาก']]],
   ['หน้า',[['ไปหน้า…','Ctrl+G'],['หน้าถัดไป / ก่อนหน้า','PgDn|PgUp'],['หน้าแรก / หน้าสุดท้าย','Home|End']]],
   ['มุมมอง',[['พอดีทั้งหน้า','Ctrl+0'],['ขนาดจริง 100%','Ctrl+1'],['พอดีความกว้าง','Ctrl+2'],['ซูมเข้า / ออก','Ctrl++|Ctrl+−'],['ซูมตรงจุด','Ctrl+ล้อเมาส์'],['พิมพ์ % ซูม','คลิกตัวเลข %'],['คีย์ลัดทั้งหมด','?|F1']]],
 ];
@@ -3341,8 +3698,14 @@ viewerEl.addEventListener('contextmenu',e=>{
   const go=async()=>{ if(k>=0&&k!==current) await goToPage(k); };
   const pos=()=>{ const r=sl.getBoundingClientRect(); return {x:(e.clientX-r.left-sl.clientLeft)/zoom, y:(e.clientY-r.top-sl.clientTop)/zoom}; };
   const hit=k>=0?hitText(pages[k],pos()):null;
+  const selTxt = k===current && textSel && textSel.a!==textSel.b ? selectedText() : '';
   const hitI=k>=0&&!hit?[...pages[k].annots].reverse().find(a=>a.type==='img'&&inImgBox(a,pos())):null;
   const items=[];
+  if(selTxt) items.push(
+    {head:'ข้อความที่เลือก'},
+    {label:'คัดลอกข้อความ', key:'Ctrl+C', action:copySelectedText},
+    {label:`ค้นหา "${selTxt.replace(/\s+/g,' ').slice(0,24)}${selTxt.length>24?'…':''}"`, action:()=>{ openFind(selTxt.replace(/\s+/g,' ').trim().slice(0,80)); }},
+    {sep:true});
   if(hitI) items.push(
     {head:'รูปภาพ'},
     {label:'หมุนรูปซ้าย 90°', action:async()=>{ await go(); setTool('select'); selImg=hitI; turnImg(-90); }},
