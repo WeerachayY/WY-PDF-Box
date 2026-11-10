@@ -1,10 +1,12 @@
 /* WY Pdf Box — service worker: แคชตัวแอปและไลบรารีเพื่อใช้งานออฟไลน์ */
-const CACHE = 'wy-pdf-box-v25';
+const CACHE = 'wy-pdf-box-v26';
 const SHARE_CACHE = 'wy-pdf-box-share';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './icon-16.png',
+  './icon-32.png',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
@@ -16,7 +18,9 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    // cache:'reload' skips the browser's HTTP cache (GitHub Pages lets it keep files ~10 min),
+    // so a new version never stores the previous version's files (old icons, old page)
+    caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())
   );
 });
 
