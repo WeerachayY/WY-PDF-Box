@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M104 40 H322 L424 142 V436 C424 458 406 476 384 476 H104 C82 476 64 458 64 436 V80 C64 58 82 40 104 40 Z" fill="#FFFFFF" stroke="#A9B0BB" stroke-width="18"/>
-  <path d="M322 40 V104 C322 125 339 142 360 142 H424" fill="#D3D8E0" stroke="#A9B0BB" stroke-width="18" stroke-linejoin="round"/>
-  <g fill="#FFFFFF" stroke="#E0282F" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M206 222 V140 H268 L290 162 V222"/>
-    <path d="M150 220 L248 262 L346 220 V300 L248 342 L150 300 Z"/>
-    <path d="M248 262 V342" fill="none"/>
-  </g>
-  <rect x="34" y="368" width="380" height="96" rx="22" fill="#D7262D"/>
+  <path d="M104 36 H326 L428 138 V438 C428 461 409 480 386 480 H104 C81 480 62 461 62 438 V78 C62 55 81 36 104 36 Z" fill="#FFFFFF" stroke="#111111" stroke-width="22"/>
+  <path d="M326 36 V100 C326 122 344 140 366 140 H428" fill="#C9CFD8" stroke="#111111" stroke-width="22" stroke-linejoin="round"/>
+  <!-- box: solid red, a white seam -->
+  <path d="M138 210 L247 256 L356 210 V306 L247 352 L138 306 Z" fill="#E0282F" stroke="#E0282F" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M247 262 V344" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <!-- the document coming out of the box -->
+  <path d="M196 214 V124 H270 L298 152 V214" fill="#FFFFFF" stroke="#E0282F" stroke-width="22" stroke-linejoin="round"/>
+  <rect x="30" y="374" width="384" height="98" rx="22" fill="#C8171E"/>
 </svg>
