@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M104 36 H326 L428 138 V438 C428 461 409 480 386 480 H104 C81 480 62 461 62 438 V78 C62 55 81 36 104 36 Z" fill="#FFFFFF" stroke="#111111" stroke-width="22"/>
+  <path d="M104 36 H326 L428 138 V438 C428 461 409 480 386 480 H104 C81 480 62 461 62 438 V78 C62 55 81 36 104 36 Z" fill="#FFFFFF"/>
+  <path d="M62 366 H428 V438 C428 461 409 480 386 480 H104 C81 480 62 461 62 438 Z" fill="#CC1D24"/>
+  <path d="M62 366 H428" stroke="#111111" stroke-width="12"/>
+  <path d="M196 206 V100 H262 L296 134 V206" fill="#FFFFFF" stroke="#E0282F" stroke-width="20" stroke-linejoin="round"/>
+  <rect x="160" y="132" width="112" height="46" rx="10" fill="#E0282F"/>
+  <path d="M138 198 L247 242 L356 198 V292 L247 336 L138 292 Z" fill="#E0282F" stroke="#E0282F" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M247 248 V328" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <path d="M104 36 H326 L428 138 V438 C428 461 409 480 386 480 H104 C81 480 62 461 62 438 V78 C62 55 81 36 104 36 Z" fill="none" stroke="#111111" stroke-width="22"/>
   <path d="M326 36 V100 C326 122 344 140 366 140 H428" fill="#C9CFD8" stroke="#111111" stroke-width="22" stroke-linejoin="round"/>
-  <!-- box: solid red, a white seam -->
-  <path d="M138 210 L247 256 L356 210 V306 L247 352 L138 306 Z" fill="#E0282F" stroke="#E0282F" stroke-width="20" stroke-linejoin="round"/>
-  <path d="M247 262 V344" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
-  <!-- the document coming out of the box -->
-  <path d="M196 214 V124 H270 L298 152 V214" fill="#FFFFFF" stroke="#E0282F" stroke-width="22" stroke-linejoin="round"/>
-  <rect x="30" y="374" width="384" height="98" rx="22" fill="#C8171E"/>
 </svg>

@@ -125,7 +125,17 @@ header{
 .szdotBox{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 #szDot{border-radius:50%;background:#1B1F24}
 #sizeRange{width:96px;accent-color:var(--accent)}
-@media (max-width:1360px){ #sizeRange{width:64px} .tlabel{font-size:11px} .toolbar{gap:5px;padding:6px 8px} }
+@media (max-width:1360px){ #sizeRange{width:64px} .tlabel{font-size:11px} .toolbar{gap:5px;padding:6px 8px} .swatches{gap:4px} }
+/* laptops: page buttons and find become icons, the "current page" label only shows a selection */
+@media (max-width:1640px){
+  .toolbar{gap:5px;padding:6px 8px}
+  #sizeRange{width:64px} .sizebox{gap:6px;padding:0 8px}
+  #btnAdd span,#btnFind span{display:none}
+  #btnAdd,#btnFind{width:34px;padding:0}
+  #targetLabel:not(.sel){display:none}
+  #shapeOpts .tbtn{width:30px} #textOpts .tbtn{width:30px}
+  #fontSel{max-width:112px}
+}
 #fontSel{height:32px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:0 4px;max-width:132px}
 #sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
@@ -329,6 +339,62 @@ aside{
 #drop .feat{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #drop .feat span{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
 
+/* ---------- v3: sidebar tabs, outline, text-selection bar, form fields, dialogs ---------- */
+.sideTabs{display:flex;gap:2px;padding:4px 8px 0;border-bottom:1px solid var(--line);flex:0 0 auto}
+.sideTabs button{flex:1;height:30px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.sideTabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.sideTabs button:hover:not(.on){color:var(--ink)}
+aside.outlineMode .thumbHead, aside.outlineMode .thumbList{display:none!important}
+.outlinePanel{flex:1;overflow:auto;padding:6px 4px;display:none;font-size:12.5px}
+aside.outlineMode .outlinePanel{display:block}
+.olItem{display:flex;align-items:flex-start;gap:0;border-radius:6px}
+.olItem:hover{background:var(--accent-soft)}
+.olItem.cur{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.olTog{width:18px;height:24px;flex:0 0 auto;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.olTog svg{transition:transform .15s}
+.olTog.open svg{transform:rotate(90deg)}
+.olLbl{flex:1;min-width:0;text-align:left;padding:4px 6px 4px 0;line-height:1.35;word-break:break-word;color:inherit;font-weight:inherit}
+.olLbl.off{color:#B5BBC3;cursor:default}
+.olKids{padding-left:12px}
+.olKids[hidden]{display:none}
+.olEmpty{padding:16px 10px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center}
+#selBar{position:absolute;z-index:6;display:flex;gap:2px;background:var(--ink);border-radius:9px;padding:3px;box-shadow:0 6px 18px rgba(15,23,42,.25);transform:translate(-50%,calc(-100% - 8px));white-space:nowrap}
+#selBar[hidden]{display:none}
+#selBar button{display:flex;align-items:center;gap:5px;height:28px;padding:0 9px;border-radius:6px;color:#fff;font-size:12px}
+#selBar button:hover{background:rgba(255,255,255,.16)}
+#selBar i{width:12px;height:12px;border-radius:3px;display:block}
+#selBar u,#selBar s{font-weight:700;font-size:12px}
+.fieldIn{position:absolute;left:0;top:0;transform-origin:0 0;z-index:5;border:2px solid var(--accent);border-radius:2px;background:#fff;outline:none;padding:0 2px;
+  font-family:system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif;color:#000;box-sizing:border-box;resize:none;line-height:1.2;margin:0}
+select.fieldIn{padding:0}
+.dlg [hidden]{display:none!important}
+.dlg .box.wide{width:min(560px,100%);gap:10px}
+.fRow{display:flex;flex-direction:column;gap:5px}
+.fRow>label{font-size:12px;font-weight:600;color:var(--muted)}
+.fRow input[type=text],.fRow input[type=password],.fRow input[type=number],.fRow select{height:34px;border:1px solid var(--line);border-radius:var(--r);padding:0 8px;font:inherit;background:var(--panel);color:var(--ink);width:100%}
+.fRow input:focus,.fRow select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fErr{font-size:12px;color:var(--danger)}
+.fHint{font-size:11.5px;color:var(--muted);line-height:1.55}
+.fInline{display:flex;align-items:center;gap:8px;font-size:12.5px;flex-wrap:wrap}
+.fInline input[type=number]{width:72px}
+.mList{display:flex;flex-direction:column;gap:4px;max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:var(--r);padding:4px;min-height:64px}
+.mRow{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;background:var(--bg);font-size:12.5px;cursor:grab}
+.mRow.drag{opacity:.4}
+.mRow .mNo{width:20px;text-align:right;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.mRow .mName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mRow .mSub{font-size:11px;color:var(--muted);white-space:nowrap}
+.mRow button{width:26px;height:26px;border-radius:5px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.mRow button:hover:not(:disabled){background:var(--panel);color:var(--ink)}
+.mEmpty{padding:18px;text-align:center;font-size:12px;color:var(--muted)}
+.sigPad{width:100%;height:200px;border:1px dashed #B9BFC7;border-radius:10px;background:#fff;touch-action:none;cursor:crosshair;display:block}
+.sigTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dotc{width:22px;height:22px;border-radius:50%;border:2px solid transparent}
+.dotc.on{border-color:var(--ink);box-shadow:inset 0 0 0 2px #fff}
+.menu .mimg{display:block;max-width:200px;max-height:44px;margin:2px 0;object-fit:contain}
+.menu .mclr{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px}
+.stampPv{display:flex;justify-content:center;padding:10px;background:#F1F3F6;border-radius:10px;min-height:96px;align-items:center}
+.stampPv img{max-width:100%;max-height:120px}
+
 /* ---------- Toast / loading ---------- */
 #toast{
   position:fixed;left:50%;bottom:54px;transform:translateX(-50%) translateY(120px);transition:transform .25s;max-width:calc(100vw - 32px);text-align:center;
@@ -432,8 +498,17 @@ aside{
     <button class="tbtn" data-tool="text" title="เพิ่มข้อความ (T)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4V2.8h10V4M8 2.8v10.4M6 13.2h4"/></svg>
     </button>
-    <button class="tbtn" data-tool="eraser" title="ยางลบ — แตะเส้นที่ต้องการลบ (E)">
+    <button class="tbtn" data-tool="shape" id="btnShapeTool" title="รูปทรง (R) — เมฆแก้ไข สี่เหลี่ยม วงรี เส้น ลูกศร เส้นหลายจุด"></button>
+    <button class="tbtn" data-tool="eraser" title="ยางลบ — แตะเส้น รูปทรง หรือไฮไลต์ที่ต้องการลบ (E)">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2.8 13.7 7a1 1 0 0 1 0 1.4l-4.3 4.3H6l-3.2-3.2a1 1 0 0 1 0-1.4l5.3-5.3a1 1 0 0 1 1.4 0Z"/><path d="M5.5 6.8 9.7 11M6 12.7h8"/></svg>
+    </button>
+  </div>
+  <div class="tgroup" id="insGroup">
+    <button class="tbtn" id="btnStamp" title="ตราประทับ — อนุมัติ, ไม่อนุมัติ, ตรวจแล้ว … พร้อมวันที่และชื่อ">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M6.3 2.2h3.4v3.4l1.4 2.2h2.4v2.8H2.5V7.8h2.4l1.4-2.2z"/><path d="M3 13.6h10"/></svg>
+    </button>
+    <button class="tbtn" id="btnSign" title="ลายเซ็น — เซ็นใหม่ หรือใช้ลายเซ็นที่บันทึกไว้">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.6c1.4-2.6 2.6-6.4 3.9-6.4 1.6 0-.9 5.6.8 5.6 1.2 0 1.6-2.8 2.7-2.8.9 0 .7 2 1.9 2 .8 0 1.4-.8 2.4-.9"/><path d="M2 14h12" stroke-width="1.1"/></svg>
     </button>
   </div>
 
@@ -454,6 +529,17 @@ aside{
     <button class="tbtn" id="btnTxtCCW" title="หมุนข้อความซ้าย 90° (Ctrl+[) · กด [ = 15° · Shift+[ = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 6.2A5.2 5.2 0 1 1 3 9.6"/><path d="M2.6 2.8v3.6h3.6"/></svg></button>
     <button class="tbtn" id="txtAng" title="มุมของข้อความ — คลิกเพื่อตั้งตรง (0°)" style="width:auto;min-width:38px;padding:0 6px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">0°</button>
     <button class="tbtn" id="btnTxtCW" title="หมุนข้อความขวา 90° (Ctrl+]) · กด ] = 15° · Shift+] = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12.8 6.2A5.2 5.2 0 1 0 13 9.6"/><path d="M13.4 2.8v3.6H9.8"/></svg></button>
+  </div>
+
+  <div class="tgroup" id="shapeOpts" style="display:none">
+    <button class="tbtn" data-kind="cloud" title="เมฆแก้ไข (Revision cloud) — ลากเป็นกรอบ"></button>
+    <button class="tbtn" data-kind="rect" title="สี่เหลี่ยม — Shift = จัตุรัส"></button>
+    <button class="tbtn" data-kind="ellipse" title="วงรี — Shift = วงกลม"></button>
+    <button class="tbtn" data-kind="line" title="เส้นตรง — Shift = ล็อกมุมทีละ 15°"></button>
+    <button class="tbtn" data-kind="arrow" title="ลูกศร — Shift = ล็อกมุมทีละ 15°"></button>
+    <button class="tbtn" data-kind="poly" title="เส้นหลายจุด — คลิกทีละจุด · ดับเบิลคลิกหรือ Enter เพื่อจบ · Esc ยกเลิก"></button>
+    <span class="sep" style="height:20px;margin:0 2px"></span>
+    <button class="tbtn" id="btnFill" title="เติมสีโปร่งในรูปทรง"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.8 8.6 8.6 2.8M2.8 13 13 2.8M7.2 13.2l6-6" stroke-width="1"/></svg></button>
   </div>
 
   <div class="sep"></div>
@@ -496,6 +582,10 @@ aside{
     <button class="tbtn" id="findClose" title="ปิด (Esc)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg></button>
   </div>
   <aside id="sidebar">
+    <div class="sideTabs" role="tablist">
+      <button class="on" data-side="pages" role="tab" title="รูปย่อของทุกหน้า">หน้า</button>
+      <button data-side="outline" role="tab" title="สารบัญ (Bookmarks) ของไฟล์">สารบัญ</button>
+    </div>
     <div class="thumbHead">
       <span id="selInfo">หน้า</span>
       <span class="spacer"></span>
@@ -504,6 +594,7 @@ aside{
       <button id="btnSelNone" style="display:none">ยกเลิก</button>
     </div>
     <div id="thumbList" class="thumbList"></div>
+    <div id="outlinePanel" class="outlinePanel"></div>
   </aside>
   <div id="backdrop"></div>
 
@@ -514,6 +605,12 @@ aside{
         <canvas id="imgCanvas"></canvas>
         <canvas id="ovCanvas"></canvas>
         <input id="txtIn" placeholder="พิมพ์ข้อความ…">
+        <div id="selBar" hidden>
+          <button data-act="copy" title="คัดลอกข้อความ (Ctrl+C)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>คัดลอก</button>
+          <button data-act="hl" title="ไฮไลต์ข้อความที่เลือก"><i style="background:#FDE047"></i>ไฮไลต์</button>
+          <button data-act="ul" title="ขีดเส้นใต้ข้อความที่เลือก"><u>U</u>ขีดเส้นใต้</button>
+          <button data-act="so" title="ขีดฆ่าข้อความที่เลือก"><s>S</s>ขีดฆ่า</button>
+        </div>
       </div>
     </div>
     <div id="empty">
@@ -523,6 +620,7 @@ aside{
         <p>ลากไฟล์มาวางที่นี่ หรือกดปุ่มด้านล่าง<br>ไฟล์ถูกประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการอัปโหลด</p>
         <button class="btn primary" id="btnOpen2" style="height:38px;padding:0 20px">เลือกไฟล์ PDF หรือรูปภาพ</button>
         <button class="btn" id="btnNew2" style="height:34px">สร้างไฟล์ใหม่จากหน้าเปล่า</button>
+        <button class="btn" id="btnMerge2" style="height:34px">รวมหลายไฟล์ PDF เป็นไฟล์เดียว…</button>
         <button class="btn" id="btnSession" style="display:none;height:34px"></button>
         <div id="recentWrap" style="display:none;width:100%">
           <div class="rhead"><p>ไฟล์ล่าสุด</p><button class="rlink" id="recentAll"></button></div>
@@ -530,7 +628,8 @@ aside{
         </div>
         <div class="feat">
           <span>ลบหน้า</span><span>สลับลำดับหน้า</span><span>หมุนหน้า</span>
-          <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>รูปเป็น PDF</span><span>บันทึกเป็นไฟล์ใหม่</span>
+          <span>ปากกา</span><span>ไฮไลต์</span><span>เพิ่มข้อความ</span><span>เมฆแก้ไข</span><span>ตราประทับ</span><span>ลายเซ็น</span>
+          <span>กรอกฟอร์ม</span><span>รวม/แยกไฟล์</span><span>ส่งออกเป็นรูป</span><span>รูปเป็น PDF</span>
         </div>
       </div>
     </div>
@@ -620,12 +719,17 @@ const PRESETS = [
   '#1B1F24','#B91C1C','#C2410C','#A16207','#15803D','#0E7490','#1D4ED8','#7E22CE',
   '#6B7280','#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#A855F7',
   '#D1D5DB','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#D8B4FE'];
-const SIZE_RANGE = {pen:[1,30], hl:[4,40], text:[8,72]};
+const SIZE_RANGE = {pen:[1,30], hl:[4,40], text:[8,72], shape:[1,20]};
 const SETTINGS_KEY = 'wyPdfBox.settings.v1';
 let tool = 'pan', lastDrawTool = 'pen';
 let color = '#1B1F24';
 let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
-let sizes = {pen:3, hl:14, text:16};
+let sizes = {pen:3, hl:14, text:16, shape:2};
+/* markup objects (v3): shapes, text markup, stamps, signatures, placing, form fields */
+const SHAPE_KINDS=['rect','ellipse','cloud','line','arrow','poly'], BOX_KINDS=['rect','ellipse','cloud'];
+let shapeKind='cloud', shapeFill=false, userName='';
+let markColors={hl:'#FDE047', ul:'#DC2626', so:'#DC2626'};
+let selShape=null, polyDraft=null, placing=null, fieldEd=null, tapCand=null;
 let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll', backupOn = true;
 /* text is drawn as part of the overlay image, so any web font works in the saved PDF too;
    Thai Google Fonts load on first use and the service worker keeps them for offline use */
@@ -642,20 +746,24 @@ const FONTS = {
     if(/^#[0-9a-f]{6}$/i.test(s.color)) color = s.color;
     if(Array.isArray(s.recent) && s.recent.length) recent = s.recent.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,5);
     for(const k of Object.keys(sizes)) if(Number.isFinite(s.sizes?.[k])) sizes[k] = s.sizes[k];
-    if(['pan','select','pen','hl','text','eraser'].includes(s.tool)) tool = s.tool;
+    if(['pan','select','pen','hl','text','shape','eraser'].includes(s.tool)) tool = s.tool;
+    if(SHAPE_KINDS.includes(s.shapeKind)) shapeKind=s.shapeKind;
+    shapeFill=!!s.shapeFill;
+    if(typeof s.userName==='string') userName=s.userName.slice(0,60);
+    for(const k of Object.keys(markColors)) if(/^#[0-9a-f]{6}$/i.test(s.markColors?.[k]||'')) markColors[k]=s.markColors[k];
     if(FONTS[s.textFont]) textFont = s.textFont;
     textBold = !!s.textBold;
     if(s.snapQ==='high') snapQ='high';
     if(s.viewMode==='single') viewMode='single';
     if(s.backupOn===false) backupOn=false;
-    if(['pen','hl','text','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
+    if(['pen','hl','text','shape','eraser'].includes(s.lastDrawTool)) lastDrawTool = s.lastDrawTool;
   }catch(e){}
 })();
 function saveSettings(){
-  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn,shapeKind,shapeFill,userName,markColors})); }catch(e){}
 }
 
-const APP_VERSION = '2.10.2-beta.1';
+const APP_VERSION = '3.0.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -712,7 +820,10 @@ function stashTab(){
 function leaveTab(){
   if(!activeTab) return;
   if(txtIn.style.display==='block') commitText();
-  if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
+  if(fieldEd) commitField();
+  if(polyDraft) finishPoly();
+  placing=null;
+  if(selText||selImg||selShape){ selText=null; selImg=null; selShape=null; redrawOverlay(); }
   stashTab();
   slotIO.disconnect(); nearSlots.clear();
   slots.forEach(freeSlot);
@@ -753,7 +864,7 @@ function activateTab(t, fresh=false){
     viewerEl.scrollLeft=t.sl; viewerEl.scrollTop=t.st; navTop=viewerEl.scrollTop;
     refreshSelInfo();
   }
-  renderTabs(); saveSession();
+  renderTabs(); saveSession(); renderOutline();
   if(!$('findBar').hidden&&$('findIn').value) Promise.resolve(done).then(()=>runFind());   // results belong to this tab now
   return done;
 }
@@ -769,7 +880,7 @@ function showEmpty(){
   $('fname').textContent=''; document.title='WY Pdf Box';
   $('statusbar').classList.add('off'); $('pgSize').textContent=''; showZoom();
   $('pgInfo').textContent='–'; $('btnSaveSel').style.display='none';
-  renderTabs(); saveSession(); renderStart();
+  renderTabs(); saveSession(); renderStart(); renderOutline();
 }
 
 /* tab strip */
@@ -833,7 +944,16 @@ window.addEventListener('beforeunload',e=>{
 async function parsePdf(file, into=docs){
   const buf = new Uint8Array(await file.arrayBuffer());
   const bytes = buf.slice();                      // เก็บสำเนาไว้ให้ pdf-lib
-  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  const task = pdfjsLib.getDocument({data:buf});
+  let password='', cancelled=false;
+  task.onPassword=(update,reason)=>{
+    askPassword(file.name||'ไฟล์ PDF', reason===pdfjsLib.PasswordResponses.INCORRECT_PASSWORD).then(pw=>{
+      if(pw==null){ cancelled=true; task.destroy(); } else { password=pw; update(pw); } });
+  };
+  let pdf;
+  try{ pdf=await task.promise; }
+  catch(err){ if(cancelled){ const e=new Error('cancelled'); e.cancelled=true; throw e; } throw err; }
+  const d={pdf, bytes, enc:hasEncrypt(bytes), password, formVals:new Map()};
   const di = into.length, list = [];
   for(let i=0;i<pdf.numPages;i++){
     const pg = await pdf.getPage(i+1);
@@ -841,7 +961,8 @@ async function parsePdf(file, into=docs){
     list.push({doc:di, srcIndex:i, intrinsic:norm(pg.rotate||0), rot:0,
                baseW:vp0.width, baseH:vp0.height, annots:[], undo:[]});
   }
-  into.push({pdf, bytes});
+  await restoreMarks(d, list);
+  into.push(d);
   return list;
 }
 /* open a file in a new tab; the same file already open just brings its tab forward */
@@ -859,8 +980,9 @@ async function openDocument(file, handle=null, name=null){
     toast(`เปิดแล้ว · ${pages.length} หน้า`);
     return t;
   }catch(err){
+    if(err?.cancelled){ toast('ยกเลิกการเปิดไฟล์'); return null; }
     console.error(err);
-    toast('เปิดไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
+    toast('เปิดไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหาย');
     return null;
   }
 }
@@ -877,6 +999,7 @@ async function openFiles(){
 }
 $('btnOpen').onclick=openFiles;
 $('btnOpen2').onclick=openFiles;
+$('btnMerge2').onclick=()=>mergeDialog();
 $('fileIn').onchange=async e=>{
   const fs=[...e.target.files]; e.target.value='';
   const imgs=fs.filter(isImage), pdfs=fs.filter(f=>!isImage(f));
@@ -937,8 +1060,9 @@ async function insertFileAt(file, where){
     const list = await parsePdf(file);
     placePages(list, where);
   }catch(err){
+    if(err?.cancelled){ toast('ยกเลิกการเพิ่มไฟล์'); return; }
     console.error(err);
-    toast('เพิ่มไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหายหรือมีรหัสผ่าน');
+    toast('เพิ่มไฟล์ไม่สำเร็จ — ไฟล์อาจเสียหาย');
   }
 }
 function insertFromTab(src, where){
@@ -1433,7 +1557,9 @@ function showMenu(at, items){
     if(it.head){ const d=document.createElement('div'); d.className='mhead'; d.textContent=it.head; m.appendChild(d); continue; }
     const b=document.createElement('button'); b.disabled=!!it.disabled; b.setAttribute('role','menuitem');
     const tick=document.createElement('span'); tick.className='mtick'; tick.textContent=it.checked?'✓':'';
+    if(it.color){ const c=document.createElement('i'); c.className='mclr'; c.style.background=it.color; tick.appendChild(c); }
     const lbl=document.createElement('span'); lbl.className='mlbl'; lbl.textContent=it.label;
+    if(it.img){ const im=document.createElement('img'); im.className='mimg'; im.src=it.img; im.alt=''; lbl.prepend(im); }
     if(it.sub){ const sm=document.createElement('small'); sm.className='msub'; sm.textContent=it.sub; lbl.appendChild(sm); }
     b.append(tick,lbl);
     if(it.key){ const k=document.createElement('span'); k.className='mk'; k.textContent=it.key; b.appendChild(k); }
@@ -1624,7 +1750,8 @@ async function renderStart(){
 $('btnOpenMenu').onclick=async e=>{
   e.stopPropagation();
   const recentL=canFS?await getRecent():[];
-  const items=[{label:'ไฟล์ใหม่ (หน้าเปล่า)…', action:newBlankFile},{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles}];
+  const items=[{label:'ไฟล์ใหม่ (หน้าเปล่า)…', action:newBlankFile},{label:'เปิดไฟล์…', key:'Ctrl+O', action:openFiles},
+               {label:'รวมไฟล์ PDF…', sub:'หลายไฟล์ → ไฟล์เดียว เรียงลำดับได้', action:mergeDialog}];
   if(recentL.length){ items.push({sep:true},{head:'ไฟล์ล่าสุด'});
     for(const r of recentL.slice(0,10)){
       const t=await tabOf(r.handle);
@@ -1670,6 +1797,7 @@ async function saveBytesAs(bytes, suggested){
 async function saveDoc({as=false}={}){
   const t=activeTab; if(!t||!pages.length) return false;
   if(txtIn.style.display==='block') commitText();
+  if(fieldEd) commitField();
   const btn=$('btnSave'), old=btn.innerHTML;
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
@@ -1778,6 +1906,7 @@ function rebuildThumbs(){
   });
   refreshSelInfo();
   rebuildSlots();
+  renderOutline();
 }
 function refreshThumbClasses(){
   [...thumbList.children].forEach((el,i)=>{
@@ -1797,19 +1926,29 @@ function refreshSelInfo(){
   $('btnSaveSel').style.display = n? '' : 'none';
   $('saveSelLbl').textContent   = `บันทึก ${n} หน้าที่เลือก`;
   $('btnSaveSel').title = `บันทึกเฉพาะ ${n} หน้าที่เลือกเป็นไฟล์ใหม่ (ไฟล์ที่เปิดอยู่ไม่เปลี่ยน)`;
-  $('targetLabel').textContent = n? `หน้าที่เลือก (${n}):` : 'หน้าปัจจุบัน:';
+  $('targetLabel').textContent = n? `หน้าที่เลือก (${n}):` : 'หน้าปัจจุบัน:'; $('targetLabel').classList.toggle('sel',n>0);
 }
+/* render parameters for a page: files saved by this app hide their own markup layer (it is drawn from the
+   editable copy instead, see restoreMarks) */
+function occOf(p){ const d=docs[p.doc]; return d&&d.occ?{optionalContentConfigPromise:Promise.resolve(d.occ)}:{}; }
+async function marksReady(list){ await fontsFor(list); await Promise.all(list.map(p=>annEntry(p)?.promise)); }
 async function renderThumb(p,cv){
+  const seq=cv._seq=(cv._seq||0)+1;                  // a newer render of this thumbnail wins
+  const off=document.createElement('canvas');
   try{
     const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
     const vp1=page.getViewport({scale:1, rotation:totalRot(p)});
     const scale=150/vp1.width;
     const vp=page.getViewport({scale, rotation:totalRot(p)});
-    cv.width=vp.width; cv.height=vp.height;
-    await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
-    const c=cv.getContext('2d');
-    c.save(); c.scale(scale,scale); c.globalAlpha=.9; drawAnnots(c,p.annots,true); c.restore();
+    off.width=vp.width; off.height=vp.height;
+    await page.render({canvasContext:off.getContext('2d'), viewport:vp, ...occOf(p)}).promise;
+    await annEntry(p)?.promise;
+    const c=off.getContext('2d');
+    c.save(); c.scale(scale,scale); c.globalAlpha=.9; drawPageMarks(c,p); c.restore();
+    if(seq!==cv._seq) return;
+    cv.width=off.width; cv.height=off.height; cv.getContext('2d').drawImage(off,0,0);
   }catch(e){}
+  finally{ off.width=off.height=0; }
 }
 function refreshThumbCanvas(i){
   if(pages[i]){ pages[i]._v=(pages[i]._v||0)+1; schedulePump(); }
@@ -1874,7 +2013,9 @@ function layoutSlots(){
 /* move the working canvases into slot i; the page being left keeps its picture */
 function attachWrap(i){
   const to=slots[i]; if(!to||to.el.contains(wrap)) return false;
-  if(selText||selImg||textSel){ selText=null; selImg=null; textSel=null; redrawOverlay(); }
+  if(fieldEd) commitField();
+  if(polyDraft) finishPoly();
+  if(selText||selImg||textSel||selShape){ selText=null; selImg=null; textSel=null; selShape=null; redrawOverlay(); }
   const from=slots.find(sl=>sl.el.contains(wrap));
   if(from&&pdfCv.width>1){
     from.cp.width=pdfCv.width; from.cp.height=pdfCv.height; from.cp.getContext('2d').drawImage(pdfCv,0,0);
@@ -1927,7 +2068,7 @@ async function showPage(i){
   if(renderTask){ try{ renderTask.cancel(); }catch(e){} }
   const off=document.createElement('canvas');
   off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
-  renderTask=page.render({canvasContext:off.getContext('2d'), viewport:vp});
+  renderTask=page.render({canvasContext:off.getContext('2d'), viewport:vp, ...occOf(p)});
   try{ await renderTask.promise; }
   catch(err){ off.width=off.height=0; if(err?.name!=='RenderingCancelledException') console.error(err); return; }
   if(seq!==renderSeq){ off.width=off.height=0; return; }
@@ -1966,11 +2107,13 @@ function redrawOverlay(){
   octx.save(); octx.setTransform(1,0,0,1,0,0);
   octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
   octx.setTransform(rs,0,0,rs,0,0);
+  drawFieldTint(octx,p);
   drawAnnots(octx,p.annots);
   ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,imgCv.width,imgCv.height);
-  ictx.setTransform(rs,0,0,rs,0,0); drawImgs(ictx,p.annots);
+  ictx.setTransform(rs,0,0,rs,0,0); drawFormVals(ictx,p); drawImgs(ictx,p.annots);
   drawFindHits(octx,p); drawTextSel(octx,p);
-  drawSelection(octx);
+  drawSelection(octx); drawPlacing(octx);
+  placeSelBar();
 }
 
 function updatePager(){
@@ -1981,6 +2124,7 @@ function updatePager(){
          $('pgSize').textContent=`${P?P[0]+' · ':''}${fmtMM(w)} × ${fmtMM(h)} มม.`; $('pgSize').title='ขนาดหน้านี้'; }
   $('pgPrev').disabled=current===0;
   $('pgNext').disabled=current===pages.length-1;
+  markOutline();
 }
 
 /* the page whose slot crosses the middle of the screen becomes the current page */
@@ -2025,10 +2169,11 @@ async function renderSlot(i){
     const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
     const vp=page.getViewport({scale, rotation:totalRot(p)});
     off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
-    await page.render({canvasContext:off.getContext('2d'), viewport:vp}).promise;
+    await page.render({canvasContext:off.getContext('2d'), viewport:vp, ...occOf(p)}).promise;
+    await annEntry(p)?.promise;
     if(slots[i]!==sl||sl.el.contains(wrap)||!nearSlots.has(i)){ return; }
     sl.cp.width=off.width; sl.cp.height=off.height; sl.cp.getContext('2d').drawImage(off,0,0);
-    if(p.annots.some(a=>a.type==='img')){ const c=sl.cp.getContext('2d'); c.save(); c.setTransform(scale,0,0,scale,0,0); drawImgs(c,p.annots); c.restore(); }
+    { const c=sl.cp.getContext('2d'); c.save(); c.setTransform(scale,0,0,scale,0,0); drawFormVals(c,p); drawImgs(c,p.annots); c.restore(); }
     if(p.annots.length){
       await fontsFor([p]);
       sl.co.width=off.width; sl.co.height=off.height;
@@ -2110,7 +2255,7 @@ function rotHandle(a){
 }
 function onHandle(h,pos,f=1.6){ return Math.hypot(pos.x-h.x,pos.y-h.y)<=h.r*f; }
 const rightAngle=d=>{ const m=((d%90)+90)%90; return m<.05||m>89.95; };
-function drawSelection(ctx){ drawImgSelection(ctx); drawTextSelection(ctx); }
+function drawSelection(ctx){ drawImgSelection(ctx); drawTextSelection(ctx); drawShapeSelection(ctx); }
 function drawTextSelection(ctx){
   const p=pages[current];
   if(!selText||!p||!p.annots.includes(selText)){ selText=null; return; }
@@ -2156,7 +2301,7 @@ function drawAnnots(ctx,annots,withImgs=false){
       ctx.save();
       ctx.strokeStyle=a.color; ctx.fillStyle=a.color;
       ctx.lineWidth=a.width; ctx.lineCap='round'; ctx.lineJoin='round';
-      if(a.type==='hl') ctx.globalAlpha=.45;
+      if(a.type==='hl'){ ctx.globalAlpha=.45; ctx.globalCompositeOperation='multiply'; }
       if(a.pts.length===1){
         ctx.beginPath(); ctx.arc(a.pts[0].x,a.pts[0].y,a.width/2,0,7); ctx.fill();
       }else{
@@ -2173,9 +2318,215 @@ function drawAnnots(ctx,annots,withImgs=false){
       if(a.rot){ const P=textPivot(a); ctx.translate(P.x,P.y); ctx.rotate(a.rot*Math.PI/180); ctx.translate(-P.x,-P.y); }
       ctx.fillText(a.text,a.x,a.y);
       ctx.restore();
-    }
+    }else if(a.type==='shape') drawShape(ctx,a);
+    else if(a.type==='mark') drawMark(ctx,a);
   }
 }
+/* everything placed on a page, for pictures of the page (thumbnails, copy as picture, print, export…) */
+function drawPageMarks(ctx,p){ drawFormVals(ctx,p); drawImgs(ctx,p.annots); drawAnnots(ctx,p.annots); }
+
+/* ---------------- shapes: one path for the screen and the saved PDF ----------------
+   {type:'shape', kind, color, width, fill}  + x,y,w,h (rect · ellipse · cloud)  or  pts[] (line · arrow · poly)
+   A path is a list of commands in page units: ['M',x,y] ['L',x,y] ['C',x1,y1,x2,y2,x,y] ['Z']            */
+const KAPPA=.5523, FILL_A=.22;
+const isBoxShape=a=>BOX_KINDS.includes(a.kind);
+function ellipseCmds(x,y,w,h){
+  const rx=w/2, ry=h/2, cx=x+rx, cy=y+ry, ox=rx*KAPPA, oy=ry*KAPPA;
+  return [['M',cx-rx,cy],['C',cx-rx,cy-oy,cx-ox,cy-ry,cx,cy-ry],['C',cx+ox,cy-ry,cx+rx,cy-oy,cx+rx,cy],
+          ['C',cx+rx,cy+oy,cx+ox,cy+ry,cx,cy+ry],['C',cx-ox,cy+ry,cx-rx,cy+oy,cx-rx,cy],['Z']];
+}
+/* revision cloud: round bumps bulging outwards along the box, clockwise on screen */
+function cloudCmds(x,y,w,h,lw=1){
+  const c=Math.max(lw*4, Math.min(18, Math.max(5, Math.min(w,h)/2)));
+  const C=[[x,y],[x+w,y],[x+w,y+h],[x,y+h]], out=[['M',x,y]];
+  for(let e=0;e<4;e++){
+    const [ax,ay]=C[e], [bx,by]=C[(e+1)%4], L=Math.hypot(bx-ax,by-ay);
+    if(L<1e-6) continue;
+    const n=Math.max(1,Math.round(L/c)), dx=(bx-ax)/n, dy=(by-ay)/n, nx=dy*2/3, ny=-dx*2/3;
+    for(let i=0;i<n;i++){ const px=ax+dx*i, py=ay+dy*i; out.push(['C',px+nx,py+ny,px+dx+nx,py+dy+ny,px+dx,py+dy]); }
+  }
+  out.push(['Z']); return out;
+}
+function shapeGeom(a){
+  if(isBoxShape(a)){
+    const {x,y,w,h}=a;
+    if(a.kind==='rect') return {path:[['M',x,y],['L',x+w,y],['L',x+w,y+h],['L',x,y+h],['Z']], closed:true};
+    if(a.kind==='ellipse') return {path:ellipseCmds(x,y,w,h), closed:true};
+    return {path:cloudCmds(x,y,w,h,a.width), closed:true};
+  }
+  const P=a.pts;
+  if(a.kind==='arrow'&&P.length>=2){
+    const p0=P[0], p1=P[P.length-1], L=Math.hypot(p1.x-p0.x,p1.y-p0.y)||1, ux=(p1.x-p0.x)/L, uy=(p1.y-p0.y)/L;
+    const hl=Math.min(L*.6, Math.max(9, a.width*4.5)), hw=hl*.42, bx=p1.x-ux*hl, by=p1.y-uy*hl;
+    return {path:[['M',p0.x,p0.y],['L',p1.x-ux*hl*.75,p1.y-uy*hl*.75]], closed:false,
+            head:[['M',p1.x,p1.y],['L',bx-uy*hw,by+ux*hw],['L',bx+uy*hw,by-ux*hw],['Z']]};
+  }
+  return {path:P.map((q,i)=>[i?'L':'M',q.x,q.y]), closed:false};
+}
+function runCmds(ctx,cmds){
+  ctx.beginPath();
+  for(const c of cmds){
+    if(c[0]==='M') ctx.moveTo(c[1],c[2]); else if(c[0]==='L') ctx.lineTo(c[1],c[2]);
+    else if(c[0]==='C') ctx.bezierCurveTo(c[1],c[2],c[3],c[4],c[5],c[6]); else ctx.closePath();
+  }
+}
+function drawShape(ctx,a){
+  const g=shapeGeom(a);
+  ctx.save();
+  ctx.strokeStyle=a.color; ctx.fillStyle=a.color; ctx.lineWidth=a.width; ctx.lineJoin='round'; ctx.lineCap='round';
+  if(a.fill&&g.closed){ ctx.globalAlpha=FILL_A; runCmds(ctx,g.path); ctx.fill(); ctx.globalAlpha=1; }
+  runCmds(ctx,g.path); ctx.stroke();
+  if(g.head){ ctx.lineJoin='miter'; runCmds(ctx,g.head); ctx.fill(); }
+  ctx.restore();
+}
+/* flatten a path to polylines (for hit tests and bounds) */
+function polylines(cmds){
+  const out=[]; let cur=null, x=0, y=0, sx=0, sy=0;
+  for(const c of cmds){
+    if(c[0]==='M'){ cur=[[c[1],c[2]]]; out.push(cur); x=sx=c[1]; y=sy=c[2]; }
+    else if(c[0]==='L'){ cur.push([c[1],c[2]]); x=c[1]; y=c[2]; }
+    else if(c[0]==='C'){
+      for(let i=1;i<=8;i++){ const t=i/8, u=1-t;
+        cur.push([u*u*u*x+3*u*u*t*c[1]+3*u*t*t*c[3]+t*t*t*c[5], u*u*u*y+3*u*u*t*c[2]+3*u*t*t*c[4]+t*t*t*c[6]]); }
+      x=c[5]; y=c[6];
+    } else { cur.push([sx,sy]); x=sx; y=sy; }
+  }
+  return out;
+}
+function inPoly(pt,P){                              // P: [[x,y]…], even-odd rule
+  let ins=false;
+  for(let i=0,j=P.length-1;i<P.length;j=i++){
+    const [xi,yi]=P[i], [xj,yj]=P[j];
+    if((yi>pt.y)!==(yj>pt.y) && pt.x<(xj-xi)*(pt.y-yi)/(yj-yi||1e-9)+xi) ins=!ins;
+  }
+  return ins;
+}
+function hitShape(a,pos,extra=5){
+  const g=shapeGeom(a), tol=a.width/2+extra/zoom;
+  const lines=polylines(g.path);
+  if(a.fill&&g.closed&&lines[0]&&inPoly(pos,lines[0])) return true;
+  for(const L of lines) for(let i=1;i<L.length;i++)
+    if(distSeg(pos.x,pos.y,L[i-1][0],L[i-1][1],L[i][0],L[i][1])<=tol) return true;
+  if(g.head){ const H=polylines(g.head)[0]; if(H&&inPoly(pos,H)) return true; }
+  return false;
+}
+function shapeBounds(a){
+  if(isBoxShape(a)) return {x:a.x,y:a.y,w:a.w,h:a.h};
+  const xs=a.pts.map(q=>q.x), ys=a.pts.map(q=>q.y), x=Math.min(...xs), y=Math.min(...ys);
+  return {x,y,w:Math.max(...xs)-x,h:Math.max(...ys)-y};
+}
+/* handles of a selected shape: box corners (resize) or the points of a line, plus the red ✕ */
+function shapeDelHandle(a){ const b=shapeBounds(a), k=1/zoom, m=isBoxShape(a)&&a.kind==='cloud'?Math.min(9,Math.min(b.w,b.h)/4):0;
+  return {x:b.x+b.w+m+14*k, y:b.y-m-14*k, r:10*k}; }
+function shapeHandleAt(a,pos,touch){
+  const r=(touch?14:7)/zoom;
+  if(onHandle(shapeDelHandle(a),pos,1.3)) return {h:'del'};
+  if(isBoxShape(a)){
+    for(const [c,[u,v]] of Object.entries(CORNERS)){ const x=a.x+u*a.w, y=a.y+v*a.h; if(Math.hypot(pos.x-x,pos.y-y)<=r) return {h:'corner',u,v}; }
+  }else for(let i=a.pts.length-1;i>=0;i--){ const q=a.pts[i]; if(Math.hypot(pos.x-q.x,pos.y-q.y)<=r) return {h:'vertex',i}; }
+  return null;
+}
+function drawShapeSelection(ctx){
+  const p=pages[current];
+  if(!selShape||!p||!p.annots.includes(selShape)){ selShape=null; return; }
+  const a=selShape, k=1/zoom, blue='#2563EB';
+  ctx.save(); ctx.strokeStyle=blue; ctx.lineWidth=1.5*k; ctx.fillStyle='#fff';
+  if(isBoxShape(a)){
+    ctx.setLineDash([5*k,4*k]); ctx.strokeRect(a.x,a.y,a.w,a.h); ctx.setLineDash([]);
+    for(const [u,v] of Object.values(CORNERS)){ const x=a.x+u*a.w, y=a.y+v*a.h; ctx.fillRect(x-4*k,y-4*k,8*k,8*k); ctx.strokeRect(x-4*k,y-4*k,8*k,8*k); }
+  }else{
+    const b=shapeBounds(a); ctx.setLineDash([5*k,4*k]); ctx.strokeRect(b.x-3*k,b.y-3*k,b.w+6*k,b.h+6*k); ctx.setLineDash([]);
+    for(const q of a.pts){ ctx.beginPath(); ctx.arc(q.x,q.y,4.5*k,0,7); ctx.fill(); ctx.stroke(); }
+  }
+  drawDelX(ctx,shapeDelHandle(a));
+  ctx.restore();
+}
+function drawDelX(ctx,d){
+  const k=1/zoom; ctx.save(); ctx.fillStyle='#DC2626'; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
+  ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke(); ctx.restore();
+}
+/* copy / restore the position of any placed object (move, nudge, cancel) */
+function geomOf(a){ return {x:a.x, y:a.y, pts:a.pts?a.pts.map(q=>({x:q.x,y:q.y})):null, quads:a.quads?a.quads.map(q=>q.slice()):null}; }
+function moveFrom(a,g,dx,dy){
+  if(g.x!=null){ a.x=g.x+dx; a.y=g.y+dy; }
+  if(g.pts) a.pts=g.pts.map(q=>({x:q.x+dx,y:q.y+dy}));
+  if(g.quads) a.quads=g.quads.map(q=>q.map((v,i)=>v+(i%2?dy:dx)));
+}
+const snap15=(o,q)=>{ const d=Math.hypot(q.x-o.x,q.y-o.y), t=Math.round(Math.atan2(q.y-o.y,q.x-o.x)/(Math.PI/12))*(Math.PI/12);
+  return {x:o.x+d*Math.cos(t), y:o.y+d*Math.sin(t)}; };
+function deleteSelShape(){
+  const p=pages[current]; if(!selShape||!p) return;
+  pushUndo(p); p.annots=p.annots.filter(x=>x!==selShape); selShape=null;
+  redrawOverlay(); refreshThumbCanvas(current);
+}
+
+/* ---------------- text markup: highlight · underline · strikeout on the page's own text ----------------
+   {type:'mark', kind:'hl'|'ul'|'so', color, quads:[[x1,y1 … x4,y4] (top-left, top-right, bottom-right, bottom-left)], text} */
+function drawMark(ctx,a){
+  ctx.save(); ctx.fillStyle=a.color; ctx.strokeStyle=a.color;
+  if(a.kind==='hl') ctx.globalCompositeOperation='multiply';
+  for(const q of a.quads){
+    const [x1,y1,x2,y2,x3,y3,x4,y4]=q;
+    if(a.kind==='hl'){ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.lineTo(x4,y4); ctx.closePath(); ctx.fill(); }
+    else{
+      const f=a.kind==='ul'?.9:.54, h=Math.hypot(x4-x1,y4-y1);
+      ctx.lineWidth=Math.max(.6,h*.07); ctx.lineCap='butt';
+      ctx.beginPath(); ctx.moveTo(x1+(x4-x1)*f,y1+(y4-y1)*f); ctx.lineTo(x2+(x3-x2)*f,y2+(y3-y2)*f); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+const quadPts=q=>[[q[0],q[1]],[q[2],q[3]],[q[4],q[5]],[q[6],q[7]]];
+function hitMark(a,pos){ const m=3/zoom; return a.quads.some(q=>{ const P=quadPts(q);
+  return inPoly(pos,P) || P.some((pt,i)=>{ const n=P[(i+1)%4]; return distSeg(pos.x,pos.y,pt[0],pt[1],n[0],n[1])<m; }); }); }
+const MARK_NAMES={hl:'ไฮไลต์', ul:'ขีดเส้นใต้', so:'ขีดฆ่า'};
+/* the selected run of page text as quads, one per line (runs on the same line are joined) */
+function selectionQuads(L,s,e){
+  const out=[]; let cur=null;
+  const flush=()=>{ if(!cur) return; const it=cur.it;
+    out.push([itemPt(it,cur.u0,cur.v0),itemPt(it,cur.u1,cur.v0),itemPt(it,cur.u1,cur.v1),itemPt(it,cur.u0,cur.v1)].flatMap(q=>[Math.round(q.x*100)/100,Math.round(q.y*100)/100])); };
+  for(let j=s;j<e;){
+    const it=L.items[L.units[j].it], end=Math.min(e,it.u0+it.n);
+    const a=L.units[j].a, b=L.units[end-1].b, top=-it.asc*it.h, bot=(1-it.asc)*it.h;
+    if(cur&&sameLine(cur.it,it)){
+      for(const c of [itemPt(it,a,top),itemPt(it,b,top),itemPt(it,b,bot),itemPt(it,a,bot)]){
+        const q=itemLocal(cur.it,c); cur.u0=Math.min(cur.u0,q.u); cur.u1=Math.max(cur.u1,q.u); cur.v0=Math.min(cur.v0,q.v); cur.v1=Math.max(cur.v1,q.v); }
+    } else { flush(); cur={it,u0:a,u1:b,v0:top,v1:bot}; }
+    j=end;
+  }
+  flush(); return out;
+}
+function markSelection(kind){
+  const p=pages[current], L=p&&textSel&&textSel.p===p?pageTextSync(p):null; if(!L) return;
+  const s=Math.min(textSel.a,textSel.b), e=Math.max(textSel.a,textSel.b); if(s===e) return;
+  pushUndo(p);
+  p.annots.push({type:'mark', kind, color:markColors[kind], quads:selectionQuads(L,s,e), text:textOfRange(L,s,e)});
+  textSel=null; redrawOverlay(); refreshThumbCanvas(current);
+  toast(`${MARK_NAMES[kind]}แล้ว — คลิกขวาที่${MARK_NAMES[kind]}เพื่อเปลี่ยนสีหรือลบ`);
+}
+function hitMarkAt(p,pos){ for(let i=p.annots.length-1;i>=0;i--){ const a=p.annots[i]; if(a.type==='mark'&&hitMark(a,pos)) return a; } return null; }
+/* the floating bar over selected page text: copy · highlight · underline · strikeout */
+const selBar=$('selBar');
+function placeSelBar(){
+  const p=pages[current];
+  const show=textSel&&textSel.p===p&&textSel.a!==textSel.b&&!(drawing&&drawing.type==='textsel')&&tool==='select';
+  if(!show){ if(!selBar.hidden) selBar.hidden=true; return; }
+  const L=pageTextSync(p); if(!L){ selBar.hidden=true; return; }
+  const s=Math.min(textSel.a,textSel.b), e=Math.max(textSel.a,textSel.b);
+  const un=L.units[s], it=L.items[un.it], pt=itemPt(it,un.a,-it.asc*it.h);
+  const un2=L.units[e-1], it2=L.items[un2.it], pt2=itemPt(it2,un2.b,-it2.asc*it2.h);
+  const d=dispSize(p), x=Math.max(0,Math.min(d.w,(pt.x+pt2.x)/2)), y=Math.min(pt.y,pt2.y);
+  selBar.hidden=false;
+  const w=selBar.offsetWidth/zoom/2;
+  selBar.style.left=(Math.max(w,Math.min(d.w-w,x))*zoom)+'px';
+  selBar.style.top=(Math.max(selBar.offsetHeight/zoom+8/zoom,y)*zoom)+'px';
+}
+selBar.addEventListener('pointerdown',e=>e.stopPropagation());
+selBar.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.act==='copy') copySelectedText(); else markSelection(b.dataset.act);
+});
 
 /* ---------------- pictures placed on a page ----------------
    An annotation {type:'img', id, x, y, w, h, rot} (page units, x/y = top-left before turning about the centre).
@@ -2225,6 +2576,7 @@ function hitObj(p,pos){
     const a=p.annots[i];
     if(a.type==='text'&&inTextBox(a,pos)) return a;
     if(a.type==='img'&&inImgBox(a,pos)) return a;
+    if(a.type==='shape'&&hitShape(a,pos)) return a;
   }
   return null;
 }
@@ -2284,9 +2636,11 @@ function startSelect(e,p,pos){
     if(onHandle(delHandle(a),pos,1.3)){ deleteSelText(); return false; }
     if(onHandle(rotHandle(a),pos,touch?2.4:1.6)) return rotStart(a,textCenter(a));
   }
+  if(selShape&&p.annots.includes(selShape)){ const r=shapeHandleDown(e,p,pos,touch); if(r!==null) return r; }
   const hit=hitObj(p,pos);
+  if(!hit&&(e.ctrlKey||e.metaKey)){ const l=linkAt(p,pos); if(l){ followLink(p,l); return false; } }   // Ctrl+click follows a link
   if(!hit){
-    if(selText||selImg){ selText=null; selImg=null; redrawOverlay(); }
+    if(selText||selImg||selShape){ selText=null; selImg=null; selShape=null; redrawOverlay(); }
     const L=pageTextSync(p), u=L?unitAt(L,pos):-1;
     if(u>=0) return startTextSel(e,p,pos,L,u);       // on the page's own text: select it
     if(textSel){ textSel=null; redrawOverlay(); }
@@ -2294,9 +2648,9 @@ function startSelect(e,p,pos){
   }
   if(textSel){ textSel=null; }
   const wasSel=hit===selText||hit===selImg;
-  if(hit.type==='img'){ selImg=hit; selText=null; } else { selText=hit; selImg=null; }
-  redrawOverlay();
-  drawing={type:'move', a:hit, sx:pos.x, sy:pos.y, ox:hit.x, oy:hit.y, moved:false, wasSel:wasSel&&hit.type==='text', sid:e.pointerId};
+  selImg=hit.type==='img'?hit:null; selText=hit.type==='text'?hit:null; selShape=hit.type==='shape'?hit:null;
+  redrawOverlay(); updateSizeUI();
+  drawing={type:'move', a:hit, sx:pos.x, sy:pos.y, ox:hit.x, oy:hit.y, geo:geomOf(hit), moved:false, wasSel:wasSel&&hit.type==='text', sid:e.pointerId};
   drawPid=e.pointerId; return true;
 }
 function resizeMove(m,pos,free){
@@ -2320,8 +2674,11 @@ function hoverSelect(pos){
   if(c==='default'&&selText&&p?.annots.includes(selText)){
     if(onHandle(rotHandle(selText),pos)) c='grab'; else if(onHandle(delHandle(selText),pos,1.3)) c='pointer';
   }
+  if(c==='default'&&selShape&&p?.annots.includes(selShape)) c=shapeCursor(selShape,pos)||c;
   if(c==='default'&&p&&hitObj(p,pos)) c='move';
+  if(c==='default'&&p&&lastMods.ctrl&&linkAt(p,pos)) c='pointer';
   if(c==='default'&&p){ const L=pageTextSync(p); if(L&&unitAt(L,pos)>=0) c='text'; }
+  if(c==='default'&&p){ const f=fieldAt(p,pos); if(f&&!f.readOnly) c=f.type==='text'?'text':'pointer'; }
   if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
 }
 function deleteSelImg(){
@@ -2336,11 +2693,11 @@ function turnImg(step){
 }
 let nudgeT=0;
 function nudgeSel(code, n){
-  const a=selImg||selText, p=pages[current]; if(!a||!p) return;
+  const a=selImg||selText||selShape, p=pages[current]; if(!a||!p) return;
   if(performance.now()-nudgeT>800) pushUndo(p);              // a burst of arrow presses = one undo step
   nudgeT=performance.now();
   const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[code];
-  a.x+=d[0]*n; a.y+=d[1]*n; redrawOverlay();
+  moveFrom(a,geomOf(a),d[0]*n,d[1]*n); redrawOverlay();
   clearTimeout(nudgeSel.t); nudgeSel.t=setTimeout(()=>refreshThumbCanvas(current),300);
 }
 /* where on the current page the person is looking (page units) */
@@ -2697,6 +3054,261 @@ $('findPrev').onclick=()=>findStep(-1);
 $('findClose').onclick=closeFind;
 $('findCase').onclick=()=>{ findState.cs=!findState.cs; $('findCase').classList.toggle('on',findState.cs); $('findCase').setAttribute('aria-pressed',findState.cs); runFind(); $('findIn').focus(); };
 
+/* ---------------- the PDF's own form fields and links ----------------
+   pdf.js gives each page's annotations; fields and links are laid out in page units for the page's current
+   rotation. Values typed here live per document (d.formVals: field name -> value), are drawn over the
+   field on screen and in pictures of the page, and go into the fields themselves when saving.          */
+const annCache=new WeakMap();                           // doc -> Map(srcIndex -> entry)
+function annEntry(p){
+  const d=docs[p.doc]; if(!d) return null;
+  let m=annCache.get(d); if(!m){ m=new Map(); annCache.set(d,m); }
+  let en=m.get(p.srcIndex);
+  if(!en){
+    en={ready:false, layouts:{}};
+    en.promise=d.pdf.getPage(p.srcIndex+1).then(async pg=>{ en.page=pg; en.list=await pg.getAnnotations({intent:'display'}); en.ready=true; return en; })
+      .catch(err=>{ console.error(err); en.list=[]; en.ready=true; return en; });
+    m.set(p.srcIndex,en);
+    en.promise.then(()=>{ if(en.list.some(a=>a.subtype==='Widget')&&pages[current]===p) redrawOverlay(); });
+  }
+  return en;
+}
+function fieldInit(x){
+  if(x.checkBox) return !!x.fieldValue&&x.fieldValue!=='Off';
+  if(x.radioButton) return x.fieldValue&&x.fieldValue!=='Off'?x.fieldValue:null;
+  if(x.fieldType==='Ch') return Array.isArray(x.fieldValue)?(x.fieldValue[0]??''):(x.fieldValue??'');
+  return x.fieldValue??'';
+}
+function annLayout(p){
+  const en=annEntry(p); if(!en||!en.ready) return null;
+  const rot=totalRot(p); if(en.layouts[rot]) return en.layouts[rot];
+  const vp=en.page.getViewport({scale:1, rotation:rot}), [a,b,c,d,e,f]=vp.transform;
+  const fields=[], links=[];
+  for(const x of en.list){
+    if(!x.rect) continue;
+    const r=pdfjsLib.Util.normalizeRect(vp.convertToViewportRectangle(x.rect));
+    const box={x:r[0], y:r[1], w:r[2]-r[0], h:r[3]-r[1]};
+    if(x.subtype==='Link'){ if(x.url||x.unsafeUrl||x.dest!=null||x.action) links.push({box, url:x.url||x.unsafeUrl||null, dest:x.dest??null, action:x.action||null}); continue; }
+    if(x.subtype!=='Widget'||x.hidden||!x.fieldName) continue;
+    const type = x.fieldType==='Tx'?'text' : x.fieldType==='Ch'?'choice' : x.fieldType==='Btn'?(x.checkBox?'check':x.radioButton?'radio':null) : null;
+    if(!type) continue;
+    const R=pdfjsLib.Util.normalizeRect(x.rect);
+    fields.push({id:x.id, name:x.fieldName, type, box, w:R[2]-R[0], h:R[3]-R[1],
+      frame:[a,b,-c,-d,a*R[0]+c*R[3]+e,b*R[0]+d*R[3]+f],          // field's own top-left frame -> page units
+      multi:!!x.multiLine, readOnly:!!x.readOnly, comb:!!x.comb, maxLen:x.maxLen||0, align:x.textAlignment||0,
+      size:x.defaultAppearanceData?.fontSize||0, fcolor:x.defaultAppearanceData?.fontColor||null,
+      options:(x.options||[]).map(o=>({v:o.exportValue, t:o.displayValue})),
+      on:x.checkBox?(x.exportValue||'Yes'):x.radioButton?x.buttonValue:null, init:fieldInit(x)});
+  }
+  return en.layouts[rot]={fields, links};
+}
+const inBox=(b,pos)=>pos.x>=b.x&&pos.x<=b.x+b.w&&pos.y>=b.y&&pos.y<=b.y+b.h;
+function fieldAt(p,pos){ const L=annLayout(p); if(!L) return null; for(let i=L.fields.length-1;i>=0;i--) if(inBox(L.fields[i].box,pos)) return L.fields[i]; return null; }
+function linkAt(p,pos){ const L=annLayout(p); if(!L) return null; return L.links.find(l=>inBox(l.box,pos))||null; }
+const fieldVal=(d,f)=>d.formVals&&d.formVals.has(f.name)?d.formVals.get(f.name):f.init;
+const FIELD_FONT='system-ui,"Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif';
+function fieldFontSize(f){                         // a size made for an empty box (some programs do that) counts as "auto"
+  const s=f.size>0&&(f.multi?f.size<=f.h/2.2:f.size<=f.h*.9)?f.size:0;
+  return s||(f.multi?Math.max(6,Math.min(12,f.h/4)):Math.max(6,Math.min(f.h*.62,13)));
+}
+function fitFieldFont(ctx,f,text){                  // auto size: shrink until the text fits, like Acrobat
+  const fixed=f.size>0&&(f.multi?f.size<=f.h/2.2:f.size<=f.h*.9);
+  let fs=fieldFontSize(f); if(fixed) return fs;
+  const set=v=>{ ctx.font=`${v}px ${FIELD_FONT}`; };
+  if(f.multi){ for(;fs>6;fs-=.5){ set(fs); if(wrapText(ctx,text,f.w-4).length*fs*1.2+4<=f.h) break; } }
+  else{ set(fs); const w=ctx.measureText(text).width; if(w>f.w-4) fs=Math.max(6,fs*(f.w-4)/w); }
+  return fs;
+}
+function wrapText(ctx,text,maxW){
+  const out=[];
+  for(const para of String(text).split(/\r?\n/)){
+    const words=segW?[...segW.segment(para)].map(x=>x.segment):para.split(/(\s+)/);
+    let line='';
+    for(const w of words){ const t=line+w; if(line&&ctx.measureText(t).width>maxW){ out.push(line.trimEnd()); line=w.trimStart(); } else line=t; }
+    out.push(line);
+  }
+  return out;
+}
+/* a value drawn in the field's own frame (page units, top-left origin); box = also draw a check box / radio ring */
+function drawFieldValue(ctx,f,val,box){
+  const col=f.fcolor?`rgb(${f.fcolor[0]},${f.fcolor[1]},${f.fcolor[2]})`:'#000';
+  if(f.type==='check'||f.type==='radio'){
+    const sz=Math.min(f.w,f.h), x0=(f.w-sz)/2, y0=(f.h-sz)/2;
+    if(box){ ctx.strokeStyle='#4B5563'; ctx.lineWidth=Math.max(.6,sz*.06);
+      if(f.type==='radio'){ ctx.beginPath(); ctx.arc(f.w/2,f.h/2,sz*.44,0,7); ctx.stroke(); } else ctx.strokeRect(x0+sz*.08,y0+sz*.08,sz*.84,sz*.84); }
+    const on=f.type==='check'?!!val:(val!=null&&val===f.on);
+    if(!on) return;
+    ctx.fillStyle=col; ctx.strokeStyle=col;
+    if(f.type==='radio'){ ctx.beginPath(); ctx.arc(f.w/2,f.h/2,sz*.24,0,7); ctx.fill(); }
+    else{ ctx.lineWidth=Math.max(1,sz*.12); ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.beginPath(); ctx.moveTo(x0+sz*.24,y0+sz*.52); ctx.lineTo(x0+sz*.43,y0+sz*.71); ctx.lineTo(x0+sz*.77,y0+sz*.3); ctx.stroke(); }
+    return;
+  }
+  const text=String(f.type==='choice'?((f.options.find(o=>o.v===val)||{}).t??val??''):(val??''));
+  if(!text) return;
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,f.w,f.h); ctx.clip();
+  const fs=f.comb?fieldFontSize(f):fitFieldFont(ctx,f,text), pad=2;
+  ctx.fillStyle=col; ctx.font=`${fs}px ${FIELD_FONT}`; ctx.textBaseline='alphabetic';
+  const ax=t=>{ const w=ctx.measureText(t).width; return f.align===1?(f.w-w)/2:f.align===2?f.w-pad-w:pad; };
+  if(f.comb&&f.maxLen>0){ const cw=f.w/f.maxLen; graphemes(text).slice(0,f.maxLen).forEach((ch,i)=>{ ctx.fillText(ch,i*cw+(cw-ctx.measureText(ch).width)/2,f.h/2+fs*.35); }); }
+  else if(f.multi) wrapText(ctx,text,f.w-2*pad).forEach((ln,i)=>ctx.fillText(ln,ax(ln),pad+fs*(.95+i*1.2)));
+  else ctx.fillText(text,ax(text),f.h/2+fs*.35);
+  ctx.restore();
+}
+function drawFormVals(ctx,p){
+  const d=docs[p.doc]; if(!d||!d.formVals||!d.formVals.size) return;
+  const L=annLayout(p); if(!L) return;
+  for(const f of L.fields){
+    if(!d.formVals.has(f.name)) continue;
+    ctx.save(); ctx.transform(...f.frame);
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,f.w,f.h);           // covers the value the file had
+    drawFieldValue(ctx,f,d.formVals.get(f.name),true);
+    ctx.restore();
+  }
+}
+function drawFieldTint(ctx,p){                          // fillable fields show a light blue, like Acrobat
+  const L=annLayout(p); if(!L||!L.fields.length) return;
+  ctx.save(); ctx.fillStyle='rgba(191,219,254,.55)';
+  for(const f of L.fields) if(!f.readOnly&&!(fieldEd&&fieldEd.f===f)){ const b=f.box; ctx.fillRect(b.x,b.y,b.w,b.h); }
+  ctx.restore();
+}
+function activateField(p,f){
+  const d=docs[p.doc];
+  if(f.type==='check'){ setFieldValue(d,f.name,!fieldVal(d,f)); return; }
+  if(f.type==='radio'){ if(fieldVal(d,f)!==f.on) setFieldValue(d,f.name,f.on); return; }
+  openFieldEditor(p,f);
+}
+function positionField(el,f){
+  const [a,b,c,d2,e,g]=f.frame;
+  el.style.width=(f.w*zoom)+'px'; el.style.height=(f.h*zoom)+'px';
+  el.style.transform=`matrix(${a},${b},${c},${d2},${e*zoom},${g*zoom})`;
+  el.style.fontSize=(fieldFontSize(f)*zoom)+'px';
+  el.style.textAlign=['left','center','right'][f.align]||'left';
+}
+function openFieldEditor(p,f){
+  if(fieldEd) commitField();
+  const d=docs[p.doc], val=fieldVal(d,f);
+  let el;
+  if(f.type==='choice'){
+    el=document.createElement('select');
+    const opts=f.options.length?f.options:[{v:'',t:''}];
+    if(!opts.some(o=>o.v===val)&&val) opts.unshift({v:val,t:val});
+    for(const o of opts){ const op=document.createElement('option'); op.value=o.v; op.textContent=o.t; el.appendChild(op); }
+    el.value=val;
+  } else if(f.multi){ el=document.createElement('textarea'); el.value=val; }
+  else { el=document.createElement('input'); el.type='text'; el.value=val; if(f.maxLen) el.maxLength=f.maxLen; }
+  el.className='fieldIn'; el.spellcheck=false; el.setAttribute('autocomplete','off'); el.title=f.name;
+  positionField(el,f); wrap.appendChild(el);
+  fieldEd={el,p,f,d,orig:val};
+  redrawOverlay();
+  el.addEventListener('keydown',ev=>{
+    if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); closeField(false); }
+    else if(ev.key==='Enter'&&(!f.multi||ev.ctrlKey)){ ev.preventDefault(); commitField(); }
+    else if(ev.key==='Tab'){ ev.preventDefault(); const nx=nextField(p,f,ev.shiftKey?-1:1); commitField(); if(nx) openFieldEditor(p,nx); }
+  });
+  el.addEventListener('blur',()=>setTimeout(()=>{ if(fieldEd&&fieldEd.el===el&&document.activeElement!==el) commitField(); },0));
+  if(f.type==='choice') el.addEventListener('change',()=>{ if(fieldEd&&fieldEd.el===el) commitField(); });
+  el.focus({preventScroll:true}); if(el.select) el.select();
+}
+function nextField(p,f,dir){
+  const L=annLayout(p); if(!L) return null;
+  const list=L.fields.filter(x=>!x.readOnly&&(x.type==='text'||x.type==='choice')).sort((a,b)=>(a.box.y-b.box.y)||(a.box.x-b.box.x));
+  const i=list.indexOf(f); if(i<0||list.length<2) return null;
+  return list[(i+dir+list.length)%list.length];
+}
+function commitField(){ closeField(true); }
+function closeField(save){
+  const fe=fieldEd; if(!fe) return; fieldEd=null;
+  const v=fe.el.value; fe.el.remove();
+  if(save&&v!==fe.orig) setFieldValue(fe.d,fe.f.name,v); else redrawOverlay();
+}
+function setFieldValue(d,name,v){
+  if(!d.formVals) d.formVals=new Map();
+  const had=d.formVals.has(name), prev=d.formVals.get(name);
+  d.formVals.set(name,v);
+  logPush({t:'f', d, name, had, prev, next:v});
+  formChanged(d,name);
+}
+function formChanged(d,name){
+  pages.forEach((q,i)=>{ if(docs[q.doc]!==d) return; const L=annLayout(q); if(L&&L.fields.some(f=>f.name===name)) refreshThumbCanvas(i); });
+  redrawOverlay();
+}
+async function destToPage(di,dest){
+  const d=docs[di]; if(!d||dest==null) return -1;
+  try{
+    const arr=typeof dest==='string'?await d.pdf.getDestination(dest):dest;
+    if(!Array.isArray(arr)) return -1;
+    const ref=arr[0], idx=ref&&typeof ref==='object'?await d.pdf.getPageIndex(ref):Number.isInteger(ref)?ref:-1;
+    return idx<0?-1:pages.findIndex(q=>q.doc===di&&q.srcIndex===idx);
+  }catch(e){ return -1; }
+}
+async function followLink(p,l){
+  if(l.url){
+    const ok=await ask('เปิดลิงก์ภายนอก?', l.url, [{label:'เปิดลิงก์', value:true, primary:true},{label:'ยกเลิก', value:null, link:true}]);
+    if(ok) window.open(l.url,'_blank','noopener'); return;
+  }
+  if(l.dest!=null){ const k=await destToPage(p.doc,l.dest); if(k>=0) goToPage(k); else toast('หน้าปลายทางของลิงก์นี้ไม่ได้อยู่ในไฟล์ที่เปิดอยู่'); return; }
+  const go={NextPage:current+1, PrevPage:current-1, FirstPage:0, LastPage:pages.length-1}[l.action];
+  if(go!=null) goToPage(go);
+}
+
+/* ---------------- outline (bookmarks) in the side panel ---------------- */
+let sideMode='pages', outlineSeq=0;
+document.querySelectorAll('.sideTabs button').forEach(b=>b.onclick=()=>setSide(b.dataset.side));
+function setSide(m){
+  sideMode=m;
+  document.querySelectorAll('.sideTabs button').forEach(b=>b.classList.toggle('on',b.dataset.side===m));
+  $('sidebar').classList.toggle('outlineMode',m==='outline');
+  if(m==='outline') renderOutline();
+}
+const CHEV='<svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 3 5 5-5 5"/></svg>';
+async function renderOutline(){
+  const box=$('outlinePanel'); if(sideMode!=='outline') return;
+  const seq=++outlineSeq;
+  if(!activeTab){ box.innerHTML='<div class="olEmpty">เปิดไฟล์ก่อน</div>'; return; }
+  const used=[...new Set(pages.map(p=>p.doc))], trees=[];
+  for(const di of used){
+    const d=docs[di]; if(!d) continue;
+    if(d.outline===undefined){ try{ d.outline=(await d.pdf.getOutline())||[]; }catch(e){ d.outline=[]; } }
+    if(d.outline.length) trees.push(di);
+  }
+  if(seq!==outlineSeq) return;
+  box.replaceChildren();
+  if(!trees.length){ box.innerHTML='<div class="olEmpty">ไฟล์นี้ไม่มีสารบัญ (Bookmarks)<br>สารบัญมาจากโปรแกรมที่สร้าง PDF เช่น Word, AutoCAD, Revit</div>'; return; }
+  for(const di of trees) box.appendChild(outlineNodes(docs[di].outline,di,0));
+  markOutline();
+}
+function outlineNodes(items,di,depth){
+  const box=document.createElement('div');
+  for(const it of items){
+    const row=document.createElement('div'); row.className='olItem';
+    const tog=document.createElement('button'); tog.className='olTog'; tog.tabIndex=-1;
+    const lbl=document.createElement('button'); lbl.className='olLbl'; lbl.textContent=it.title||'(ไม่มีชื่อ)'; lbl.title=it.title||'';
+    if(it.bold) lbl.style.fontWeight='700'; if(it.italic) lbl.style.fontStyle='italic';
+    row.append(tog,lbl); box.appendChild(row);
+    if(it.items&&it.items.length){
+      const kids=outlineNodes(it.items,di,depth+1); kids.className='olKids';
+      kids.hidden=!(it.count>0||depth===0&&items.length<4);
+      tog.innerHTML=CHEV; tog.classList.toggle('open',!kids.hidden);
+      tog.onclick=()=>{ kids.hidden=!kids.hidden; tog.classList.toggle('open',!kids.hidden); };
+      box.appendChild(kids);
+    } else tog.style.visibility='hidden';
+    lbl.onclick=async()=>{
+      if(it.url) return followLink(null,{url:it.url});
+      const k=await destToPage(di,it.dest);
+      if(k>=0){ goToPage(k); if(innerWidth<=820) closeThumbs(); }
+      else toast('หน้านี้ไม่ได้อยู่ในไฟล์ที่เปิดอยู่ (อาจถูกลบไปแล้ว)');
+    };
+    if(!it.url&&it.dest!=null) destToPage(di,it.dest).then(k=>{ row.dataset.k=k; if(k<0) lbl.classList.add('off'); else markOutline(); });
+  }
+  return box;
+}
+function markOutline(){
+  if(sideMode!=='outline') return;
+  let best=null;
+  $('outlinePanel').querySelectorAll('.olItem').forEach(r=>{ r.classList.remove('cur'); if(+r.dataset.k===current&&!best&&r.offsetParent) best=r; });
+  if(best){ best.classList.add('cur'); }
+}
+
 /* ---------------- pointer input: draw · pan · pinch ----------------
    mouse  : drawing tools draw; hand tool (or middle button) drags the page
    stylus : always draws (hand tool → the last drawing tool; barrel/eraser button → eraser)
@@ -2722,6 +3334,8 @@ function startDraw(e,t){
     eraseAt(p,pos);
   }else if(t==='select'){
     return startSelect(e,p,pos);
+  }else if(t==='shape'){
+    return startShape(e,p,pos);
   }else if(t==='text'){
     if(selText){                                    // the red × deletes the selected text
       const d=delHandle(selText);
@@ -2752,7 +3366,10 @@ function cancelStroke(){               // a second finger landed: the stroke was
   if(!drawing) return;
   const p=pages[current];
   if(drawing.type==='erase'){ if(drawing.hit) p.annots=JSON.parse(drawing.snapshot); }
-  else if(drawing.type==='move'){ const a=drawing.a; a.x=drawing.ox; a.y=drawing.oy; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='move'){ const a=drawing.a; if(drawing.geo) moveFrom(a,drawing.geo,0,0); else { a.x=drawing.ox; a.y=drawing.oy; } if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='sresize'){ Object.assign(drawing.a,drawing.o0); if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='vertex'){ drawing.a.pts=drawing.o0; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
+  else if(drawing.type==='newshape'){ const i=p.annots.indexOf(drawing.a); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   else if(drawing.type==='rot'){ const a=drawing.a; a.rot=drawing.r0; a.x=drawing.ox; a.y=drawing.oy; rotLive=null; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='resize'){ Object.assign(drawing.a,drawing.o0); if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='textsel'){ textSel=null; }
@@ -2766,10 +3383,12 @@ function endStroke(){
     if(m.moved){ if(m.a.type==='text') textRot=m.a.rot||0; refreshThumbCanvas(current); lastRotTap=0; }   // only a plain tap counts toward a double-tap
     redrawOverlay(); updateTextUI(); return;
   }
-  if(drawing.type==='resize'){
+  if(drawing.type==='resize'||drawing.type==='sresize'||drawing.type==='vertex'){
     const m=drawing; drawing=null; drawPid=null; if(m.moved) refreshThumbCanvas(current); redrawOverlay(); return;
   }
+  if(drawing.type==='newshape'){ const m=drawing; drawing=null; drawPid=null; endNewShape(m); return; }
   if(drawing.type==='textsel'){ drawing=null; drawPid=null; if(textSel&&textSel.a===textSel.b) textSel=null; redrawOverlay(); return; }
+  if(drawing.type==='place'){ drawing=null; drawPid=null; return; }
   if(drawing.type==='move'){
     const m=drawing; drawing=null; drawPid=null;
     if(m.moved) refreshThumbCanvas(current);
@@ -2824,12 +3443,19 @@ function startPinch(){
 viewerEl.addEventListener('pointerdown',e=>{
   if(!pages.length||e.target===txtIn||!stage.contains(e.target)) return;
   if(txtIn.style.display==='block'){ commitText(); e.preventDefault(); return; }
+  if(fieldEd){ commitField(); }
   if(e.pointerType==='pen') penSeen=true;
   if(e.pointerType==='touch'){
     touchPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     capture(e.pointerId);
     if(touchPts.size===2){ cancelStroke(); startPinch(); return; }
     if(touchPts.size>2) return;
+  }
+  if(placing && (e.pointerType!=='mouse'||e.button===0)){
+    const sl=e.target.closest?.('.slot'), k=sl?slots.findIndex(x=>x.el===sl):-1;
+    e.preventDefault();
+    if(k>=0){ if(k!==current){ trackHold=performance.now()+300; showPage(k); thumbIntoView(k); } placeAt(pages[current],evPos(e)); drawing={type:'place'}; drawPid=e.pointerId; }
+    return;
   }
   let t=tool;
   if(e.pointerType==='pen'){ if(e.buttons&32) t='eraser'; else if(t==='pan') t=lastDrawTool; }
@@ -2843,13 +3469,13 @@ viewerEl.addEventListener('pointerdown',e=>{
   if(onPage && t!=='pan' && !fingerPans && mainButton){
     e.preventDefault();
     const r=startDraw(e,t);
-    if(r==='pan'){ startPan(e); capture(e.pointerId); }     // select tool on empty paper = move the view
+    if(r==='pan'){ startPan(e); capture(e.pointerId); noteTap(e); }     // select tool on empty paper = move the view
     else if(r) capture(e.pointerId);
     return;
   }
   const canPan = e.pointerType==='touch' ||
                  (e.pointerType==='mouse' && (e.button===1 || (e.button===0 && tool==='pan')));
-  if(canPan){ e.preventDefault(); startPan(e); capture(e.pointerId); }
+  if(canPan){ e.preventDefault(); startPan(e); capture(e.pointerId); if(e.button!==1) noteTap(e); }
 });
 viewerEl.addEventListener('pointermove',e=>{
   if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -2875,20 +3501,30 @@ viewerEl.addEventListener('pointermove',e=>{
       return;
     }
     if(drawing.type==='resize'){ resizeMove(drawing,pos,e.shiftKey); return; }
+    if(drawing.type==='sresize'){ shapeResizeMove(drawing,pos,e.shiftKey); return; }
+    if(drawing.type==='vertex'){ vertexMove(drawing,pos,e.shiftKey); return; }
+    if(drawing.type==='newshape'){ newShapeMove(drawing,pos,e.shiftKey); return; }
+    if(drawing.type==='place') return;
     if(drawing.type==='textsel'){ textSelMove(drawing,pos); return; }
     if(drawing.type==='move'){
       const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
       if(!m.moved){ if(Math.hypot(dx,dy)*zoom<4) return; pushUndo(p); m.moved=true; }
-      m.a.x=m.ox+dx; m.a.y=m.oy+dy; redrawOverlay(); return;
+      if(m.geo) moveFrom(m.a,m.geo,dx,dy); else { m.a.x=m.ox+dx; m.a.y=m.oy+dy; } redrawOverlay(); return;
     }
     const last=drawing.pts[drawing.pts.length-1];
     if(Math.hypot(pos.x-last.x,pos.y-last.y)>.6/Math.max(zoom,.5)){ drawing.pts.push(pos); redrawOverlay(); }
     return;
   }
   if(longPress&&e.pointerId===longPress.id&&Math.hypot(e.clientX-longPress.x,e.clientY-longPress.y)>8) cancelLongPress();
+  lastMods.ctrl=e.ctrlKey||e.metaKey;
   if(panning&&e.pointerId===panning.id) movePan(e);
+  else if(placing&&pages.length){ placing.pos=evPos(e); redrawOverlay(); }
+  else if(polyDraft&&tool==='shape'&&pages.length){ const a=polyDraft.a, q=evPos(e), o=a.pts[a.pts.length-2];
+    a.pts[a.pts.length-1]=e.shiftKey?snap15(o,q):q; redrawOverlay(); }
   else if(e.pointerType==='mouse'&&tool==='text'&&pages.length) hoverText(evPos(e));
   else if(e.pointerType==='mouse'&&tool==='select'&&pages.length&&!panning) hoverSelect(evPos(e));
+  else if(e.pointerType==='mouse'&&tool==='shape'&&pages.length&&!panning) hoverShape(evPos(e));
+  else if(e.pointerType==='mouse'&&tool==='pan'&&pages.length&&!panning) hoverPan(e);
 });
 function hoverText(pos){
   let c='text';
@@ -2906,6 +3542,8 @@ function pointerEnd(e){
   if(pinch){ if(touchPts.size<2) pinch=null; return; }   // lift both fingers before a new gesture
   if(drawing&&e.pointerId===drawPid) endStroke();
   if(panning&&e.pointerId===panning.id) endPan();
+  if(tapCand&&tapCand.id===e.pointerId){ const c=tapCand; tapCand=null;
+    if(e.type==='pointerup'&&Math.hypot(e.clientX-c.x,e.clientY-c.y)<6&&performance.now()-c.t<700) handleTap(e,c); }
 }
 viewerEl.addEventListener('pointerup',pointerEnd);
 viewerEl.addEventListener('pointercancel',pointerEnd);
@@ -2928,6 +3566,8 @@ function eraseAt(p,pos){
   const keep=p.annots.filter(a=>{
     if(a.type==='text') return !inTextBox(a,pos);
     if(a.type==='img') return !inImgBox(a,pos);
+    if(a.type==='shape') return !hitShape(a,pos,R*zoom);
+    if(a.type==='mark') return !hitMark(a,pos);
     const th=R+a.width/2;
     if(a.pts.length===1) return Math.hypot(pos.x-a.pts[0].x,pos.y-a.pts[0].y)>th;
     for(let i=1;i<a.pts.length;i++)
@@ -2938,6 +3578,161 @@ function eraseAt(p,pos){
     if(drawing&&drawing.type==='erase') drawing.hit=true;
     p.annots=keep; redrawOverlay();
   }
+}
+
+/* ---------------- shape tool: draw, then adjust the new shape straight away ---------------- */
+const lastMods={ctrl:false};
+function startShape(e,p,pos){
+  const touch=e.pointerType!=='mouse';
+  if(polyDraft) return polyClick(e,p,pos);
+  const hadSel=!!(selShape&&p.annots.includes(selShape));
+  if(hadSel){ const r=shapeHandleDown(e,p,pos,touch); if(r!==null) return r; }
+  selShape=null;
+  if(shapeKind==='poly') return polyClick(e,p,pos);
+  pushUndo(p);
+  const a={type:'shape', kind:shapeKind, color, width:sizes.shape};
+  if(BOX_KINDS.includes(shapeKind)){ Object.assign(a,{x:pos.x,y:pos.y,w:0,h:0}); if(shapeFill) a.fill=true; }
+  else a.pts=[{x:pos.x,y:pos.y},{x:pos.x,y:pos.y}];
+  p.annots.push(a);
+  drawing={type:'newshape', a, sx:pos.x, sy:pos.y, moved:false, hadSel};
+  drawPid=e.pointerId; redrawOverlay(); return true;
+}
+function shapeHandleDown(e,p,pos,touch){
+  const a=selShape, h=shapeHandleAt(a,pos,touch);
+  if(h){
+    if(h.h==='del'){ deleteSelShape(); return false; }
+    if(h.h==='corner'){ drawing={type:'sresize', a, ax:a.x+(1-h.u)*a.w, ay:a.y+(1-h.v)*a.h, o0:{x:a.x,y:a.y,w:a.w,h:a.h}, px:pos.x, py:pos.y, moved:false};
+      drawPid=e.pointerId; return true; }
+    if(h.h==='vertex'){ drawing={type:'vertex', a, i:h.i, o0:a.pts.map(q=>({x:q.x,y:q.y})), px:pos.x, py:pos.y, moved:false};
+      drawPid=e.pointerId; return true; }
+  }
+  if(hitShape(a,pos)){ drawing={type:'move', a, sx:pos.x, sy:pos.y, ox:a.x, oy:a.y, geo:geomOf(a), moved:false, sid:e.pointerId}; drawPid=e.pointerId; return true; }
+  return null;
+}
+function newShapeMove(m,pos,shift){
+  const a=m.a;
+  if(!m.moved){ if(Math.hypot(pos.x-m.sx,pos.y-m.sy)*zoom<3) return; m.moved=true; }
+  if(isBoxShape(a)){
+    let w=pos.x-m.sx, h=pos.y-m.sy;
+    if(shift){ const d=Math.max(Math.abs(w),Math.abs(h)); w=Math.sign(w||1)*d; h=Math.sign(h||1)*d; }
+    a.x=Math.min(m.sx,m.sx+w); a.y=Math.min(m.sy,m.sy+h); a.w=Math.abs(w); a.h=Math.abs(h);
+  }else a.pts[1]=shift?snap15(a.pts[0],pos):{x:pos.x,y:pos.y};
+  redrawOverlay();
+}
+function endNewShape(m){
+  const a=m.a, p=pages[current];
+  const tiny=!m.moved || (isBoxShape(a) ? a.w*zoom<4&&a.h*zoom<4 : Math.hypot(a.pts[1].x-a.pts[0].x,a.pts[1].y-a.pts[0].y)*zoom<4);
+  if(tiny){
+    if(m.hadSel){                                   // a click beside the shape just finished = done with it
+      const i=p.annots.indexOf(a); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); redrawOverlay(); return;
+    }
+    const d=dispSize(p);                             // a click on empty paper: a shape of a handy size there
+    if(isBoxShape(a)){ const w=Math.min(120,d.w*.3), h=Math.min(72,d.h*.2); Object.assign(a,{x:m.sx-w/2,y:m.sy-h/2,w,h}); }
+    else a.pts=[{x:m.sx-50,y:m.sy},{x:m.sx+50,y:m.sy}];
+  }
+  selShape=a; redrawOverlay(); refreshThumbCanvas(current);
+}
+function shapeResizeMove(m,pos,keep){
+  const p=pages[current];
+  if(!m.moved){ if(Math.hypot(pos.x-m.px,pos.y-m.py)*zoom<3) return; pushUndo(p); m.moved=true; }
+  let w=pos.x-m.ax, h=pos.y-m.ay;
+  if(keep&&m.o0.w>0&&m.o0.h>0){ const k=Math.max(Math.abs(w)/m.o0.w,Math.abs(h)/m.o0.h); w=Math.sign(w||1)*m.o0.w*k; h=Math.sign(h||1)*m.o0.h*k; }
+  const a=m.a, min=2/zoom;
+  a.x=Math.min(m.ax,m.ax+w); a.y=Math.min(m.ay,m.ay+h); a.w=Math.max(min,Math.abs(w)); a.h=Math.max(min,Math.abs(h));
+  redrawOverlay();
+}
+function vertexMove(m,pos,snap){
+  const p=pages[current], a=m.a;
+  if(!m.moved){ if(Math.hypot(pos.x-m.px,pos.y-m.py)*zoom<3) return; pushUndo(p); m.moved=true; }
+  const o=a.pts[m.i?m.i-1:1]; const q=snap&&o?snap15(o,pos):pos;
+  a.pts[m.i]={x:q.x,y:q.y}; redrawOverlay();
+}
+function shapeCursor(a,pos){
+  const h=shapeHandleAt(a,pos,false);
+  if(h) return h.h==='del'?'pointer':h.h==='vertex'?'move':(h.u===h.v?'nwse-resize':'nesw-resize');
+  return hitShape(a,pos)?'move':null;
+}
+function hoverShape(pos){
+  const p=pages[current]; let c='crosshair';
+  if(!polyDraft&&selShape&&p?.annots.includes(selShape)) c=shapeCursor(selShape,pos)||c;
+  if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
+}
+/* polyline: click point by point; double-click, Enter or a click on the last point ends it, Esc drops it */
+function polyClick(e,p,pos){
+  const now=performance.now();
+  if(polyDraft&&polyDraft.p===p){
+    const a=polyDraft.a, last=a.pts[a.pts.length-2];
+    if(now-polyDraft.t<400&&Math.hypot(pos.x-last.x,pos.y-last.y)*zoom<8){ finishPoly(); return false; }
+    const q=e.shiftKey?snap15(last,pos):pos;
+    a.pts[a.pts.length-1]={x:q.x,y:q.y}; a.pts.push({x:q.x,y:q.y}); polyDraft.t=now; redrawOverlay(); return false;
+  }
+  if(polyDraft) finishPoly();
+  pushUndo(p);
+  const a={type:'shape', kind:'poly', color, width:sizes.shape, pts:[{x:pos.x,y:pos.y},{x:pos.x,y:pos.y}]};
+  p.annots.push(a); polyDraft={a,p,t:now}; selShape=null; redrawOverlay();
+  toast('คลิกเพิ่มจุดทีละจุด · ดับเบิลคลิกหรือ Enter เพื่อจบ · Esc ยกเลิก');
+  return false;
+}
+function finishPoly(cancel=false){
+  const d=polyDraft; if(!d) return; polyDraft=null;
+  const a=d.a, p=d.p; a.pts.pop();                    // the point that followed the pointer
+  a.pts=a.pts.filter((q,i,A)=>!i||Math.hypot(q.x-A[i-1].x,q.y-A[i-1].y)>.5);
+  if(cancel||a.pts.length<2){ const i=p.annots.indexOf(a); if(i>=0) p.annots.splice(i,1); if(p.undo.length){ p.undo.pop(); undoLog.pop(); } }
+  else selShape=a;
+  redrawOverlay(); const i=pages.indexOf(p); if(i>=0) refreshThumbCanvas(i);
+}
+/* stamps and signatures: armed with a picture, the next click on a page puts it there */
+function armPlacing(id, w, meta, done){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText();
+  if(polyDraft) finishPoly();
+  placing={id, w, meta, done, pos:null};
+  ovCv.style.cursor='copy';
+  toast('คลิกบนหน้าตรงที่ต้องการวาง · Esc = ยกเลิก');
+}
+function cancelPlacing(){ if(!placing) return; placing=null; setTool(tool); redrawOverlay(); }
+function placingSize(pl){
+  const st=imgStore.get(pl.id), d=dispSize(pages[current]); if(!st) return {w:0,h:0};
+  const w=Math.min(pl.w, d.w*.45, d.h*.45*st.w/st.h); return {w, h:w*st.h/st.w};
+}
+function drawPlacing(ctx){
+  if(!placing||!placing.pos) return;
+  const st=imgStore.get(placing.id); if(!st) return;
+  const {w,h}=placingSize(placing), q=placing.pos;
+  ctx.save(); ctx.globalAlpha=.6; ctx.drawImage(st.bm,q.x-w/2,q.y-h/2,w,h); ctx.restore();
+}
+function placeAt(p,pos){
+  const pl=placing; placing=null;
+  if(!pl||!imgStore.get(pl.id)) return;
+  const {w,h}=placingSize(pl), d=dispSize(p);
+  pushUndo(p);
+  const a={type:'img', id:pl.id, x:Math.max(0,Math.min(d.w-w,pos.x-w/2)), y:Math.max(0,Math.min(d.h-h,pos.y-h/2)), w, h, rot:0, ...(pl.meta||{})};
+  p.annots.push(a);
+  setTool('select'); selImg=a; selText=null; selShape=null;
+  redrawOverlay(); refreshThumbCanvas(current);
+  toast(pl.done||'วางแล้ว — ลากย้าย, ลากมุมเพื่อย่อขยาย, ✕ เพื่อลบ');
+}
+/* a tap (no drag) with the hand tool — or the select tool on empty paper — fills form fields and follows links */
+function noteTap(e){ tapCand={id:e.pointerId, x:e.clientX, y:e.clientY, t:performance.now(), ctrl:e.ctrlKey||e.metaKey}; }
+function pageAtPoint(cx,cy){
+  const el=document.elementFromPoint(cx,cy)?.closest?.('.slot'), k=el?slots.findIndex(sl=>sl.el===el):-1;
+  if(k<0) return null;
+  const o=slotOrigin(k); return {k, pos:{x:(cx-o.x)/zoom, y:(cy-o.y)/zoom}};
+}
+function handleTap(e,c){
+  const at=pageAtPoint(e.clientX,e.clientY); if(!at) return;
+  const p=pages[at.k], f=fieldAt(p,at.pos);
+  if(f&&!f.readOnly){ if(at.k!==current) showPage(at.k); activateField(p,f); return; }
+  const l=linkAt(p,at.pos);
+  if(l&&(tool==='pan'||c.ctrl)) followLink(p,l);
+}
+function hoverPan(e){
+  const at=pageAtPoint(e.clientX,e.clientY); let c='';
+  if(at){ const p=pages[at.k], f=fieldAt(p,at.pos);
+    if(f&&!f.readOnly) c=f.type==='text'?'text':'pointer'; else if(linkAt(p,at.pos)) c='pointer'; }
+  const el=e.target.closest?.('.slot');
+  if(el&&el.style.cursor!==c) el.style.cursor=c;
+  if(ovCv.style.cursor!==c) ovCv.style.cursor=c;
 }
 
 /* text tool: new text, or edit placed text (its style travels in inStyle while the box is open) */
@@ -3041,11 +3836,15 @@ function restorePages(h, toast_){
 }
 function undo(){
   if(txtIn.style.display==='block') txtIn.blur();
+  if(fieldEd) commitField();
+  if(polyDraft){ finishPoly(true); return; }
   while(undoLog.length){
     const h=undoLog.pop();
     if(h.t==='pg'){ redoLog.push({t:'pg', pages:[...pages], current}); restorePages(h,'ย้อนกลับแล้ว'); markDirty(); return; }
     if(h.t==='rot'){ const live=h.list.filter(p=>pages.includes(p)); if(!live.length) continue;
       rotate(live,!h.cw,false); redoLog.push(h); markDirty(); return; }
+    if(h.t==='f'){ if(h.had) h.d.formVals.set(h.name,h.prev); else h.d.formVals.delete(h.name);
+      redoLog.push(h); formChanged(h.d,h.name); markDirty(); return; }
     const p=h.p, i=pages.indexOf(p);
     if(i<0||!p.undo.length) continue;                 // that page is gone: skip to the next step
     redoLog.push({t:'a', p, state:JSON.stringify(p.annots)});
@@ -3058,11 +3857,13 @@ function undo(){
 }
 function redo(){
   if(txtIn.style.display==='block') txtIn.blur();
+  if(fieldEd) commitField();
   while(redoLog.length){
     const h=redoLog.pop();
     if(h.t==='pg'){ undoLog.push({t:'pg', pages:[...pages], current}); restorePages(h,'ทำซ้ำแล้ว'); markDirty(); return; }
     if(h.t==='rot'){ const live=h.list.filter(p=>pages.includes(p)); if(!live.length) continue;
       rotate(live,h.cw,false); undoLog.push(h); markDirty(); return; }
+    if(h.t==='f'){ h.d.formVals.set(h.name,h.next); undoLog.push(h); formChanged(h.d,h.name); markDirty(); return; }
     const p=h.p, i=pages.indexOf(p);
     if(i<0) continue;
     p.undo.push(JSON.stringify(p.annots)); undoLog.push({t:'a',p});
@@ -3080,14 +3881,18 @@ $('btnRedo').onclick=redo;
 const toolBtns=[...document.querySelectorAll('#toolGroup .tbtn')];
 function setTool(t){
   if(txtIn.style.display==='block') txtIn.blur();
+  if(polyDraft&&t!=='shape') finishPoly();
+  if(placing){ placing=null; redrawOverlay(); }
   tool=t;
   if(t!=='pan'&&t!=='select') lastDrawTool=t;
   if(t!=='text'&&t!=='select'&&selText){ selText=null; redrawOverlay(); }
   if(t!=='select'&&selImg){ selImg=null; redrawOverlay(); }
+  if(t!=='select'&&t!=='shape'&&selShape){ selShape=null; redrawOverlay(); }
   toolBtns.forEach(x=>x.classList.toggle('on',x.dataset.tool===t));
   ovCv.style.cursor = t==='pan' ? '' : t==='select' ? 'default' : (t==='text'?'text':'crosshair');
+  slots.forEach(sl=>{ sl.el.style.cursor=''; });
   viewerEl.classList.toggle('panTool', t==='pan');
-  updateTextUI(); saveSettings();
+  updateTextUI(); saveSettings(); placeSelBar();
 }
 toolBtns.forEach(b=>{ b.onclick=()=>setTool(b.dataset.tool); });
 
@@ -3107,7 +3912,7 @@ function renderSwatches(){
 function setColor(c,remember){
   color=c;
   if(remember && !recent.some(x=>x.toLowerCase()===c.toLowerCase())){ recent.unshift(c); recent=recent.slice(0,5); }
-  applyTextStyle({color:c});
+  applyTextStyle({color:c}); applyShapeStyle({color:c});
   renderSwatches(); saveSettings();
 }
 PRESETS.forEach(c=>{
@@ -3136,26 +3941,38 @@ $('btnColorMore').onclick=()=>{
   Object.assign(colorIn.style,{left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px'});
   try{ colorIn.showPicker(); }catch(e){ colorIn.click(); }
 };
-colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); applyTextStyle({color}); });
+colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); applyTextStyle({color}); applyShapeStyle({color}); });
 colorIn.addEventListener('change',()=>setColor(colorIn.value,true));
 
 /* line size: one slider, a separate remembered size per tool */
 const sizeRange=$('sizeRange');
-function sizeKey(){ const t=tool==='pan'?lastDrawTool:tool; return SIZE_RANGE[t]?t:null; }
+const shapeInHand=()=>(tool==='select'||tool==='shape')&&selShape&&pages[current]?.annots.includes(selShape)?selShape:null;
+function sizeKey(){ if(shapeInHand()) return 'shape'; const t=tool==='pan'?lastDrawTool:tool; return SIZE_RANGE[t]?t:null; }
+function applyShapeStyle(ch){
+  const p=pages[current], a=shapeInHand(); if(!a) return false;
+  const now=performance.now(), k=Object.keys(ch).join();
+  if(styleUndo.a!==a||styleUndo.k!==k||now-styleUndo.t>900) pushUndo(p);
+  styleUndo={a,k,t:now,h:styleUndo.h};
+  Object.assign(a,ch); if(ch.fill===false) delete a.fill;
+  redrawOverlay();
+  clearTimeout(styleUndo.h); styleUndo.h=setTimeout(()=>refreshThumbCanvas(current),300);
+  return true;
+}
 function updateSizeUI(){
   const k=sizeKey();
   $('sizeBox').classList.toggle('off',!k);
-  const key=k||'pen', [lo,hi]=SIZE_RANGE[key];
-  const tx=key==='text'?textInHand():null, val=tx?tx.size:sizes[key], col=tx?tx.color:color;
+  const key=k||'pen', [lo,hi]=SIZE_RANGE[key], sh=key==='shape'?shapeInHand():null;
+  const tx=key==='text'?textInHand():null, val=tx?tx.size:sh?sh.width:sizes[key], col=tx?tx.color:sh?sh.color:color;
   sizeRange.min=lo; sizeRange.max=hi; sizeRange.value=val;
   $('sizeVal').textContent=val+(key==='text'?' pt':' px');
   const dot=$('szDot'), px=key==='text'?Math.min(26,val*.6):Math.min(28,Math.max(2,val));
   dot.style.width=dot.style.height=px+'px';
   dot.style.background=col; dot.style.opacity=key==='hl'?.45:1;
-  $('sizeBox').title={pen:'ขนาดปากกา',hl:'ขนาดไฮไลต์',text:'ขนาดตัวอักษร'}[key];
+  $('sizeBox').title={pen:'ขนาดปากกา',hl:'ขนาดไฮไลต์',text:'ขนาดตัวอักษร',shape:'ความหนาเส้นของรูปทรง'}[key];
 }
 sizeRange.addEventListener('input',()=>{
   const k=sizeKey(); if(!k) return;
+  if(k==='shape'&&shapeInHand()){ applyShapeStyle({width:+sizeRange.value}); if(tool==='shape') sizes.shape=+sizeRange.value; updateSizeUI(); saveSettings(); return; }
   sizes[k]=+sizeRange.value;
   if(k==='text') applyTextStyle({size:sizes.text});
   updateSizeUI(); saveSettings();
@@ -3165,9 +3982,38 @@ sizeRange.addEventListener('input',()=>{
 const fontSel=$('fontSel');
 Object.entries(FONTS).forEach(([k,f])=>{ const o=document.createElement('option'); o.value=k; o.textContent=f.label; fontSel.appendChild(o); });
 function textInHand(){ return (txtIn.style.display==='block'&&inStyle) || (tool==='text'&&selText) || null; }
+const SHAPE_ICONS={
+  rect:'<rect x="2.5" y="3.5" width="11" height="9" rx="1"/>',
+  ellipse:'<ellipse cx="8" cy="8" rx="5.8" ry="4.6"/>',
+  cloud:'<path d="M4.1 12.6a1.9 1.9 0 0 1-1.3-3.3 2 2 0 0 1 1.6-3.4 2.2 2.2 0 0 1 4-1.4 2.1 2.1 0 0 1 3.7.9 1.9 1.9 0 0 1 1.3 3.4 1.9 1.9 0 0 1-1.5 3.3 2 2 0 0 1-3.4.4 2.1 2.1 0 0 1-4.4.1Z"/>',
+  line:'<path d="M3 13 13 3"/>',
+  arrow:'<path d="M3 13 12.2 3.8M7.4 3.4h5.2v5.2"/>',
+  poly:'<path d="M2.5 12.5 5.5 5l4 5.5 4-6.5"/><circle cx="2.5" cy="12.5" r=".9" fill="currentColor"/><circle cx="13.5" cy="4" r=".9" fill="currentColor"/>'};
+const shapeIcon=k=>`<svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${SHAPE_ICONS[k]}</svg>`;
+document.querySelectorAll('#shapeOpts [data-kind]').forEach(b=>{
+  b.innerHTML=shapeIcon(b.dataset.kind);
+  b.onclick=()=>{
+    const k=b.dataset.kind; if(polyDraft) finishPoly();
+    const a=tool==='select'?shapeInHand():null;      // with the select tool, a selected box shape switches kind
+    if(a&&isBoxShape(a)&&BOX_KINDS.includes(k)){ if(a.kind!==k) applyShapeStyle({kind:k}); }
+    else { shapeKind=k; if(tool!=='shape') setTool('shape'); else if(selShape){ selShape=null; redrawOverlay(); } }
+    updateTextUI(); saveSettings();
+  };
+});
+$('btnFill').onclick=()=>{
+  const a=shapeInHand();
+  if(a&&isBoxShape(a)){ applyShapeStyle({fill:!a.fill}); shapeFill=!!a.fill; }
+  else shapeFill=!shapeFill;
+  updateTextUI(); saveSettings();
+};
 function updateTextUI(){
   const show=tool==='text';
   $('textOpts').style.display=show?'':'none';
+  $('shapeOpts').style.display=tool==='shape'?'':'none';
+  $('btnShapeTool').innerHTML=shapeIcon(shapeKind);
+  document.querySelectorAll('#shapeOpts [data-kind]').forEach(b=>b.classList.toggle('on',b.dataset.kind===shapeKind));
+  { const a=shapeInHand(), box=a?isBoxShape(a):BOX_KINDS.includes(shapeKind);
+    $('btnFill').classList.toggle('on', a?!!a.fill:shapeFill); $('btnFill').disabled=!box; }
   const t=textInHand()||{font:textFont,bold:textBold,rot:textRot};
   fontSel.value=t.font||'sys';
   $('btnBold').classList.toggle('on',!!t.bold);
@@ -3228,17 +4074,21 @@ document.addEventListener('keydown',e=>{
   if(mod&&(e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='select'&&(selImg||selText)){ e.preventDefault();
     if(selImg) turnImg(e.code==='BracketLeft'?-90:90); else turnText(e.code==='BracketLeft'?-90:90); return; }
   if(mod||e.altKey) return;
-  const map={KeyV:'pan',KeyS:'select',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyE:'eraser'};
+  const map={KeyV:'pan',KeyS:'select',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyR:'shape',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
+  else if((e.code==='Enter'||e.code==='NumpadEnter')&&polyDraft){ e.preventDefault(); finishPoly(); }
+  else if(e.code==='Escape'&&(placing||polyDraft)){ e.preventDefault(); if(placing){ cancelPlacing(); toast('ยกเลิกการวาง'); } else finishPoly(true); }
+  else if((e.code==='Delete'||e.code==='Backspace')&&shapeInHand()){ e.preventDefault(); deleteSelShape(); }
+  else if(e.code==='Backspace'&&polyDraft&&polyDraft.a.pts.length>2){ e.preventDefault(); polyDraft.a.pts.splice(-2,1); redrawOverlay(); }
   else if(pages.length&&e.code==='Home'){ e.preventDefault(); goToPage(0); }
   else if(pages.length&&e.code==='End'){ e.preventDefault(); goToPage(pages.length-1); }
   else if(e.code==='Escape'){ closeMenu(); closePalette(); closeSnap();
-    if(selText||selImg||textSel){ selText=null; selImg=null; textSel=null; redrawOverlay(); updateTextUI(); }
+    if(selText||selImg||textSel||selShape){ selText=null; selImg=null; textSel=null; selShape=null; redrawOverlay(); updateTextUI(); }
     else if(!$('findBar').hidden) closeFind(); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selImg&&tool==='select'){ e.preventDefault(); deleteSelImg(); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='select'){ e.preventDefault(); deleteSelText(); }
   else if((e.code==='BracketLeft'||e.code==='BracketRight')&&selImg&&tool==='select'){ e.preventDefault(); turnImg((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
-  else if(e.code.startsWith('Arrow')&&tool==='select'&&(selImg||selText)){ e.preventDefault(); nudgeSel(e.code, e.shiftKey?10:1); }
+  else if(e.code.startsWith('Arrow')&&(tool==='select'&&(selImg||selText)||shapeInHand())){ e.preventDefault(); nudgeSel(e.code, e.shiftKey?10:1); }
   else if((e.code==='Delete'||e.code==='Backspace')&&selText&&tool==='text'){ e.preventDefault(); deleteSelText(); }
   else if((e.code==='BracketLeft'||e.code==='BracketRight')&&tool==='text'){ e.preventDefault(); turnText((e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:15)); }
   else if(pages.length&&(e.code==='PageDown')){ e.preventDefault(); goToPage(current+1); }
@@ -3262,6 +4112,11 @@ function rotAnnots(p,cw){
       const c=tf({x:a.x+a.w/2,y:a.y+a.h/2}); a.x=c.x-a.w/2; a.y=c.y-a.h/2;
       a.rot=(((a.rot||0)+(cw?90:-90))%360+360)%360;
     }
+    else if(a.type==='shape'&&isBoxShape(a)){ // a box stays a box: its corners turn, the new box is their bounds
+      const q1=tf({x:a.x,y:a.y}), q2=tf({x:a.x+a.w,y:a.y+a.h});
+      a.x=Math.min(q1.x,q2.x); a.y=Math.min(q1.y,q2.y); a.w=Math.abs(q2.x-q1.x); a.h=Math.abs(q2.y-q1.y);
+    }
+    else if(a.type==='mark') a.quads=a.quads.map(q=>quadPts(q).flatMap(([x,y])=>{ const n=tf({x,y}); return [n.x,n.y]; }));
     else a.pts=a.pts.map(tf);
   }
 }
@@ -3338,10 +4193,10 @@ async function renderSnap(mode){
   cv.width=Math.max(1,Math.round(w*scale)); cv.height=Math.max(1,Math.round(h*scale));
   const c=cv.getContext('2d');
   c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
-  await page.render({canvasContext:c, viewport:vp}).promise;
-  await fontsFor([p]);
+  await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
+  await marksReady([p]);
   c.setTransform(scale,0,0,scale,-x0*scale,-y0*scale);
-  drawAnnots(c,p.annots,true);
+  drawPageMarks(c,p);
   const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
   cv.width=cv.height=0;
   if(!blob) throw new Error('toBlob failed');
@@ -3403,6 +4258,7 @@ function slotAt(cx,cy){
 function applyZoom(z, cx, cy, fx, fy, k){
   if(!pages.length) return;
   if(txtIn.style.display==='block') txtIn.blur();
+  if(fieldEd) commitField();
   if(k===undefined) k=fx===undefined?slotAt(cx,cy):current;
   if(fx===undefined){ const o=slotOrigin(k); fx=(cx-o.x)/zoom; fy=(cy-o.y)/zoom; }
   zoom=Math.max(ZMIN,Math.min(ZMAX,z)); fitMode=false;
@@ -3432,12 +4288,25 @@ $('btnSaveMenu').onclick=e=>{
     {label:'บันทึก', key:'Ctrl+S', action:()=>saveDoc()},
     {label:'บันทึกเป็น…', key:'Ctrl+Shift+S', action:()=>saveDoc({as:true})},
     {label:n?`บันทึก ${n} หน้าที่เลือกเป็นไฟล์ใหม่…`:'บันทึกหน้าที่เลือกเป็นไฟล์ใหม่…', disabled:!n, action:saveSelectedPages},
+    {sep:true},
+    {label:'บันทึกสำเนาแบบฝังถาวร (Flatten)…', sub:'มาร์กอัปและค่าฟอร์มกลายเป็นเนื้อหน้า แก้ไขไม่ได้อีก', action:saveFlattened},
     {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:openCompress},
+    {label:'ส่งออกเป็นรูปภาพ (PNG / JPG)…', action:()=>exportImagesDialog()},
+    {label:'แยกไฟล์…', sub:'ทุก N หน้า · ตามช่วงหน้า · หน้าละไฟล์', action:splitDialog},
     {sep:true},
     {label:'พิมพ์…', key:'Ctrl+P', action:startPrint},
   ]);
 };
 $('btnSaveSel').onclick=saveSelectedPages;
+async function saveFlattened(){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText(); if(fieldEd) commitField();
+  try{
+    toast('กำลังสร้างไฟล์…');
+    const bytes=await buildPdf(pages,{flatten:true});
+    if(await saveBytesAs(bytes,`${baseName}-flatten.pdf`)) toast('บันทึกสำเนาแบบฝังถาวรแล้ว ✓ — ไฟล์ที่เปิดอยู่ยังแก้ไขได้ตามเดิม');
+  }catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ'); }
+}
 async function saveSelectedPages(list){
   if(!Array.isArray(list)) list=pages.filter(p=>selected.has(p));      // in the order they appear now
   if(!list.length) return;
@@ -3449,63 +4318,638 @@ async function saveSelectedPages(list){
   }catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ — ไฟล์นี้อาจไม่รองรับ'); }
   finally{ btn.disabled=false; btn.innerHTML=old; }
 }
-/* the PDF bytes for a list of pages: original pages copied as they are (text stays text),
-   rotation applied, strokes and text laid over as an image */
-/* draw placed pictures into a saved page: map screen (display) coordinates to PDF space for the page rotation R */
-async function embedPlacedImages(out,pg,p,R,embedded){
-  const d=dispSize(p), L=PDFLib;
-  const opt = R===0?[0,0] : R===90?[d.h,0] : R===180?[d.w,d.h] : [0,d.w];
-  const th=R*Math.PI/180, co=Math.cos(th), si=Math.sin(th);
-  // display (dx,dy) -> pdf: (x0,y0) + Rot(R)·(dx, d.h-dy)
-  const M=[[co,si],[si,-co]], t0=[opt[0]+(-si*d.h), opt[1]+(co*d.h)];
-  const mul=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0], A[0][0]*B[0][1]+A[0][1]*B[1][1]],
-                    [A[1][0]*B[0][0]+A[1][1]*B[1][0], A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
-  const app=(A,v)=>[A[0][0]*v[0]+A[0][1]*v[1], A[1][0]*v[0]+A[1][1]*v[1]];
-  for(const a of p.annots){
-    if(a.type!=='img') continue;
-    const st=imgStore.get(a.id); if(!st) continue;
-    let img=embedded.get(a.id);
-    if(!img){ img=st.png?await out.embedPng(st.bytes):await out.embedJpg(st.bytes); embedded.set(a.id,img); }
-    const f=(a.rot||0)*Math.PI/180, D=[[Math.cos(f),-Math.sin(f)],[Math.sin(f),Math.cos(f)]];
-    const S=[[a.w,0],[0,-a.h]], A=mul(mul(M,D),S);
-    const c=[a.x+a.w/2,a.y+a.h/2], o=app(D,[-a.w/2,a.h/2]), e=app(M,[c[0]+o[0],c[1]+o[1]]);
-    const name=pg.node.newXObject('Image', img.ref);
-    pg.pushOperators(L.pushGraphicsState(), L.concatTransformationMatrix(A[0][0],A[1][0],A[0][1],A[1][1],e[0]+t0[0],e[1]+t0[1]),
-                     L.drawObject(name), L.popGraphicsState());
+/* ---------------- reading protected PDFs ----------------
+   pdf.js opens them (asking for the password when there is one); pdf-lib, which copies the pages when
+   saving, cannot decrypt — so the file is decrypted here first (standard security handler: RC4 40–128,
+   AES-128, AES-256). Object streams are held back while pdf-lib parses, decrypted, then parsed.        */
+const PDF_PAD=new Uint8Array([0x28,0xBF,0x4E,0x5E,0x4E,0x75,0x8A,0x41,0x64,0x00,0x4E,0x56,0xFF,0xFA,0x01,0x08,
+  0x2E,0x2E,0x00,0xB6,0xD0,0x68,0x3E,0x80,0x2F,0x0C,0xA9,0xFE,0x64,0x53,0x69,0x7A]);
+const MD5K=(()=>{ const k=new Int32Array(64); for(let i=0;i<64;i++) k[i]=(Math.abs(Math.sin(i+1))*4294967296)|0; return k; })();
+const MD5S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+            4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+function md5(data){
+  const n=data.length, total=(((n+8)>>6)+1)*64, b=new Uint8Array(total);
+  b.set(data); b[n]=0x80;
+  const lo=(n*8)>>>0, hi=Math.floor(n/0x20000000)>>>0;
+  for(let i=0;i<4;i++){ b[total-8+i]=(lo>>>(8*i))&255; b[total-4+i]=(hi>>>(8*i))&255; }
+  let a0=0x67452301, b0=0xefcdab89|0, c0=0x98badcfe|0, d0=0x10325476;
+  const w=new Int32Array(16);
+  for(let off=0;off<total;off+=64){
+    for(let i=0;i<16;i++) w[i]=b[off+i*4]|b[off+i*4+1]<<8|b[off+i*4+2]<<16|b[off+i*4+3]<<24;
+    let A=a0, B=b0, C=c0, D=d0;
+    for(let i=0;i<64;i++){
+      let F,g;
+      if(i<16){ F=(B&C)|(~B&D); g=i; } else if(i<32){ F=(D&B)|(~D&C); g=(5*i+1)&15; }
+      else if(i<48){ F=B^C^D; g=(3*i+5)&15; } else { F=C^(B|~D); g=(7*i)&15; }
+      const t=D; D=C; C=B;
+      const x=(A+F+MD5K[i]+w[g])|0;
+      B=(B+((x<<MD5S[i])|(x>>>(32-MD5S[i]))))|0; A=t;
+    }
+    a0=(a0+A)|0; b0=(b0+B)|0; c0=(c0+C)|0; d0=(d0+D)|0;
   }
+  const out=new Uint8Array(16);
+  [a0,b0,c0,d0].forEach((v,i)=>{ for(let j=0;j<4;j++) out[i*4+j]=(v>>>(8*j))&255; });
+  return out;
 }
-async function buildPdf(list){
-  {
-    await fontsFor(list);
-    const srcLibs=[];
-    for(const d of docs) srcLibs.push(await PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true}));
-    const out=await PDFLib.PDFDocument.create(), embedded=new Map();
-    for(let i=0;i<list.length;i++){
-      const p=list[i];
-      const [pg]=await out.copyPages(srcLibs[p.doc],[p.srcIndex]);
-      out.addPage(pg);
-      const R=totalRot(p);
-      pg.setRotation(PDFLib.degrees(R));
-      if(p.annots.some(a=>a.type==='img')) await embedPlacedImages(out,pg,p,R,embedded);
-      if(p.annots.some(a=>a.type!=='img')){
-        // overlay image resolution: 2 px/pt for strokes, up to 5 px/pt when there is text (crisp when zoomed or printed)
-        const d=dispSize(p), hasText=p.annots.some(a=>a.type==='text');
-        const Q=Math.max(1,Math.min(hasText?5:2, Math.sqrt(40e6/(d.w*d.h))));
-        const cv=document.createElement('canvas');
-        cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
-        const c=cv.getContext('2d'); c.scale(Q,Q);
-        drawAnnots(c,p.annots);
-        const img=await out.embedPng(cv.toDataURL('image/png'));
-        let opt;
-        if(R===0)        opt={x:0,     y:0,     rotate:PDFLib.degrees(0)};
-        else if(R===90)  opt={x:d.h,   y:0,     rotate:PDFLib.degrees(90)};
-        else if(R===180) opt={x:d.w,   y:d.h,   rotate:PDFLib.degrees(180)};
-        else             opt={x:0,     y:d.w,   rotate:PDFLib.degrees(270)};
-        pg.drawImage(img,{...opt,width:d.w,height:d.h});
+function rc4(key,data){
+  const S=new Uint8Array(256); for(let i=0;i<256;i++) S[i]=i;
+  for(let i=0,j=0;i<256;i++){ j=(j+S[i]+key[i%key.length])&255; const t=S[i]; S[i]=S[j]; S[j]=t; }
+  const out=new Uint8Array(data.length);
+  for(let k=0,i=0,j=0;k<data.length;k++){ i=(i+1)&255; j=(j+S[i])&255; const t=S[i]; S[i]=S[j]; S[j]=t; out[k]=data[k]^S[(S[i]+S[j])&255]; }
+  return out;
+}
+const catBytes=parts=>{ const n=parts.reduce((s,p)=>s+p.length,0), o=new Uint8Array(n); let i=0; for(const p of parts){ o.set(p,i); i+=p.length; } return o; };
+const eqBytes=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+const toHex=u=>Array.from(u,b=>b.toString(16).padStart(2,'0')).join('');
+const sha=async(alg,data)=>new Uint8Array(await crypto.subtle.digest(alg,data));
+const aesKey=(raw,use)=>crypto.subtle.importKey('raw',raw,{name:'AES-CBC'},false,[use]);
+async function aesEncNoPad(key,iv,data){ return new Uint8Array(await crypto.subtle.encrypt({name:'AES-CBC',iv},await aesKey(key,'encrypt'),data)).slice(0,data.length); }
+async function aesDecNoPad(key,iv,ct){                // CBC without padding: add a block that decrypts to a full padding block
+  const pad=new Uint8Array(16).fill(16), extra=(await aesEncNoPad(key,ct.slice(-16),pad));
+  return new Uint8Array(await crypto.subtle.decrypt({name:'AES-CBC',iv},await aesKey(key,'decrypt'),catBytes([ct,extra])));
+}
+async function aesDec(key,data){                     // IV + ciphertext with PKCS#7 padding (a broken pad is kept)
+  if(data.length<32) return new Uint8Array(0);
+  const iv=data.slice(0,16), ct=data.slice(16,16+Math.floor((data.length-16)/16)*16);
+  try{ return new Uint8Array(await crypto.subtle.decrypt({name:'AES-CBC',iv},await aesKey(key,'decrypt'),ct)); }
+  catch(e){ return aesDecNoPad(key,iv,ct); }
+}
+let libLock=Promise.resolve();
+const ENDOBJ=[101,110,100,111,98,106];
+/* pdf-lib load that keeps object streams aside (their contents are still encrypted) */
+function loadHeldBack(bytes){
+  const run=async()=>{
+    const P=PDFLib.PDFParser.prototype, orig=P.parseIndirectObject, held=[];
+    P.parseIndirectObject=async function(){
+      const ref=this.parseIndirectObjectHeader(); this.skipWhitespaceAndComments();
+      const object=this.parseObject(); this.skipWhitespaceAndComments(); this.matchKeyword(ENDOBJ);
+      const T=object instanceof PDFLib.PDFRawStream?object.dict.lookup(PN('Type')):null;
+      if(T===PN('ObjStm')) held.push({ref,stream:object});
+      else if(T===PN('XRef')) PDFLib.PDFXRefStreamParser.forStream(object).parseIntoContext();
+      else this.context.assign(ref,object);
+      return ref;
+    };
+    try{ return {lib:await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:true,updateMetadata:false}), held}; }
+    finally{ P.parseIndirectObject=orig; }
+  };
+  const r=libLock.then(run,run); libLock=r.catch(()=>{}); return r;
+}
+async function decryptLib(lib,password,held){
+  const ctx=lib.context, encRef=ctx.trailerInfo.Encrypt, enc=ctx.lookup(encRef);
+  let dec=async b=>b, strM='none', stmM='none', encMeta=true;
+  if(enc instanceof PDFLib.PDFDict){
+    if(enc.lookup(PN('Filter'))!==PN('Standard')) throw new Error('unsupported security handler');
+    const num=k=>{ const v=enc.lookup(PN(k)); return v instanceof PDFLib.PDFNumber?v.asNumber():undefined; };
+    const raw=v=>v instanceof PDFLib.PDFString||v instanceof PDFLib.PDFHexString?v.asBytes():new Uint8Array(0);
+    const V=num('V')||0, R=num('R')||2, Len=num('Length')||40, P=num('P')|0;
+    const O=raw(enc.lookup(PN('O'))), U=raw(enc.lookup(PN('U')));
+    const em=enc.lookup(PN('EncryptMetadata')); if(em instanceof PDFLib.PDFBool) encMeta=em.asBoolean();
+    const ids=ctx.lookup(ctx.trailerInfo.ID), id0=ids instanceof PDFLib.PDFArray?raw(ctx.lookup(ids.get(0))):new Uint8Array(0);
+    const cf=enc.lookup(PN('CF'));
+    const method=k=>{
+      if(V<4) return 'RC4';
+      const nm=enc.lookup(PN(k)); if(!(nm instanceof PDFLib.PDFName)||nm===PN('Identity')) return 'none';
+      const m=cf instanceof PDFLib.PDFDict?cf.lookup(nm)?.lookup(PN('CFM')):null;
+      return m===PN('V2')?'RC4':m===PN('AESV2')||m===PN('AESV3')?'AES':'none';
+    };
+    strM=method('StrF'); stmM=method('StmF');
+    let key=null;
+    if(R<=4){
+      const n=R===2?5:Math.max(5,Math.min(16,Len>>3));
+      const pwL=new Uint8Array([...password].map(c=>c.charCodeAt(0)&255)).slice(0,32);
+      const pad32=pw=>{ const p=new Uint8Array(32); p.set(pw.slice(0,32)); p.set(PDF_PAD.slice(0,32-Math.min(32,pw.length)),Math.min(32,pw.length)); return p; };
+      const le32=new Uint8Array([P&255,(P>>8)&255,(P>>16)&255,(P>>24)&255]);
+      const derive=pw=>{ const parts=[pad32(pw),O.slice(0,32),le32,id0]; if(R>=4&&!encMeta) parts.push(new Uint8Array([255,255,255,255]));
+        let h=md5(catBytes(parts)); if(R>=3) for(let i=0;i<50;i++) h=md5(h.slice(0,n)); return h.slice(0,n); };
+      const userOk=k=>{ if(R===2) return eqBytes(rc4(k,PDF_PAD),U.slice(0,32));
+        let x=rc4(k,md5(catBytes([PDF_PAD,id0]))); for(let i=1;i<=19;i++) x=rc4(k.map(b=>b^i),x); return eqBytes(x,U.slice(0,16)); };
+      const fromOwner=pw=>{ let h=md5(pad32(pw)); if(R>=3) for(let i=0;i<50;i++) h=md5(h); const k=h.slice(0,n);
+        let x=O.slice(0,32); if(R===2) x=rc4(k,x); else for(let i=19;i>=0;i--) x=rc4(k.map(b=>b^i),x); return x; };
+      for(const pw of [pwL,fromOwner(pwL),new Uint8Array(0)]){ const k=derive(pw); if(userOk(k)){ key=k; break; } }
+    }else{
+      const pw8=new TextEncoder().encode(password).slice(0,127), none=new Uint8Array(0);
+      const UE=raw(enc.lookup(PN('UE'))), OE=raw(enc.lookup(PN('OE'))), zero=new Uint8Array(16);
+      const hash=async(pw,salt,ud)=>{
+        let K=await sha('SHA-256',catBytes([pw,salt,ud]));
+        if(R===5) return K;
+        for(let i=0;;){
+          const K1=catBytes([pw,K,ud]), rep=new Uint8Array(K1.length*64); for(let j=0;j<64;j++) rep.set(K1,j*K1.length);
+          const E=await aesEncNoPad(K.slice(0,16),K.slice(16,32),rep);
+          let m=0; for(let j=0;j<16;j++) m+=E[j];
+          K=await sha(['SHA-256','SHA-384','SHA-512'][m%3],E); i++;
+          if(i>=64&&E[E.length-1]<=i-32) break;
+        }
+        return K.slice(0,32);
+      };
+      const tryPw=async pw=>{
+        if(eqBytes(await hash(pw,U.slice(32,40),none),U.slice(0,32))) return aesDecNoPad(await hash(pw,U.slice(40,48),none),zero,UE.slice(0,32));
+        if(eqBytes(await hash(pw,O.slice(32,40),U.slice(0,48)),O.slice(0,32))) return aesDecNoPad(await hash(pw,O.slice(40,48),U.slice(0,48)),zero,OE.slice(0,32));
+        return null; };
+      key=(await tryPw(pw8))||(pw8.length?await tryPw(none):null);
+    }
+    if(!key) throw new Error('wrong password');
+    const objKey=(ref,aes)=>{ if(R>=5) return key; const n=ref.objectNumber, g=ref.generationNumber;
+      const parts=[key,new Uint8Array([n&255,(n>>8)&255,(n>>16)&255,g&255,(g>>8)&255])]; if(aes) parts.push(new Uint8Array([0x73,0x41,0x6C,0x54]));
+      return md5(catBytes(parts)).slice(0,Math.min(key.length+5,16)); };
+    dec=async(b,ref,m)=>m==='RC4'?rc4(objKey(ref,false),b):m==='AES'?aesDec(objKey(ref,true),b):b;
+  }
+  const fromStm=new Set();
+  for(const {ref,stream} of held){
+    stream.contents=await dec(stream.contents,ref,stmM);
+    const before=new Map(ctx.indirectObjects);
+    try{ await PDFLib.PDFObjectStreamParser.forStream(stream).parseIntoContext(); }catch(e){ console.warn('object stream',e); }
+    for(const r of ctx.indirectObjects.keys()) if(!before.has(r)) fromStm.add(r);
+    for(const [r,o] of before) ctx.indirectObjects.set(r,o);       // objects written outside streams (later edits) win
+  }
+  if(enc instanceof PDFLib.PDFDict){
+    const walk=async(obj,ref)=>{
+      if(obj instanceof PDFLib.PDFString||obj instanceof PDFLib.PDFHexString) return PDFLib.PDFHexString.of(toHex(await dec(obj.asBytes(),ref,strM)));
+      if(obj instanceof PDFLib.PDFDict){ if(obj.lookup(PN('Type'))===PN('Sig')) return obj;
+        for(const [k,v] of obj.entries()){ const n2=await walk(v,ref); if(n2!==v) obj.set(k,n2); } return obj; }
+      if(obj instanceof PDFLib.PDFArray){ for(let i=0;i<obj.size();i++){ const v=obj.get(i), n2=await walk(v,ref); if(n2!==v) obj.set(i,n2); } return obj; }
+      return obj;
+    };
+    for(const [ref,obj] of ctx.enumerateIndirectObjects()){
+      if(ref===encRef||fromStm.has(ref)) continue;
+      if(obj instanceof PDFLib.PDFRawStream){
+        const T=obj.dict.lookup(PN('Type'));
+        await walk(obj.dict,ref);
+        if(T===PN('XRef')||(T===PN('Metadata')&&!encMeta)) continue;
+        obj.contents=await dec(obj.contents,ref,stmM);
+      } else await walk(obj,ref);
+    }
+    delete ctx.trailerInfo.Encrypt;
+  }
+  lib.catalog=ctx.lookup(ctx.trailerInfo.Root);
+  lib.isEncrypted=false;
+}
+/* a pdf-lib copy of a document, decrypted when needed */
+async function loadLib(d){
+  if(!d.enc) return PDFLib.PDFDocument.load(d.bytes,{ignoreEncryption:true,updateMetadata:false});
+  const {lib,held}=await loadHeldBack(d.bytes);
+  await decryptLib(lib,d.password||'',held);
+  return lib;
+}
+function hasEncrypt(b){                               // "/Encrypt" anywhere (the trailer is near the end: search backwards)
+  const k=[47,69,110,99,114,121,112,116];
+  outer: for(let i=b.length-k.length;i>=0;i--){ if(b[i]!==47) continue; for(let j=1;j<8;j++) if(b[i+j]!==k[j]) continue outer; return true; }
+  return false;
+}
+function askPassword(name, wrong){
+  return new Promise(res=>{
+    const d=document.createElement('div'); d.className='dlg';
+    d.innerHTML=`<div class="box" role="dialog" aria-label="ใส่รหัสผ่าน"><b>ไฟล์นี้มีรหัสผ่าน</b>
+      <span class="note" style="word-break:break-all"></span>
+      <div class="fRow"><label for="pwIn">รหัสผ่านสำหรับเปิดไฟล์</label><input type="password" id="pwIn" autocomplete="off" spellcheck="false"></div>
+      <label class="fInline"><input type="checkbox" id="pwShow"> แสดงรหัสผ่าน</label>
+      <span class="fErr"${wrong?'':' hidden'}>รหัสผ่านไม่ถูกต้อง — ลองอีกครั้ง</span>
+      <span class="fHint">ไฟล์ที่บันทึกจากโปรแกรมนี้จะไม่มีรหัสผ่าน</span>
+      <div class="bkBtns"><button class="btn link" data-v="0">ยกเลิก</button><button class="btn primary" data-v="1">เปิดไฟล์</button></div></div>`;
+    d.querySelector('.note').textContent=name;
+    const inp=d.querySelector('#pwIn');
+    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
+    const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(null); } else if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); done(inp.value); } };
+    d.querySelector('#pwShow').onchange=e=>{ inp.type=e.target.checked?'text':'password'; inp.focus(); };
+    d.querySelector('[data-v="0"]').onclick=()=>done(null);
+    d.querySelector('[data-v="1"]').onclick=()=>done(inp.value);
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(d); inp.focus();
+  });
+}
+
+/* ---------------- saving ----------------
+   Pages are copied as they are (text stays text, vectors stay vectors), one copier per source file so
+   shared fonts, form fields, links and bookmarks keep pointing at the right pages. Everything placed on
+   a page is written as a real PDF annotation (ink, square/circle/line/polyline, highlight/underline/
+   strikeout, free text, stamp) with its own appearance, so Acrobat, PDF-XChange, Edge… show and edit
+   it. Each annotation also carries its editable form (/WYData) and sits on this app's own layer, so
+   when the file is opened here again the layer is hidden and the markup comes back as editable objects. */
+const WY_OCG='WY Pdf Box markup';
+const PN=n=>PDFLib.PDFName.of(n);
+const fmtN=v=>{ const r=Math.round(v*1000)/1000; return !isFinite(r)||Object.is(r,-0)?'0':String(r); };
+const r3=v=>Math.round(v*1000)/1000, r2=v=>Math.round(v*100)/100;
+const affApply=(A,x,y)=>[A[0]*x+A[2]*y+A[4], A[1]*x+A[3]*y+A[5]];
+const affMul=(P,Q)=>[P[0]*Q[0]+P[2]*Q[1], P[1]*Q[0]+P[3]*Q[1], P[0]*Q[2]+P[2]*Q[3], P[1]*Q[2]+P[3]*Q[3], P[0]*Q[4]+P[2]*Q[5]+P[4], P[1]*Q[4]+P[3]*Q[5]+P[5]];
+const rotAbout=(c,deg)=>{ const t=(deg||0)*Math.PI/180, co=Math.cos(t), si=Math.sin(t); return [co,si,-si,co,c.x-co*c.x+si*c.y,c.y-si*c.x-co*c.y]; };
+const rgbOf=h=>{ const n=parseInt(String(h).slice(1),16)||0; return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255].map(r3); };
+const rgbOp=(c,op)=>rgbOf(c).map(fmtN).join(' ')+' '+op;
+const bbNew=()=>[Infinity,Infinity,-Infinity,-Infinity];
+const bbAdd=(b,q)=>{ b[0]=Math.min(b[0],q[0]); b[1]=Math.min(b[1],q[1]); b[2]=Math.max(b[2],q[0]); b[3]=Math.max(b[3],q[1]); };
+const bbPad=(b,m)=>[b[0]-m,b[1]-m,b[2]+m,b[3]+m].map(r3);
+const refKey=r=>`${r.objectNumber} ${r.generationNumber}`;
+const b64=u=>{ let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); };
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const streamBytes=async(u,t)=>new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(t)).arrayBuffer());
+const inflate=u=>streamBytes(u,new DecompressionStream('deflate'));
+async function packData(o){ return 'z:'+b64(await streamBytes(new TextEncoder().encode(JSON.stringify(o)),new CompressionStream('deflate-raw'))); }
+async function unpackData(s){ return JSON.parse(s.startsWith('z:')?new TextDecoder().decode(await streamBytes(unb64(s.slice(2)),new DecompressionStream('deflate-raw'))):s); }
+const canvasPng=cv=>new Promise((res,rej)=>cv.toBlob(b=>b?b.arrayBuffer().then(x=>res(new Uint8Array(x))):rej(new Error('toBlob')),'image/png'));
+function pdfDate(d=new Date()){
+  const z=-d.getTimezoneOffset(), p2=n=>String(Math.abs(Math.trunc(n))).padStart(2,'0');
+  return `D:${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}${z>=0?'+':'-'}${p2(z/60)}'${p2(z%60)}'`;
+}
+const uid=()=>'wy-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+/* page units on screen (rotation R) -> PDF user space of the source page; pdf.js knows the crop box */
+async function affineFor(d,srcIndex,R){
+  const page=await d.pdf.getPage(srcIndex+1), vp=page.getViewport({scale:1, rotation:R});
+  const o=vp.convertToPdfPoint(0,0), x=vp.convertToPdfPoint(1,0), y=vp.convertToPdfPoint(0,1);
+  return [x[0]-o[0], x[1]-o[1], y[0]-o[0], y[1]-o[1], o[0], o[1]];
+}
+function pathOps(cmds,A,bb){
+  let s='';
+  for(const c of cmds){
+    if(c[0]==='Z'){ s+='h\n'; continue; }
+    const v=[]; for(let i=1;i<c.length;i+=2){ const q=affApply(A,c[i],c[i+1]); bbAdd(bb,q); v.push(fmtN(q[0]),fmtN(q[1])); }
+    s+=v.join(' ')+(c[0]==='M'?' m\n':c[0]==='L'?' l\n':' c\n');
+  }
+  return s;
+}
+const imgMatrix=a=>affMul(rotAbout({x:a.x+a.w/2,y:a.y+a.h/2},a.rot),[a.w,0,0,-a.h,a.x,a.y+a.h]);   // unit square -> page units
+function unitBox(M,bb){ for(const [u,v] of [[0,0],[1,0],[1,1],[0,1]]) bbAdd(bb,affApply(M,u,v)); return bb; }
+async function embedStoreImg(W,id){
+  const st=imgStore.get(id); if(!st) return null;
+  let img=W.embedded.get(id);
+  if(!img){ img=st.png?await W.out.embedPng(st.bytes):await W.out.embedJpg(st.bytes); W.embedded.set(id,img); }
+  return img;
+}
+function annData(a){
+  const o=JSON.parse(JSON.stringify(a));
+  if(o.pts) o.pts=o.pts.map(q=>({x:r2(q.x),y:r2(q.y)}));
+  delete o.id; return o;
+}
+const SUBJ={rect:'Rectangle',ellipse:'Oval',cloud:'Cloud',line:'Line',arrow:'Arrow',poly:'Polyline'};
+async function addAnnot(W,pg,sub,rect,ops,res,data,extra){
+  const ctx=W.ctx;
+  const ap=ctx.register(ctx.flateStream(ops,{Type:'XObject',Subtype:'Form',BBox:rect,Resources:res||{}}));
+  const dict={Type:'Annot',Subtype:sub,Rect:rect,F:4,P:pg.ref,NM:PDFLib.PDFString.of(uid()),
+    M:PDFLib.PDFString.of(W.now),CreationDate:PDFLib.PDFString.of(W.now),T:PDFLib.PDFHexString.fromText(W.author),
+    AP:{N:ap},OC:W.ocg(),WYBox:true,WYData:PDFLib.PDFString.of(await packData({v:1,R:W.R,r:rect,a:data})),...extra};
+  const ref=ctx.register(ctx.obj(dict)); pg.node.addAnnot(ref); W.count++;
+  return ref;
+}
+const txt=s=>PDFLib.PDFHexString.fromText(s||'');
+async function writeMark(W,pg,A,a){
+  const bb=bbNew(), data=annData(a);
+  if(a.type==='pen'||a.type==='hl'){
+    const hl=a.type==='hl', P=a.pts.map(q=>{ const r=affApply(A,q.x,q.y); bbAdd(bb,r); return r; });
+    let ops=`q ${fmtN(a.width)} w 1 J 1 j ${rgbOp(a.color,'RG')}\n`; const res={};
+    if(hl){ res.ExtGState={G0:{Type:'ExtGState',CA:.45,ca:.45,BM:'Multiply'}}; ops+='/G0 gs\n'; }
+    ops+=P.map((q,i)=>`${fmtN(q[0])} ${fmtN(q[1])} ${i?'l':'m'}`).join('\n')+(P.length===1?`\n${fmtN(P[0][0])} ${fmtN(P[0][1])} l`:'')+'\nS Q';
+    const extra={C:rgbOf(a.color),BS:{W:a.width,S:'S'},InkList:[P.flat().map(r3)],Subj:txt(hl?'Highlighter':'Pencil'),Contents:txt('')};
+    if(hl){ extra.CA=.45; extra.BM='Multiply'; }
+    return addAnnot(W,pg,'Ink',bbPad(bb,a.width/2+1),ops,res,data,extra);
+  }
+  if(a.type==='shape'){
+    const g=shapeGeom(a), res={}, path=pathOps(g.path,A,bb);
+    let ops=`q ${fmtN(a.width)} w 1 J 1 j ${rgbOp(a.color,'RG')} ${rgbOp(a.color,'rg')}\n`;
+    if(a.fill&&g.closed){ res.ExtGState={F0:{Type:'ExtGState',ca:FILL_A}}; ops+=`q /F0 gs\n${path}f\nQ\n`; }
+    ops+=path+'S\n';
+    if(g.head) ops+='0 j\n'+pathOps(g.head,A,bb)+'f\n';
+    ops+='Q';
+    const rect=bbPad(bb,a.width/2+1);
+    const extra={C:rgbOf(a.color),BS:{W:a.width,S:'S'},Subj:txt(SUBJ[a.kind]),Contents:txt('')};
+    let sub;
+    if(isBoxShape(a)){
+      sub=a.kind==='ellipse'?'Circle':'Square';
+      if(a.kind==='cloud') extra.BE={S:'C',I:1};
+      const ib=bbNew(); unitBox(affMul(A,[a.w,0,0,a.h,a.x,a.y]),ib); const inner=bbPad(ib,a.width/2);
+      extra.RD=[inner[0]-rect[0],rect[3]-inner[3],rect[2]-inner[2],inner[1]-rect[1]].map(v=>r3(Math.max(0,v)));
+    }else if(a.kind==='line'||a.kind==='arrow'){
+      sub='Line';
+      extra.L=[...affApply(A,a.pts[0].x,a.pts[0].y),...affApply(A,a.pts[a.pts.length-1].x,a.pts[a.pts.length-1].y)].map(r3);
+      extra.LE=['None',a.kind==='arrow'?'ClosedArrow':'None'];
+      if(a.kind==='arrow') extra.IC=rgbOf(a.color);
+    }else{ sub='PolyLine'; extra.Vertices=a.pts.flatMap(q=>affApply(A,q.x,q.y)).map(r3); }
+    return addAnnot(W,pg,sub,rect,ops,res,data,extra);
+  }
+  if(a.type==='mark'){
+    const hl=a.kind==='hl', QP=[];
+    let ops=`q ${rgbOp(a.color,hl?'rg':'RG')}\n`; const res={};
+    if(hl){ res.ExtGState={G0:{Type:'ExtGState',BM:'Multiply'}}; ops+='/G0 gs\n'; }
+    for(const q of a.quads){
+      const P=quadPts(q).map(([x,y])=>affApply(A,x,y)); P.forEach(r=>bbAdd(bb,r));
+      QP.push(...P[0],...P[1],...P[3],...P[2]);                     // top-left, top-right, bottom-left, bottom-right
+      if(hl) ops+=P.map((r,i)=>`${fmtN(r[0])} ${fmtN(r[1])} ${i?'l':'m'}`).join(' ')+' h f\n';
+      else{
+        const f=a.kind==='ul'?.9:.54, h=Math.hypot(P[3][0]-P[0][0],P[3][1]-P[0][1]);
+        const L=[P[0][0]+(P[3][0]-P[0][0])*f,P[0][1]+(P[3][1]-P[0][1])*f], Rr=[P[1][0]+(P[2][0]-P[1][0])*f,P[1][1]+(P[2][1]-P[1][1])*f];
+        ops+=`${fmtN(Math.max(.6,h*.07))} w ${fmtN(L[0])} ${fmtN(L[1])} m ${fmtN(Rr[0])} ${fmtN(Rr[1])} l S\n`;
       }
     }
-    return await out.save();
+    ops+='Q';
+    return addAnnot(W,pg,{hl:'Highlight',ul:'Underline',so:'StrikeOut'}[a.kind],bbPad(bb,1),ops,res,data,
+      {QuadPoints:QP.map(r3),C:rgbOf(a.color),Contents:txt(a.text),Subj:txt({hl:'Highlight',ul:'Underline',so:'Strikethrough'}[a.kind])});
   }
+  if(a.type==='text'){
+    await loadFont(a);
+    const fs=a.size; mctx.font=fontCss(a,fs);
+    const m=mctx.measureText(a.text);
+    const asc=Math.max(m.actualBoundingBoxAscent||0,fs*1.05), desc=Math.max(m.actualBoundingBoxDescent||0,fs*.35);
+    const lx=a.x-2, ly=a.y-asc-2, lw=Math.max(1,m.width)+4, lh=asc+desc+4;
+    const Q=Math.min(5,8000/Math.max(lw,lh));
+    const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.ceil(lw*Q)); cv.height=Math.max(1,Math.ceil(lh*Q));
+    const c=cv.getContext('2d'); c.scale(Q,Q); c.translate(-lx,-ly); c.fillStyle=a.color; c.font=fontCss(a,fs); c.fillText(a.text,a.x,a.y);
+    const img=await W.out.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
+    const M=affMul(A,affMul(rotAbout(textPivot(a),a.rot),[lw,0,0,-lh,lx,ly+lh]));
+    unitBox(M,bb);
+    return addAnnot(W,pg,'FreeText',bbPad(bb,.5),`q ${M.map(fmtN).join(' ')} cm /Im0 Do Q`,{XObject:{Im0:img.ref}},data,
+      {Contents:txt(a.text),DA:PDFLib.PDFString.of(`/Helv ${fmtN(fs)} Tf ${rgbOp(a.color,'rg')}`),
+       DS:PDFLib.PDFString.of(`font: ${fmtN(fs)}pt Helvetica; color:${a.color}`),IT:'FreeTextTypeWriter',Subj:txt('Typewriter')});
+  }
+  if(a.type==='img'){
+    const img=await embedStoreImg(W,a.id); if(!img) return;
+    const M=affMul(A,imgMatrix(a)); unitBox(M,bb);
+    const label=a.stamp?a.stamp.th:a.sig?'ลายเซ็น':'';
+    return addAnnot(W,pg,'Stamp',bbPad(bb,.5),`q ${M.map(fmtN).join(' ')} cm /Im0 Do Q`,{XObject:{Im0:img.ref}},data,
+      {Contents:txt(label),Subj:txt(a.stamp?'Stamp':a.sig?'Signature':'Image'),Name:a.stamp?'WYStamp':a.sig?'WYSignature':'WYImage'});
+  }
+}
+/* "flatten": pictures go into the page content, everything else as one picture blended like a marker */
+async function flattenMarks(W,pg,p,A){
+  const imgs=p.annots.filter(a=>a.type==='img'), rest=p.annots.filter(a=>a.type!=='img');
+  for(const a of imgs){
+    const img=await embedStoreImg(W,a.id); if(!img) continue;
+    const name=pg.node.newXObject('Img',img.ref), M=affMul(A,imgMatrix(a));
+    pg.pushOperators(PDFLib.pushGraphicsState(),PDFLib.concatTransformationMatrix(...M),PDFLib.drawObject(name),PDFLib.popGraphicsState());
+  }
+  if(!rest.length) return;
+  const d=dispSize(p), hasText=rest.some(a=>a.type==='text');
+  const Q=Math.max(1,Math.min(hasText?5:3,Math.sqrt(40e6/(d.w*d.h))));
+  const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
+  const c=cv.getContext('2d'); c.scale(Q,Q); drawAnnots(c,rest);
+  const img=await W.out.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
+  const gs=pg.node.newExtGState('GS',W.ctx.obj({Type:'ExtGState',BM:'Multiply'})), name=pg.node.newXObject('Ov',img.ref);
+  pg.pushOperators(PDFLib.pushGraphicsState(),PDFLib.setGraphicsState(gs),PDFLib.concatTransformationMatrix(...affMul(A,[d.w,0,0,-d.h,0,d.h])),
+                   PDFLib.drawObject(name),PDFLib.popGraphicsState());
+}
+/* form values go into the fields of the source copy; text and list fields get a picture appearance
+   (Thai shapes correctly, which pdf-lib's own appearance code cannot do) */
+function fieldSpec(d,name){
+  const m=annCache.get(d);
+  if(m) for(const en of m.values()) for(const L of Object.values(en.layouts||{})){ const f=L.fields.find(x=>x.name===name); if(f) return f; }
+  return {type:'text',multi:false,comb:false,maxLen:0,align:0,size:0,fcolor:null,options:[]};
+}
+async function applyFormValues(lib,d){
+  let form; try{ form=lib.getForm(); }catch(e){ return; }
+  for(const [name,v] of d.formVals){
+    let f=null; try{ f=form.getFieldMaybe(name); }catch(e){}
+    if(!f) continue;
+    try{
+      if(f instanceof PDFLib.PDFCheckBox){ if(v) f.check(); else f.acroField.setValue(PN('Off')); }
+      else if(f instanceof PDFLib.PDFRadioGroup) f.acroField.setValue(v==null?PN('Off'):PN(v));
+      else if(f instanceof PDFLib.PDFTextField){ f.acroField.setValue(PDFLib.PDFHexString.fromText(String(v??''))); await fieldPictureAP(lib,f,String(v??''),fieldSpec(d,name)); }
+      else if(f instanceof PDFLib.PDFDropdown||f instanceof PDFLib.PDFOptionList){
+        f.acroField.setValues(v===''||v==null?[]:[PDFLib.PDFHexString.fromText(String(v))]);
+        if(f instanceof PDFLib.PDFDropdown) await fieldPictureAP(lib,f,v,fieldSpec(d,name));
+      }
+    }catch(err){ console.warn('form field',name,err); }
+  }
+}
+async function fieldPictureAP(lib,f,value,spec){
+  for(const w of f.acroField.getWidgets()){
+    const r=w.getRectangle(); if(!(r.width>0&&r.height>0)) continue;
+    const ff={...spec,w:r.width,h:r.height}, Q=Math.min(6,4000/Math.max(r.width,r.height));
+    const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.ceil(r.width*Q)); cv.height=Math.max(1,Math.ceil(r.height*Q));
+    const c=cv.getContext('2d'); c.scale(Q,Q); drawFieldValue(c,ff,value,false);
+    const img=await lib.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
+    w.setNormalAppearance(lib.context.register(lib.context.flateStream(`q ${fmtN(r.width)} 0 0 ${fmtN(r.height)} 0 0 cm /Im0 Do Q`,
+      {Type:'XObject',Subtype:'Form',BBox:[0,0,r3(r.width),r3(r.height)],Resources:{XObject:{Im0:img.ref}}})));
+  }
+}
+function flattenForm(lib){                          // draw each widget's look into its page, then drop the fields
+  let form; try{ form=lib.getForm(); }catch(e){ return; }
+  for(const field of form.getFields()){
+    try{
+      for(const w of field.acroField.getWidgets()){
+        if(w.hasFlag?.(PDFLib.AnnotationFlags.Hidden)) continue;
+        const page=form.findWidgetPage(w), ap=form.findWidgetAppearanceRef(field,w), r=w.getRectangle();
+        const name=page.node.newXObject('FlatWidget',ap);
+        page.pushOperators(PDFLib.pushGraphicsState(),PDFLib.concatTransformationMatrix(1,0,0,1,r.x,r.y),PDFLib.drawObject(name),PDFLib.popGraphicsState());
+      }
+    }catch(e){ console.warn('flatten field',e); }
+  }
+  const ctx=lib.context;
+  for(const pg of lib.getPages()){
+    const arr=pg.node.Annots(); if(!arr) continue;
+    pg.node.set(PN('Annots'),ctx.obj(arr.asArray().filter(r=>{ const d=ctx.lookup(r); return d instanceof PDFLib.PDFDict&&d.lookup(PN('Subtype'))!==PN('Widget'); })));
+  }
+  lib.catalog.delete(PN('AcroForm'));
+}
+/* one source file, ready to copy pages from */
+async function prepareSource(d,opt){
+  const src={d};
+  try{ src.lib=await loadLib(d); }
+  catch(err){ console.warn('cannot copy pages from this file; they will be saved as pictures',err); src.raster=true; return src; }
+  const lib=src.lib, ctx=lib.context;
+  src.pages=lib.getPages();
+  if(d.wyRefs&&d.wyRefs.size) for(const pg of src.pages){            // this app's own markup: written again from the editable copy
+    const arr=pg.node.Annots(); if(!arr) continue;
+    const keep=arr.asArray().filter(r=>!(r instanceof PDFLib.PDFRef&&d.wyRefs.has(refKey(r))));
+    if(keep.length!==arr.size()) pg.node.set(PN('Annots'),ctx.obj(keep));
+  }
+  if(d.formVals&&d.formVals.size) await applyFormValues(lib,d);
+  if(opt.flatten) flattenForm(lib);
+  await lib.flush();
+  return src;
+}
+async function prepareSources(list,opt={}){
+  const m=new Map();
+  for(const di of new Set(list.map(p=>p.doc))) m.set(di,await prepareSource(docs[di],opt));
+  return m;
+}
+async function rasterPage(out,p){                       // last resort for a file pdf-lib cannot read
+  const page=await docs[p.doc].pdf.getPage(p.srcIndex+1), d=dispSize(p);
+  const scale=Math.min(200/72,Math.sqrt(30e6/(d.w*d.h))), vp=page.getViewport({scale, rotation:totalRot(p)});
+  const cv=document.createElement('canvas'); cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
+  const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+  await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
+  c.setTransform(scale,0,0,scale,0,0); drawFormVals(c,p);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.9)); cv.width=cv.height=0;
+  const img=await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+  const pg=out.addPage([d.w,d.h]); pg.drawImage(img,{x:0,y:0,width:d.w,height:d.h});
+  return pg;
+}
+async function assemble(list,srcs,opt={}){
+  const out=await PDFLib.PDFDocument.create(), ctx=out.context;
+  const W={out,ctx,embedded:new Map(),author:userName||'WY Pdf Box',now:pdfDate(),count:0,_ocg:null,R:0};
+  W.ocg=()=>W._ocg||(W._ocg=ctx.register(ctx.obj({Type:'OCG',Name:txt(WY_OCG)})));
+  for(const s of srcs.values()){ if(s.raster) continue; s.copier=PDFLib.PDFObjectCopier.for(s.lib.context,ctx); s.first=new Map(); s.used=new Set(); }
+  for(const p of list){                               // each kept page gets its place first, so links and bookmarks find it
+    const s=srcs.get(p.doc); if(s.raster||s.first.has(p.srcIndex)||!s.pages[p.srcIndex]) continue;
+    const r=ctx.nextRef(); s.first.set(p.srcIndex,r); s.copier.traversedObjects.set(s.pages[p.srcIndex].ref,r);
+  }
+  for(const s of srcs.values()) if(!s.raster) s.pages.forEach((pg,i)=>{ if(!s.first.has(i)) s.copier.traversedObjects.set(pg.ref,PDFLib.PDFNull); });
+  const outPages=[];
+  for(let i=0;i<list.length;i++){
+    const p=list[i], s=srcs.get(p.doc);
+    if(opt.progress) opt.progress(i,list.length);
+    let pg, A, R=totalRot(p);
+    if(s.raster||!s.pages[p.srcIndex]){ pg=await rasterPage(out,p); R=0; A=[1,0,0,-1,0,dispSize(p).h]; }
+    else{
+      const node=s.copier.copy(s.pages[p.srcIndex].node);
+      let ref=s.first.get(p.srcIndex); if(s.used.has(ref)) ref=ctx.nextRef(); s.used.add(ref);
+      ctx.assign(ref,node); pg=PDFLib.PDFPage.of(node,ref,out); out.addPage(pg);
+      pg.setRotation(PDFLib.degrees(R));
+      const ann=node.Annots(); node.set(PN('Annots'),ctx.obj(ann?ann.asArray():[]));   // a list of its own
+      A=await affineFor(docs[p.doc],p.srcIndex,R);
+    }
+    outPages.push(pg); W.R=R;
+    if(opt.flatten) await flattenMarks(W,pg,p,A);
+    else for(const a of p.annots){ try{ await writeMark(W,pg,A,a); }catch(err){ console.error('markup',a.type,err); } }
+  }
+  finishDoc(W,srcs,outPages);
+  return out.save({updateFieldAppearances:false});
+}
+function finishDoc(W,srcs,outPages){
+  const {out,ctx}=W, live=[...srcs.values()].filter(s=>!s.raster);
+  /* form fields: the copied widgets' top fields */
+  const roots=[], seen=new Set();
+  for(const pg of outPages){
+    const arr=pg.node.Annots(); if(!arr) continue;
+    for(const r of arr.asArray()){
+      const dict=ctx.lookup(r); if(!(dict instanceof PDFLib.PDFDict)||dict.lookup(PN('Subtype'))!==PN('Widget')) continue;
+      let ref=r, dd=dict;
+      for(let k=0;k<32;k++){ const par=dd.get(PN('Parent')); if(!(par instanceof PDFLib.PDFRef)) break; const nd=ctx.lookup(par); if(!(nd instanceof PDFLib.PDFDict)) break; ref=par; dd=nd; }
+      if(ref instanceof PDFLib.PDFRef&&!seen.has(ref)){ seen.add(ref); roots.push(ref); }
+    }
+  }
+  if(roots.length){
+    const af={Fields:roots};
+    for(const s of live){ const saf=s.lib.catalog.lookupMaybe(PN('AcroForm'),PDFLib.PDFDict); if(!saf) continue;
+      if(!af.DR&&saf.get(PN('DR'))) af.DR=s.copier.copy(saf.get(PN('DR')));
+      if(!af.DA&&saf.get(PN('DA'))) af.DA=s.copier.copy(saf.get(PN('DA'))); }
+    out.catalog.set(PN('AcroForm'),ctx.obj(af));
+  }
+  /* bookmarks: each file's tree, joined; entries whose page was not kept are dropped */
+  const trees=[];
+  for(const s of live){ const ol=s.lib.catalog.get(PN('Outlines')); if(ol instanceof PDFLib.PDFRef&&s.lib.context.lookup(ol) instanceof PDFLib.PDFDict) trees.push(s.copier.copy(ol)); }
+  if(trees.length) try{ const root=joinOutlines(ctx,trees); if(root) out.catalog.set(PN('Outlines'),root); }catch(e){ console.warn('outline',e); }
+  /* named destinations (used by links and bookmarks) */
+  for(const s of live){
+    const names=s.lib.catalog.lookupMaybe(PN('Names'),PDFLib.PDFDict), dests=names&&names.get(PN('Dests'));
+    if(dests){ out.catalog.set(PN('Names'),ctx.obj({Dests:s.copier.copy(dests)})); break; }
+  }
+  for(const s of live){ const dd=s.lib.catalog.get(PN('Dests')); if(dd){ out.catalog.set(PN('Dests'),s.copier.copy(dd)); break; } }
+  /* layers: keep the files' own, add this app's markup layer (on, not listed for users) */
+  const ocgs=[], on=[], off=[], order=[];
+  for(const s of live){
+    const oc=s.lib.catalog.lookupMaybe(PN('OCProperties'),PDFLib.PDFDict); if(!oc) continue;
+    const c=s.copier.copy(oc), arr=(k,dict)=>{ const v=dict&&dict.lookup(PN(k)); return v instanceof PDFLib.PDFArray?v.asArray():[]; };
+    const D=c.lookup(PN('D')); ocgs.push(...arr('OCGs',c)); on.push(...arr('ON',D)); off.push(...arr('OFF',D)); order.push(...arr('Order',D));
+  }
+  if(W._ocg){ ocgs.push(W._ocg); on.push(W._ocg); }
+  if(ocgs.length) out.catalog.set(PN('OCProperties'),ctx.obj({OCGs:ocgs,D:{Name:txt('Default'),BaseState:'ON',ON:on,OFF:off,Order:order}}));
+  /* document info */
+  const first=live[0];
+  if(first){ try{ const t=first.lib.getTitle(); if(t) out.setTitle(t); }catch(e){}
+    for(const k of ['PageLayout','PageMode']){ const v=first.lib.catalog.get(PN(k)); if(v instanceof PDFLib.PDFName) out.catalog.set(PN(k),v); } }
+  out.setCreator('WY Pdf Box'); out.setProducer(`WY Pdf Box ${APP_VERSION} (pdf-lib)`);
+  if(W.count) out.getInfoDict().set(PN('WYPdfBox'),PDFLib.PDFString.of('3'));
+}
+/* join copied outline trees under one root; drop entries that point at pages not in the file */
+function joinOutlines(ctx,trees){
+  const L=r=>ctx.lookup(r);
+  const deadDest=it=>{
+    let dst=it.lookup(PN('Dest'));
+    if(!dst){ const a=it.lookup(PN('A')); if(a instanceof PDFLib.PDFDict&&a.lookup(PN('S'))===PN('GoTo')) dst=a.lookup(PN('D')); else return false; }
+    return dst instanceof PDFLib.PDFArray&&(dst.size()===0||dst.get(0)===PDFLib.PDFNull);
+  };
+  const visited=new Set();
+  const kidsOf=parentDict=>{ const out=[], seen=new Set(); let r=parentDict.get(PN('First'));
+    while(r instanceof PDFLib.PDFRef&&!seen.has(r)&&L(r) instanceof PDFLib.PDFDict){ seen.add(r); out.push(r); r=L(r).get(PN('Next')); } return out; };
+  const relink=(parentRef,parentDict,kids)=>{       // rebuild a sibling chain; returns the visible count below
+    kids.forEach((r,i)=>{ const it=L(r); it.set(PN('Parent'),parentRef);
+      if(i) it.set(PN('Prev'),kids[i-1]); else it.delete(PN('Prev'));
+      if(i<kids.length-1) it.set(PN('Next'),kids[i+1]); else it.delete(PN('Next')); });
+    if(kids.length){ parentDict.set(PN('First'),kids[0]); parentDict.set(PN('Last'),kids[kids.length-1]); }
+    else { parentDict.delete(PN('First')); parentDict.delete(PN('Last')); }
+  };
+  const prune=(ref)=>{                                 // returns visible descendants count
+    const dict=L(ref); let kids=kidsOf(dict).filter(r=>!visited.has(r)); kids.forEach(r=>visited.add(r));
+    const counts=new Map();
+    kids=kids.filter(r=>{ const n=prune(r), it=L(r); counts.set(r,n); return !(deadDest(it)&&!it.get(PN('First'))); });
+    relink(ref,dict,kids);
+    let vis=0; for(const r of kids){ vis++; const it=L(r), c=it.lookup(PN('Count')); const open=c instanceof PDFLib.PDFNumber&&c.asNumber()>0;
+      if(it.get(PN('First'))){ it.set(PN('Count'),PDFLib.PDFNumber.of(open?counts.get(r):-kidsOf(it).length)); if(open) vis+=counts.get(r); } else it.delete(PN('Count')); }
+    return vis;
+  };
+  const root=ctx.register(ctx.obj({Type:'Outlines'})), rootDict=L(root), tops=[];
+  for(const t of trees){ const d=L(t); if(d instanceof PDFLib.PDFDict) tops.push(...kidsOf(d)); }
+  rootDict.set(PN('First'),tops[0]||PDFLib.PDFNull);
+  relink(root,rootDict,tops);
+  const n=prune(root);
+  if(!rootDict.get(PN('First'))) return null;
+  rootDict.set(PN('Count'),PDFLib.PDFNumber.of(n));
+  return root;
+}
+async function buildPdf(list,opt={}){
+  await marksReady(list);
+  return assemble(list,await prepareSources(list,opt),opt);
+}
+
+/* ---------------- opening a file saved here: the markup comes back as editable objects ---------------- */
+async function ownLayerOff(pdf){
+  try{
+    const cfg=await pdf.getOptionalContentConfig(), gs=cfg.getGroups()||{}; let hit=false;
+    for(const [id,g] of Object.entries(gs)) if(g.name===WY_OCG){ cfg.setVisibility(id,false); hit=true; }
+    return hit?cfg:null;
+  }catch(e){ return null; }
+}
+async function xobjectFile(st){
+  const D=st.dict, F=D.lookup(PN('Filter')), Wd=D.lookup(PN('Width'))?.asNumber(), H=D.lookup(PN('Height'))?.asNumber();
+  if(F===PN('DCTDecode')) return new File([st.contents],'image.jpg',{type:'image/jpeg'});
+  if(F!==PN('FlateDecode')||!Wd||!H||D.get(PN('DecodeParms'))) return null;
+  if((D.lookup(PN('BitsPerComponent'))?.asNumber()||8)!==8) return null;
+  const cs=D.lookup(PN('ColorSpace')), nc=cs===PN('DeviceGray')?1:cs===PN('DeviceRGB')?3:0; if(!nc) return null;
+  const px=await inflate(st.contents); if(px.length<Wd*H*nc) return null;
+  let alpha=null; const sm=D.lookup(PN('SMask'));
+  if(sm instanceof PDFLib.PDFRawStream&&sm.dict.lookup(PN('Filter'))===PN('FlateDecode')){ const a=await inflate(sm.contents); if(a.length>=Wd*H) alpha=a; }
+  const im=new ImageData(Wd,H), o=im.data;
+  for(let i=0,j=0;i<Wd*H;i++,j+=nc){ const k=i*4; if(nc===3){ o[k]=px[j]; o[k+1]=px[j+1]; o[k+2]=px[j+2]; } else o[k]=o[k+1]=o[k+2]=px[j]; o[k+3]=alpha?alpha[i]:255; }
+  const cv=document.createElement('canvas'); cv.width=Wd; cv.height=H; cv.getContext('2d').putImageData(im,0,0);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png')); cv.width=cv.height=0;
+  return blob?new File([blob],'image.png',{type:'image/png'}):null;
+}
+async function imageFromAP(lib,dict){
+  const ap=dict.lookup(PN('AP')), n=ap instanceof PDFLib.PDFDict?ap.lookup(PN('N')):null;
+  if(!(n instanceof PDFLib.PDFRawStream)) return null;
+  const res=n.dict.lookup(PN('Resources')), xo=res instanceof PDFLib.PDFDict?res.lookup(PN('XObject')):null;
+  if(!(xo instanceof PDFLib.PDFDict)) return null;
+  for(const [,v] of xo.entries()){ const st=lib.context.lookup(v); if(st instanceof PDFLib.PDFRawStream){ const f=await xobjectFile(st); if(f) return storeImage(f); } }
+  return null;
+}
+async function restoreMarks(d,list){
+  let info=null; try{ info=(await d.pdf.getMetadata()).info; }catch(e){}
+  if(!info?.Custom?.WYPdfBox) return;
+  const occ=await ownLayerOff(d.pdf); if(!occ) return;
+  let lib; try{ lib=await loadLib(d); }catch(e){ console.warn('markup not restored',e); return; }
+  const lp=lib.getPages(), refs=new Set();
+  for(const p of list){
+    const arr=lp[p.srcIndex]?.node.Annots(); if(!arr) continue;
+    const Acache={};
+    for(const ref of arr.asArray()){
+      const dict=lib.context.lookup(ref);
+      if(!(dict instanceof PDFLib.PDFDict)||!dict.get(PN('WYBox'))) continue;
+      try{
+        const raw=dict.lookup(PN('WYData')); if(!raw) continue;
+        const pk=await unpackData(raw instanceof PDFLib.PDFHexString?raw.decodeText():raw.asString()), a=pk.a, R0=pk.R||0;
+        if(!a||!a.type) continue;
+        if(a.type==='img'){ const id=await imageFromAP(lib,dict); if(!id) continue; a.id=id; }
+        const rect=dict.lookup(PN('Rect'));
+        if(rect instanceof PDFLib.PDFArray&&Array.isArray(pk.r)){               // moved in another program? follow it
+          const R=rect.asArray().map(x=>x.asNumber()), dx=R[0]-pk.r[0], dy=R[1]-pk.r[1];
+          if(Math.abs((R[2]-R[0])-(pk.r[2]-pk.r[0]))<.5&&Math.abs((R[3]-R[1])-(pk.r[3]-pk.r[1]))<.5&&(Math.abs(dx)>.3||Math.abs(dy)>.3)){
+            const A=Acache[R0]||(Acache[R0]=await affineFor(d,p.srcIndex,R0)), det=A[0]*A[3]-A[1]*A[2];
+            moveFrom(a,geomOf(a),(A[3]*dx-A[2]*dy)/det,(-A[1]*dx+A[0]*dy)/det);
+          }
+        }
+        const turn=norm(totalRot(p)-R0);                // the page was turned elsewhere: turn the markup with it
+        if(turn){ const tmp={intrinsic:R0,rot:0,baseW:p.baseW,baseH:p.baseH,annots:[a]}; for(let k=0;k<turn/90;k++){ rotAnnots(tmp,true); tmp.rot+=90; } }
+        p.annots.push(a); refs.add(refKey(ref));
+      }catch(err){ console.warn('markup not restored',err); }
+    }
+  }
+  if(refs.size){ d.wyRefs=refs; d.occ=occ; }
 }
 
 /* ---------------- compress ---------------- */
@@ -3519,7 +4963,7 @@ async function fontsFor(list){
 }
 async function compressSave(dpi, q){
   try{
-    await fontsFor(pages);
+    await marksReady(pages);
     const out=await PDFLib.PDFDocument.create();
     for(let i=0;i<pages.length;i++){
       toast(`กำลังบีบอัด… หน้า ${i+1}/${pages.length}`);
@@ -3532,9 +4976,9 @@ async function compressSave(dpi, q){
       cv.width=Math.round(vp.width); cv.height=Math.round(vp.height);
       const c=cv.getContext('2d');
       c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
-      await page.render({canvasContext:c, viewport:vp}).promise;
+      await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
       c.setTransform(scale,0,0,scale,0,0);
-      drawAnnots(c,p.annots,true);
+      drawPageMarks(c,p);
       const img=await out.embedJpg(cv.toDataURL('image/jpeg', q));
       const d=dispSize(p);
       const pg=out.addPage([d.w, d.h]);
@@ -3558,6 +5002,7 @@ $('btnPrint').onclick=()=>startPrint();
 async function startPrint(){
   if(!pages.length) return;
   if(txtIn.style.display==='block') commitText();
+  if(fieldEd) commitField();
   const n=selected.size;
   const opts=[{label:`ทั้งไฟล์`, sub:`${pages.length} หน้า`, value:'all', primary:!n}];
   if(n) opts.push({label:'หน้าที่เลือก', sub:`${n} หน้า`, value:'sel', primary:true});
@@ -3567,7 +5012,7 @@ async function startPrint(){
   const list = which==='all'?pages : which==='sel'?pages.filter(p=>selected.has(p)) : [pages[current]];
   const root=$('printRoot'); root.replaceChildren();
   try{
-    await fontsFor(list);
+    await marksReady(list);
     for(let i=0;i<list.length;i++){
       toast(`กำลังเตรียมพิมพ์… ${i+1}/${list.length}`);
       const p=list[i], d=dispSize(p);
@@ -3576,8 +5021,8 @@ async function startPrint(){
       const vp=page.getViewport({scale, rotation:totalRot(p)});
       const cv=document.createElement('canvas'); cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
       const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
-      await page.render({canvasContext:c, viewport:vp}).promise;
-      c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots,true);
+      await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
+      c.setTransform(scale,0,0,scale,0,0); drawPageMarks(c,p);
       const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92)); cv.width=cv.height=0;
       const img=new Image(); img.src=URL.createObjectURL(blob); root.appendChild(img);
     }
@@ -3645,7 +5090,9 @@ const KEYS=[
           ['สลับแท็บ','Ctrl+Tab|Ctrl+PgDn'],['แท็บก่อนหน้า','Ctrl+Shift+Tab|Ctrl+PgUp']]],
   ['แก้ไข',[['ย้อนกลับ','Ctrl+Z'],['ทำซ้ำ','Ctrl+Y|Ctrl+Shift+Z'],['คัดลอกข้อความที่เลือก (ไม่มีที่เลือก = ทั้งหน้าเป็นรูป)','Ctrl+C'],['เลือกข้อความทั้งหน้า','Ctrl+A'],
           ['ค้นหาในไฟล์','Ctrl+F'],['ผลถัดไป / ก่อนหน้า','F3|Shift+F3'],['วางรูปจากคลิปบอร์ด','Ctrl+V'],['ยกเลิก / ปิดเมนู','Esc']]],
-  ['เครื่องมือ',[['มือ — เลื่อนดู','V'],['เลือก — ลากเลือกตัวหนังสือ, ย้าย/ย่อขยายของที่วาง','S'],['ปากกา','P'],['ไฮไลต์','H'],['ข้อความ','T'],['ยางลบ','E']]],
+  ['เครื่องมือ',[['มือ — เลื่อนดู กรอกฟอร์ม คลิกลิงก์','V'],['เลือก — ลากเลือกตัวหนังสือ, ย้าย/ย่อขยายของที่วาง','S'],['ปากกา','P'],['ไฮไลต์ (ปากกาเน้น)','H'],['ข้อความ','T'],['รูปทรง — เมฆแก้ไข สี่เหลี่ยม วงรี เส้น ลูกศร','R'],['ยางลบ','E']]],
+  ['รูปทรง · ตรา · ฟอร์ม',[['จัตุรัส / วงกลม / ล็อกมุมทีละ 15°','Shift+ลาก'],['จบเส้นหลายจุด','Enter|ดับเบิลคลิก'],['ลบจุดล่าสุดขณะวาด','Backspace'],['ยกเลิกการวาง / การวาดที่ค้าง','Esc'],
+          ['ไฮไลต์ ขีดเส้นใต้ ขีดฆ่า','เลือกตัวหนังสือ แล้วกดแถบที่ขึ้นมา'],['ช่องฟอร์มถัดไป / ก่อนหน้า','Tab|Shift+Tab'],['ตามลิงก์ในหน้า (เครื่องมือเลือก)','Ctrl+คลิก']]],
   ['รูปและข้อความที่เลือก',[['ลบ','Delete'],['ย้ายทีละนิด','← ↑ → ↓'],['ย้ายทีละมาก','Shift+ลูกศร'],['หมุน 15°','[ ]'],['หมุน 1°','Shift+[ ]'],['หมุน 90°','Ctrl+[ ]'],
           ['ย่อขยายไม่ล็อกสัดส่วน','Shift+ลากมุม'],['หมุนอิสระ','Shift+ลากจุดหมุน'],['ตั้งตรง 0°','ดับเบิลคลิกจุดหมุน'],['แก้ไขข้อความ','แตะข้อความที่เลือกอยู่'],['เลือกทั้งคำ / ทั้งบรรทัด','ดับเบิลคลิก|คลิก 3 ครั้ง'],['แท็บเล็ต: เลือกตัวหนังสือ','แตะค้าง แล้วลาก']]],
   ['หน้า',[['ไปหน้า…','Ctrl+G'],['หน้าถัดไป / ก่อนหน้า','PgDn|PgUp'],['หน้าแรก / หน้าสุดท้าย','Home|End']]],
@@ -3668,6 +5115,473 @@ function showKeys(){
 }
 $('btnKeys').onclick=showKeys;
 
+/* ---------------- stamps & signatures ----------------
+   Both become pictures placed on the page (move / resize / turn / delete like any picture) and are saved
+   as Stamp annotations. Stamps carry today's date (Thai calendar) and, if set, the reviewer's name.     */
+const STAMPS=[
+  {th:'อนุมัติ', en:'APPROVED', c:'#15803D'},
+  {th:'อนุมัติตามแก้ไข', en:'APPROVED AS NOTED', c:'#0E7490'},
+  {th:'แก้ไขแล้วส่งใหม่', en:'REVISE & RESUBMIT', c:'#C2410C'},
+  {th:'ไม่อนุมัติ', en:'REJECTED', c:'#B91C1C'},
+  {th:'ตรวจแล้ว', en:'CHECKED', c:'#1D4ED8'},
+  {th:'ร่าง', en:'DRAFT', c:'#6B7280'},
+  {th:'เพื่อทราบ', en:'FOR INFORMATION', c:'#7E22CE'},
+];
+const STAMP_COLORS=['#15803D','#0E7490','#1D4ED8','#7E22CE','#B91C1C','#C2410C','#A16207','#6B7280'];
+let stampOpts={date:true, name:true};
+try{ Object.assign(stampOpts, JSON.parse(localStorage.getItem('wy-stamp-opts')||'{}')); }catch(e){}
+const saveStampOpts=()=>{ try{ localStorage.setItem('wy-stamp-opts',JSON.stringify(stampOpts)); }catch(e){} };
+function customStamps(){ try{ const l=JSON.parse(localStorage.getItem('wy-stamps')||'[]'); return Array.isArray(l)?l.filter(s=>s&&s.th).slice(0,12):[]; }catch(e){ return []; } }
+function saveCustomStamps(l){ try{ localStorage.setItem('wy-stamps',JSON.stringify(l.slice(0,12))); }catch(e){} }
+const thaiDate=()=>new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+function stampCanvas(st){
+  const S=4, F=FONTS.sys.css;
+  const l1=st.th, l2=st.en||'', l3=[stampOpts.date?thaiDate():'', stampOpts.name&&userName?userName:''].filter(Boolean).join(' · ');
+  const m=document.createElement('canvas').getContext('2d');
+  const f1=`700 26px ${F}`, f2=`700 10.5px ${F}`, f3=`600 10px ${F}`;
+  m.font=f1; const w1=m.measureText(l1).width; m.font=f2; const w2=l2?m.measureText(l2).width+l2.length*1.2:0; m.font=f3; const w3=l3?m.measureText(l3).width:0;
+  const pad=13, W=Math.ceil(Math.max(w1,w2,w3,70)+pad*2), H=Math.ceil(pad+27+(l2?14:0)+(l3?18:0)+pad*.75);
+  const cv=document.createElement('canvas'); cv.width=W*S; cv.height=H*S;
+  const c=cv.getContext('2d'); c.scale(S,S);
+  c.strokeStyle=st.c; c.fillStyle=st.c; c.globalAlpha=.92;
+  const rr=(x,y,w,h,r)=>{ c.beginPath(); c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h); };
+  c.lineWidth=2.4; rr(1.4,1.4,W-2.8,H-2.8,7); c.stroke();
+  c.lineWidth=.8; rr(4.6,4.6,W-9.2,H-9.2,4.5); c.stroke();
+  c.textAlign='center'; c.textBaseline='alphabetic';
+  let y=pad+22; c.font=f1; c.fillText(l1,W/2,y);
+  if(l2){ y+=14; c.font=f2; if('letterSpacing' in c) c.letterSpacing='1.2px'; c.fillText(l2,W/2+(('letterSpacing' in c)?.6:0),y); if('letterSpacing' in c) c.letterSpacing='0px'; }
+  if(l3){ y+=6; c.lineWidth=.6; c.beginPath(); c.moveTo(pad-2,y); c.lineTo(W-pad+2,y); c.stroke(); y+=11.5; c.font=f3; c.fillText(l3,W/2,y); }
+  return {cv,w:W,h:H};
+}
+async function useStamp(st){
+  const {cv,w}=stampCanvas(st);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png')); cv.width=cv.height=0;
+  const id=await storeImage(new File([blob],'stamp.png',{type:'image/png'}));
+  armPlacing(id, w, {stamp:{th:st.th, en:st.en||'', c:st.c}}, `วางตรา "${st.th}" แล้ว — ลากย้าย, ลากมุมเพื่อย่อขยาย, จุดกลมด้านบนเพื่อหมุน`);
+}
+function promptText(title, note, value='', ph=''){
+  return new Promise(res=>{
+    const d=document.createElement('div'); d.className='dlg';
+    d.innerHTML=`<div class="box" role="dialog"><b></b><span class="note"></span>
+      <div class="fRow"><input type="text" maxlength="60" spellcheck="false"></div>
+      <div class="bkBtns"><button class="btn link" data-v="0">ยกเลิก</button><button class="btn primary" data-v="1">ตกลง</button></div></div>`;
+    d.querySelector('b').textContent=title; d.querySelector('.note').textContent=note;
+    const inp=d.querySelector('input'); inp.value=value; inp.placeholder=ph;
+    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
+    const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(null); } else if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); done(inp.value.trim()); } };
+    d.querySelector('[data-v="0"]').onclick=()=>done(null);
+    d.querySelector('[data-v="1"]').onclick=()=>done(inp.value.trim());
+    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(d); inp.focus(); inp.select();
+  });
+}
+async function askUserName(){
+  const v=await promptText('ชื่อผู้ตรวจ / ผู้แก้ไข','แสดงบนตราประทับต่อท้ายวันที่ และบันทึกเป็นชื่อผู้แก้ไขในไฟล์ (เห็นใน Acrobat / PDF-XChange)',userName,'เช่น วีระชัย ย.');
+  if(v==null) return;
+  userName=v.slice(0,60); saveSettings();
+  toast(userName?`ตั้งชื่อเป็น "${userName}" แล้ว`:'ลบชื่อแล้ว');
+}
+function customStampDialog(){
+  const d=document.createElement('div'); d.className='dlg';
+  d.innerHTML=`<div class="box wide" role="dialog" aria-label="สร้างตราประทับ"><b>สร้างตราประทับเอง</b>
+    <div class="fRow"><label>ข้อความหลัก</label><input type="text" data-k="th" maxlength="40" placeholder="เช่น ตรวจรับงานแล้ว"></div>
+    <div class="fRow"><label>ข้อความรอง (ไม่ใส่ก็ได้)</label><input type="text" data-k="en" maxlength="40" placeholder="เช่น ACCEPTED"></div>
+    <div class="fRow"><label>สี</label><div class="sigTools" data-k="clr"></div></div>
+    <div class="stampPv"><img alt=""></div>
+    <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">บันทึกและใช้</button></div></div>`;
+  let c=STAMP_COLORS[0];
+  const th=d.querySelector('[data-k=th]'), en=d.querySelector('[data-k=en]'), img=d.querySelector('.stampPv img'), row=d.querySelector('[data-k=clr]');
+  const pv=()=>{ const {cv}=stampCanvas({th:th.value.trim()||'ตัวอย่าง', en:en.value.trim(), c}); img.src=cv.toDataURL(); cv.width=cv.height=0; };
+  for(const k of STAMP_COLORS){ const b=document.createElement('button'); b.className='dotc'+(k===c?' on':''); b.style.background=k;
+    b.onclick=()=>{ c=k; row.querySelectorAll('.dotc').forEach(x=>x.classList.toggle('on',x===b)); pv(); }; row.appendChild(b); }
+  th.oninput=en.oninput=pv;
+  const done=()=>{ d.remove(); document.removeEventListener('keydown',key,true); };
+  const ok=()=>{ const st={th:th.value.trim(), en:en.value.trim(), c}; if(!st.th){ th.focus(); return; }
+    saveCustomStamps([st,...customStamps().filter(x=>x.th!==st.th)]); done(); useStamp(st); };
+  const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(); } else if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); ok(); } };
+  d.querySelector('[data-act=cancel]').onclick=done; d.querySelector('[data-act=ok]').onclick=ok;
+  d.addEventListener('pointerdown',e=>{ if(e.target===d) done(); });
+  document.addEventListener('keydown',key,true);
+  document.body.appendChild(d); pv(); th.focus();
+}
+$('btnStamp').onclick=e=>{
+  e.stopPropagation();
+  if(!pages.length){ toast('เปิดไฟล์ก่อน แล้วค่อยวางตราประทับ'); return; }
+  const custom=customStamps(), items=[{head:'เลือกตรา แล้วคลิกบนหน้าตรงที่จะวาง'}];
+  for(const st of [...STAMPS,...custom]) items.push({label:st.th, sub:st.en, color:st.c, action:()=>useStamp(st)});
+  items.push({sep:true},
+    {label:'สร้างตราประทับเอง…', action:customStampDialog},
+    ...(custom.length?[{label:'ลบตราที่สร้างเอง…', action:async()=>{
+      const pick=await ask('ลบตราประทับที่สร้างเอง','',[...custom.map(s=>({label:s.th, sub:s.en, value:s})),{label:'ปิด', value:null, link:true}]);
+      if(pick){ saveCustomStamps(customStamps().filter(x=>x.th!==pick.th)); toast(`ลบตรา "${pick.th}" แล้ว`); } }}]:[]),
+    {sep:true},
+    {label:'ใส่วันที่บนตรา', checked:stampOpts.date, action:()=>{ stampOpts.date=!stampOpts.date; saveStampOpts(); }},
+    {label:'ใส่ชื่อบนตรา', sub:userName?userName:'ยังไม่ได้ตั้งชื่อ', checked:stampOpts.name&&!!userName, action:()=>{ if(!userName) askUserName(); else { stampOpts.name=!stampOpts.name; saveStampOpts(); } }},
+    {label:'ตั้งชื่อผู้ตรวจ…', action:askUserName});
+  showMenu($('btnStamp'),items);
+};
+
+/* signatures: drawn on a pad (mouse, pen or finger) or imported from a picture, kept in this browser */
+async function getSigs(){ const l=await idb.get('sigs'); return Array.isArray(l)?l:[]; }
+async function addSig(bytes,w,h){ const l=await getSigs(); l.unshift({id:'sg'+Date.now().toString(36), bytes, w, h, t:Date.now()}); await idb.set('sigs',l.slice(0,12)); }
+async function useSig(s){
+  const id=await storeImage(new File([s.bytes],'signature.png',{type:'image/png'}));
+  armPlacing(id, 150, {sig:true}, 'วางลายเซ็นแล้ว — ลากมุมเพื่อปรับขนาด, ลากเพื่อย้าย');
+}
+let sigUrls=[];
+$('btnSign').onclick=async e=>{
+  e.stopPropagation();
+  if(!pages.length){ toast('เปิดไฟล์ก่อน แล้วค่อยเซ็น'); return; }
+  const sigs=await getSigs(), items=[];
+  sigUrls.forEach(u=>URL.revokeObjectURL(u)); sigUrls=[];
+  if(sigs.length){
+    items.push({head:'ลายเซ็นที่บันทึกไว้ — คลิกเลือก แล้วคลิกบนหน้า'});
+    for(const s of sigs){ const u=URL.createObjectURL(new Blob([s.bytes],{type:'image/png'})); sigUrls.push(u); items.push({label:'', img:u, action:()=>useSig(s)}); }
+    items.push({sep:true});
+  }
+  items.push({label:'เซ็นใหม่…', sub:'วาดด้วยเมาส์ ปากกา หรือนิ้ว · หรือนำเข้ารูปลายเซ็น', action:sigDialog});
+  if(sigs.length) items.push({label:'ลบลายเซ็นที่บันทึกไว้…', action:async()=>{
+    const l=await getSigs(); const urls=l.map(s=>URL.createObjectURL(new Blob([s.bytes],{type:'image/png'})));
+    const pick=await ask('ลบลายเซ็น','เลือกลายเซ็นที่จะลบออกจากเครื่องนี้',[...l.map((s,i)=>({label:`ลายเซ็น ${i+1}`, sub:new Date(s.t).toLocaleDateString('th-TH'), value:s.id})),{label:'ปิด', value:null, link:true}]);
+    urls.forEach(u=>URL.revokeObjectURL(u));
+    if(pick){ await idb.set('sigs',l.filter(s=>s.id!==pick)); toast('ลบลายเซ็นแล้ว'); } }});
+  showMenu($('btnSign'),items);
+};
+function trimAlpha(cv,margin=6){
+  const c=cv.getContext('2d'), {width:W,height:H}=cv, px=c.getImageData(0,0,W,H).data;
+  let x0=W, y0=H, x1=-1, y1=-1;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(px[(y*W+x)*4+3]>10){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1<0) return null;
+  x0=Math.max(0,x0-margin); y0=Math.max(0,y0-margin); x1=Math.min(W-1,x1+margin); y1=Math.min(H-1,y1+margin);
+  const out=document.createElement('canvas'); out.width=x1-x0+1; out.height=y1-y0+1;
+  out.getContext('2d').drawImage(cv,x0,y0,out.width,out.height,0,0,out.width,out.height);
+  return out;
+}
+function sigDialog(){
+  const d=document.createElement('div'); d.className='dlg';
+  d.innerHTML=`<div class="box wide" role="dialog" aria-label="ลายเซ็น"><b>ลายเซ็น</b>
+    <span class="note">เซ็นในกรอบด้วยเมาส์ ปากกา หรือนิ้ว — หรือนำเข้ารูปลายเซ็นที่ถ่าย/สแกนไว้ (พื้นขาวจะถูกลบออกให้)</span>
+    <canvas class="sigPad"></canvas>
+    <div class="sigTools"><span class="fHint">สีหมึก</span>
+      <button class="dotc on" data-c="#111827" style="background:#111827" title="ดำ"></button>
+      <button class="dotc" data-c="#1D4ED8" style="background:#1D4ED8" title="น้ำเงิน"></button>
+      <span class="spacer"></span><button class="btn" data-act="import">นำเข้ารูป…</button><button class="btn" data-act="clear">ล้าง</button></div>
+    <label class="fInline"><input type="checkbox" data-act="keep" checked> บันทึกไว้ใช้ครั้งต่อไป (เก็บในเครื่องนี้เท่านั้น)</label>
+    <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok" disabled>ใช้ลายเซ็นนี้</button></div></div>`;
+  document.body.appendChild(d);
+  const cv=d.querySelector('canvas'), K=2;
+  cv.width=Math.round(cv.clientWidth*K); cv.height=Math.round(cv.clientHeight*K);
+  const c=cv.getContext('2d'); c.scale(K,K); c.lineCap='round'; c.lineJoin='round';
+  let ink='#111827', strokes=[], cur=null, imported=null;
+  const okBtn=d.querySelector('[data-act=ok]');
+  const paint=()=>{
+    c.clearRect(0,0,cv.width,cv.height);
+    if(imported){ const s=Math.min(cv.clientWidth/imported.width,cv.clientHeight/imported.height)*.9, w=imported.width*s, h=imported.height*s;
+      c.drawImage(imported,(cv.clientWidth-w)/2,(cv.clientHeight-h)/2,w,h); }
+    for(const st of strokes){
+      c.strokeStyle=st.c; c.fillStyle=st.c;
+      if(st.p.length===1){ c.beginPath(); c.arc(st.p[0].x,st.p[0].y,1.4,0,7); c.fill(); continue; }
+      for(let i=1;i<st.p.length;i++){ const a=st.p[i-1], b=st.p[i]; c.lineWidth=1.2+2.2*(b.f??.5);
+        c.beginPath(); c.moveTo(a.x,a.y); const m=i<st.p.length-1?{x:(b.x+st.p[i+1].x)/2,y:(b.y+st.p[i+1].y)/2}:b; c.quadraticCurveTo(b.x,b.y,m.x,m.y); c.stroke(); }
+    }
+    okBtn.disabled=!strokes.length&&!imported;
+  };
+  const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top, f:e.pointerType==='pen'&&e.pressure?e.pressure:.5}; };
+  cv.addEventListener('pointerdown',e=>{ e.preventDefault(); cv.setPointerCapture(e.pointerId); cur={c:ink,p:[pt(e)]}; strokes.push(cur); paint(); });
+  cv.addEventListener('pointermove',e=>{ if(!cur) return; const q=pt(e), l=cur.p[cur.p.length-1]; if(Math.hypot(q.x-l.x,q.y-l.y)>1.2){ cur.p.push(q); paint(); } });
+  const up=()=>{ cur=null; }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  d.querySelectorAll('.dotc').forEach(b=>b.onclick=()=>{ ink=b.dataset.c; d.querySelectorAll('.dotc').forEach(x=>x.classList.toggle('on',x===b));
+    strokes.forEach(s=>s.c=ink); paint(); });
+  d.querySelector('[data-act=clear]').onclick=()=>{ strokes=[]; imported=null; paint(); };
+  d.querySelector('[data-act=import]').onclick=async()=>{
+    const fs=await pickImages(); if(!fs.length) return;
+    try{
+      const bm=await createImageBitmap(fs[0],{imageOrientation:'from-image'}), k=Math.min(1,1600/Math.max(bm.width,bm.height));
+      const t=document.createElement('canvas'); t.width=Math.round(bm.width*k); t.height=Math.round(bm.height*k);
+      const tc=t.getContext('2d',{willReadFrequently:true}); tc.drawImage(bm,0,0,t.width,t.height); bm.close();
+      const im=tc.getImageData(0,0,t.width,t.height), px=im.data;
+      for(let i=0;i<px.length;i+=4){                    // paper -> transparent, ink kept (soft edge)
+        const L=.299*px[i]+.587*px[i+1]+.114*px[i+2];
+        px[i+3]=Math.round(px[i+3]*(L>=225?0:L<=150?1:(225-L)/75));
+      }
+      tc.putImageData(im,0,0);
+      imported=trimAlpha(t,4)||null; strokes=[]; paint();
+      if(!imported) toast('ไม่พบลายเซ็นในรูป — ลองรูปที่เซ็นด้วยหมึกเข้มบนกระดาษขาว');
+    }catch(err){ console.error(err); toast('นำเข้ารูปไม่สำเร็จ'); }
+  };
+  const done=()=>{ d.remove(); document.removeEventListener('keydown',key,true); };
+  const ok=async()=>{
+    if(okBtn.disabled) return;
+    const full=document.createElement('canvas'); full.width=cv.width; full.height=cv.height;
+    full.getContext('2d').drawImage(cv,0,0);
+    const t=trimAlpha(full,6); full.width=full.height=0;
+    if(!t){ toast('ยังไม่มีลายเซ็นในกรอบ'); return; }
+    const blob=await new Promise(r=>t.toBlob(r,'image/png')), bytes=new Uint8Array(await blob.arrayBuffer());
+    if(d.querySelector('[data-act=keep]').checked) await addSig(bytes,t.width,t.height);
+    t.width=t.height=0; done();
+    useSig({bytes,w:0,h:0});
+  };
+  const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(); } };
+  d.querySelector('[data-act=cancel]').onclick=done; okBtn.onclick=ok;
+  document.addEventListener('keydown',key,true);
+  paint();
+}
+
+/* ---------------- export pages as pictures · split · merge ---------------- */
+const canDir='showDirectoryPicker' in window;
+const CRC_T=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u){ let c=0xFFFFFFFF; for(let i=0;i<u.length;i++) c=CRC_T[(c^u[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+/* a plain (stored) zip: pictures and PDFs are already compressed */
+function makeZip(files){
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  const now=new Date(), dt=((now.getFullYear()-1980)<<25)|((now.getMonth()+1)<<21)|(now.getDate()<<16)|(now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+  for(const f of files){
+    const name=enc.encode(f.name), crc=crc32(f.data), n=f.data.length;
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true);
+    h.setUint32(10,dt,true); h.setUint32(14,crc,true); h.setUint32(18,n,true); h.setUint32(22,n,true); h.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(h.buffer),name,f.data);
+    const c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(10,0,true);
+    c.setUint32(12,dt,true); c.setUint32(16,crc,true); c.setUint32(20,n,true); c.setUint32(24,n,true); c.setUint16(28,name.length,true); c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),name);
+    off+=30+name.length+n;
+  }
+  const csize=central.reduce((s,u)=>s+u.length,0), e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,csize,true); e.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(e.buffer)],{type:'application/zip'});
+}
+/* "1-3, 5, 8-" -> page indexes (0-based); null when it does not make sense */
+function parseRanges(s,max){
+  const out=[]; s=String(s).replace(/\s+/g,'');
+  if(!s) return null;
+  for(const part of s.split(/[,;]+/)){
+    if(!part) continue;
+    const m=/^(\d*)(?:([-–])(\d*))?$/.exec(part); if(!m) return null;
+    let a=m[1]?+m[1]:1, b=m[2]?(m[3]?+m[3]:max):a;
+    if(!m[1]&&!m[2]) return null;
+    if(a<1||b>max||a>b) return null;
+    out.push([a-1,b-1]);
+  }
+  return out.length?out:null;
+}
+const pad3=(i,n)=>String(i).padStart(Math.max(2,String(n).length),'0');
+const safeName=s=>String(s).replace(/[\\/:*?"<>|]+/g,'_').trim()||'document';
+/* where several files go: a new folder in a folder you pick (Chrome/Edge), else one .zip download */
+async function writeMany(files, folderName, zipName){
+  if(canDir){
+    let root; try{ root=await showDirectoryPicker({id:'wy-export', mode:'readwrite'}); }
+    catch(e){ if(e.name!=='AbortError') console.error(e); return false; }
+    let dir=root, name=safeName(folderName);
+    for(let k=2;k<50;k++){ try{ await root.getDirectoryHandle(name); name=`${safeName(folderName)} (${k})`; }catch(e){ break; } }
+    dir=await root.getDirectoryHandle(name,{create:true});
+    for(const f of files){ const h=await dir.getFileHandle(f.name,{create:true}); await writeHandle(h,f.data); }
+    return `โฟลเดอร์ "${name}"`;
+  }
+  downloadBlob(makeZip(files), zipName);
+  return `ไฟล์ ${zipName} (โฟลเดอร์ดาวน์โหลด)`;
+}
+/* a small dialog kit: segmented choices + fields */
+function segPick(box,k,v){ box.querySelectorAll(`.seg[data-k="${k}"] button`).forEach(b=>b.classList.toggle('on',b.dataset.v===String(v))); }
+function segVal(box,k){ return box.querySelector(`.seg[data-k="${k}"] button.on`)?.dataset.v; }
+function openDialog(html, setup){
+  return new Promise(res=>{
+    const d=document.createElement('div'); d.className='dlg'; d.innerHTML=html;
+    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
+    const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(null); }
+      else if(e.key==='Enter'&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='TEXTAREA'){ e.preventDefault(); e.stopPropagation(); d.querySelector('[data-act=ok]')?.click(); } };
+    d.querySelectorAll('.seg').forEach(sg=>sg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; segPick(d,sg.dataset.k,b.dataset.v); d.dispatchEvent(new Event('change')); }));
+    d.querySelector('[data-act=cancel]')?.addEventListener('click',()=>done(null));
+    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(d);
+    setup(d,done);
+  });
+}
+/* which pages: all · selected · current · a typed range */
+function pagesPartHtml(){
+  const n=selected.size;
+  return `<div class="fRow"><label>หน้า</label><div class="seg" data-k="which">
+      <button data-v="all">ทั้งไฟล์ (${pages.length})</button><button data-v="sel"${n?'':' disabled'}>ที่เลือก (${n})</button>
+      <button data-v="cur">หน้านี้ (${current+1})</button><button data-v="range">ระบุหน้า</button></div>
+    <input type="text" data-k="range" placeholder="เช่น 1-3, 5, 8-10" hidden spellcheck="false"></div>`;
+}
+function pagesFrom(d){
+  const w=segVal(d,'which');
+  if(w==='sel') return pages.filter(p=>selected.has(p));
+  if(w==='cur') return [pages[current]];
+  if(w==='range'){ const r=parseRanges(d.querySelector('[data-k=range]').value,pages.length); return r?r.flatMap(([a,b])=>pages.slice(a,b+1)):null; }
+  return [...pages];
+}
+async function renderPagePicture(p,dpi,fmt){
+  const d=dispSize(p), want=dpi/72;
+  const scale=Math.min(want,16000/Math.max(d.w,d.h),Math.sqrt(60e6/(d.w*d.h)));
+  const page=await docs[p.doc].pdf.getPage(p.srcIndex+1), vp=page.getViewport({scale, rotation:totalRot(p)});
+  const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.floor(vp.width)); cv.height=Math.max(1,Math.floor(vp.height));
+  const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+  await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
+  c.setTransform(scale,0,0,scale,0,0); drawPageMarks(c,p);
+  const blob=await new Promise(r=>cv.toBlob(r,fmt==='png'?'image/png':'image/jpeg',.92)); cv.width=cv.height=0;
+  return {data:new Uint8Array(await blob.arrayBuffer()), reduced:scale<want-1e-6};
+}
+let exportPref={fmt:'png', dpi:'150'};
+try{ Object.assign(exportPref, JSON.parse(localStorage.getItem('wy-export')||'{}')); }catch(e){}
+async function exportImagesDialog(preset){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText(); if(fieldEd) commitField();
+  const r=await openDialog(`<div class="box wide" role="dialog" aria-label="ส่งออกเป็นรูปภาพ"><b>ส่งออกหน้าเป็นรูปภาพ</b>
+      ${pagesPartHtml()}
+      <div class="fRow"><label>ชนิดไฟล์</label><div class="seg" data-k="fmt"><button data-v="png">PNG — คมชัด เหมาะกับแบบ/ตัวหนังสือ</button><button data-v="jpg">JPG — ไฟล์เล็ก</button></div></div>
+      <div class="fRow"><label>ความละเอียด</label><div class="seg" data-k="dpi"><button data-v="96">96 dpi</button><button data-v="150">150 dpi</button><button data-v="200">200 dpi</button><button data-v="300">300 dpi</button></div></div>
+      <span class="fHint" data-k="hint"></span><span class="fErr" data-k="err" hidden>ช่วงหน้าไม่ถูกต้อง — ใช้รูปแบบ 1-3, 5, 8-10</span>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">ส่งออก</button></div></div>`,
+    (d,done)=>{
+      segPick(d,'which',preset||(selected.size?'sel':'all')); segPick(d,'fmt',exportPref.fmt); segPick(d,'dpi',exportPref.dpi);
+      const rng=d.querySelector('[data-k=range]'), hint=d.querySelector('[data-k=hint]'), err=d.querySelector('[data-k=err]');
+      const upd=()=>{ rng.hidden=segVal(d,'which')!=='range'; const l=pagesFrom(d); err.hidden=!!l||rng.hidden;
+        hint.textContent=!l?'':l.length===1?'บันทึกเป็นรูปเดียว':canDir?`${l.length} รูป — เลือกโฟลเดอร์ แล้วจะสร้างโฟลเดอร์ใหม่ไว้เก็บรูปให้`:`${l.length} รูป — ดาวน์โหลดรวมเป็นไฟล์ .zip`; };
+      d.addEventListener('change',()=>{ upd(); if(segVal(d,'which')==='range') rng.focus(); }); rng.addEventListener('input',upd); upd();
+      d.querySelector('[data-act=ok]').onclick=()=>{ const l=pagesFrom(d); if(!l||!l.length){ err.hidden=false; rng.focus(); return; } done({list:l, fmt:segVal(d,'fmt'), dpi:+segVal(d,'dpi')}); };
+    });
+  if(!r) return;
+  exportPref={fmt:r.fmt, dpi:String(r.dpi)}; try{ localStorage.setItem('wy-export',JSON.stringify(exportPref)); }catch(e){}
+  const ext=r.fmt==='png'?'png':'jpg', files=[]; let reduced=false;
+  try{
+    await marksReady(r.list);
+    for(let i=0;i<r.list.length;i++){
+      toast(`กำลังสร้างรูป… ${i+1}/${r.list.length}`);
+      const p=r.list[i], pr=await renderPagePicture(p,r.dpi,r.fmt); reduced=reduced||pr.reduced;
+      files.push({name:`${safeName(baseName)}-p${pad3(pages.indexOf(p)+1,pages.length)}.${ext}`, data:pr.data});
+    }
+    const note=reduced?' (หน้าใหญ่มากถูกลดความละเอียดลงให้พอดีกับหน่วยความจำ)':'';
+    if(files.length===1){
+      const f=files[0];
+      if(canFS){ let h; try{ h=await showSaveFilePicker({id:'wy-export-one', suggestedName:f.name,
+          types:[{description:ext.toUpperCase(), accept:{[r.fmt==='png'?'image/png':'image/jpeg']:['.'+ext]}}]}); }catch(e){ if(e.name==='AbortError') return; throw e; }
+        await writeHandle(h,f.data); toast(`บันทึกรูปแล้ว ✓${note}`); }
+      else { downloadBlob(new Blob([f.data]),f.name); toast(`บันทึกรูปแล้ว ✓ (โฟลเดอร์ดาวน์โหลด)${note}`); }
+      return;
+    }
+    const where=await writeMany(files,`${baseName} (รูป)`,`${safeName(baseName)}-รูป.zip`);
+    if(where) toast(`ส่งออก ${files.length} รูปแล้ว ✓ ไปที่ ${where}${note}`);
+  }catch(err){ console.error(err); toast('ส่งออกรูปไม่สำเร็จ'); }
+}
+async function splitDialog(){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText(); if(fieldEd) commitField();
+  const r=await openDialog(`<div class="box wide" role="dialog" aria-label="แยกไฟล์"><b>แยกไฟล์ PDF</b>
+      <span class="note">ไฟล์ที่เปิดอยู่ไม่เปลี่ยน — สร้างไฟล์ใหม่ตามส่วนที่แบ่ง พร้อมมาร์กอัป ลิงก์ และสารบัญที่อยู่ในส่วนนั้น</span>
+      <div class="fRow"><label>แบ่งอย่างไร</label><div class="seg" data-k="mode"><button data-v="every">ทุก ๆ N หน้า</button><button data-v="ranges">ตามช่วงหน้า</button><button data-v="each">หน้าละไฟล์</button></div></div>
+      <div class="fInline" data-k="everyRow">ไฟล์ละ <input type="number" data-k="n" min="1" value="1" style="height:32px;border:1px solid var(--line);border-radius:8px;padding:0 6px"> หน้า</div>
+      <div class="fRow" data-k="rangesRow" hidden><input type="text" data-k="ranges" placeholder="เช่น 1-3, 4-10, 11-" spellcheck="false" style="height:34px;border:1px solid var(--line);border-radius:8px;padding:0 8px"><span class="fHint">แต่ละช่วงคั่นด้วยจุลภาค = 1 ไฟล์ · "11-" = ตั้งแต่หน้า 11 ถึงหน้าสุดท้าย</span></div>
+      <span class="fHint" data-k="hint"></span>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">แยกไฟล์</button></div></div>`,
+    (d,done)=>{
+      segPick(d,'mode','every');
+      const nIn=d.querySelector('[data-k=n]'), rIn=d.querySelector('[data-k=ranges]'), hint=d.querySelector('[data-k=hint]');
+      nIn.value=Math.max(1,Math.min(pages.length,Math.ceil(pages.length/2)));
+      const groups=()=>{
+        const m=segVal(d,'mode'), out=[];
+        if(m==='each') pages.forEach(p=>out.push([p]));
+        else if(m==='every'){ const n=Math.max(1,Math.floor(+nIn.value||1)); for(let i=0;i<pages.length;i+=n) out.push(pages.slice(i,i+n)); }
+        else { const rr=parseRanges(rIn.value,pages.length); if(!rr) return null; rr.forEach(([a,b])=>out.push(pages.slice(a,b+1))); }
+        return out;
+      };
+      const upd=()=>{ const m=segVal(d,'mode'); d.querySelector('[data-k=everyRow]').hidden=m!=='every'; d.querySelector('[data-k=rangesRow]').hidden=m!=='ranges';
+        const g=groups(); hint.textContent=g?`จะได้ ${g.length} ไฟล์${g.length>1?(canDir?' — เลือกโฟลเดอร์ แล้วจะสร้างโฟลเดอร์ใหม่ไว้เก็บให้':' — ดาวน์โหลดรวมเป็น .zip'):''}`:'ช่วงหน้าไม่ถูกต้อง'; };
+      d.addEventListener('change',()=>{ upd(); if(segVal(d,'mode')==='ranges') rIn.focus(); }); nIn.addEventListener('input',upd); rIn.addEventListener('input',upd); upd();
+      d.querySelector('[data-act=ok]').onclick=()=>{ const g=groups(); if(!g||!g.length){ rIn.focus(); return; } done(g); };
+    });
+  if(!r) return;
+  try{
+    toast('กำลังเตรียมไฟล์…');
+    await marksReady(pages);
+    const srcs=await prepareSources(r.flat()), files=[];
+    for(let i=0;i<r.length;i++){
+      toast(`กำลังสร้างไฟล์… ${i+1}/${r.length}`);
+      const g=r[i], a=pages.indexOf(g[0])+1, b=pages.indexOf(g[g.length-1])+1;
+      files.push({name:`${safeName(baseName)}-${a===b?`p${pad3(a,pages.length)}`:`p${pad3(a,pages.length)}-${pad3(b,pages.length)}`}.pdf`, data:await assemble(g,srcs)});
+    }
+    if(files.length===1){ if(await saveBytesAs(files[0].data,files[0].name)) toast('บันทึกแล้ว ✓'); return; }
+    const where=await writeMany(files,`${baseName} (แยกไฟล์)`,`${safeName(baseName)}-แยกไฟล์.zip`);
+    if(where) toast(`แยกเป็น ${files.length} ไฟล์แล้ว ✓ ไปที่ ${where}`);
+  }catch(err){ console.error(err); toast('แยกไฟล์ไม่สำเร็จ'); }
+}
+/* merge: files from disk and open tabs, in any order, into a new tab */
+let mergeSeq=0;
+async function mergeDialog(){
+  const items=activeTab?[{tab:activeTab}]:[];
+  const r=await openDialog(`<div class="box wide" role="dialog" aria-label="รวมไฟล์"><b>รวมไฟล์ PDF</b>
+      <span class="note">เพิ่มไฟล์ แล้วลากหรือกดลูกศรเพื่อเรียงลำดับ — ผลลัพธ์เปิดเป็นแท็บใหม่ ตรวจดูก่อนแล้วค่อยบันทึก</span>
+      <div class="mList" data-k="list"></div>
+      <div class="fInline"><button class="btn" data-act="add">+ เพิ่มไฟล์ PDF…</button><button class="btn" data-act="tabs">+ จากแท็บที่เปิดอยู่ ▾</button></div>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">รวมไฟล์</button></div></div>`,
+    (d,done)=>{
+      const list=d.querySelector('[data-k=list]'), okB=d.querySelector('[data-act=ok]');
+      let dragI=-1;
+      const draw=()=>{
+        list.replaceChildren();
+        if(!items.length){ list.innerHTML='<div class="mEmpty">ยังไม่มีไฟล์ — กด "เพิ่มไฟล์ PDF" หรือลากไฟล์มาวางที่นี่</div>'; }
+        items.forEach((it,i)=>{
+          const row=document.createElement('div'); row.className='mRow'; row.draggable=true;
+          const nm=it.tab?it.tab.name:it.file.name, sub=it.tab?`แท็บที่เปิดอยู่ · ${it.tab.selected.size?`${it.tab.selected.size} หน้าที่ติ๊กไว้`:`${it.tab.pages.length} หน้า`}`:`${(it.file.size/1048576).toFixed(1)} MB`;
+          row.innerHTML=`<span class="mNo">${i+1}</span><span class="mName"></span><span class="mSub"></span>
+            <button data-a="up" title="เลื่อนขึ้น"${i?'':' disabled'}><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 10 4.5-4.5L12.5 10"/></svg></button>
+            <button data-a="down" title="เลื่อนลง"${i<items.length-1?'':' disabled'}><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></button>
+            <button data-a="del" title="เอาออก">${ICO_X}</button>`;
+          row.querySelector('.mName').textContent=nm; row.querySelector('.mName').title=nm; row.querySelector('.mSub').textContent=sub;
+          row.querySelector('[data-a=up]').onclick=()=>{ [items[i-1],items[i]]=[items[i],items[i-1]]; draw(); };
+          row.querySelector('[data-a=down]').onclick=()=>{ [items[i+1],items[i]]=[items[i],items[i+1]]; draw(); };
+          row.querySelector('[data-a=del]').onclick=()=>{ items.splice(i,1); draw(); };
+          row.addEventListener('dragstart',e=>{ dragI=i; row.classList.add('drag'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','m'); });
+          row.addEventListener('dragend',()=>{ dragI=-1; row.classList.remove('drag'); });
+          row.addEventListener('dragover',e=>{ if(dragI<0) return; e.preventDefault(); e.stopPropagation(); });
+          row.addEventListener('drop',e=>{ if(dragI<0) return; e.preventDefault(); e.stopPropagation(); const [m]=items.splice(dragI,1); items.splice(i,0,m); dragI=-1; draw(); });
+          list.appendChild(row);
+        });
+        okB.disabled=items.length<1;
+      };
+      const addFiles=fs=>{ for(const f of fs) if(isPdf(f)) items.push({file:f}); draw(); };
+      list.addEventListener('dragover',e=>{ e.preventDefault(); e.stopPropagation(); });
+      list.addEventListener('drop',e=>{ e.preventDefault(); e.stopPropagation(); if(dragI<0) addFiles([...(e.dataTransfer?.files||[])]); });
+      d.querySelector('[data-act=add]').onclick=async()=>{
+        if(canFS){ try{ const hs=await showOpenFilePicker({id:'wy-open', multiple:true, types:PDF_TYPES}); addFiles(await Promise.all(hs.map(h=>h.getFile()))); }
+          catch(e){ if(e.name!=='AbortError') console.error(e); } }
+        else{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf'; inp.multiple=true; inp.onchange=()=>addFiles([...inp.files]); inp.click(); }
+      };
+      d.querySelector('[data-act=tabs]').onclick=e=>{
+        if(!tabs.length){ toast('ยังไม่มีแท็บที่เปิดอยู่'); return; }
+        showMenu(e.currentTarget, tabs.map(t=>({label:t.name, sub:`${t.pages.length} หน้า`, action:()=>{ items.push({tab:t}); draw(); }})));
+      };
+      okB.onclick=()=>{ if(items.length) done(items.slice()); };
+      draw();
+    });
+  if(!r) return;
+  let t=null;
+  try{
+    toast('กำลังรวมไฟล์…');
+    t=newTab(`รวมไฟล์-${++mergeSeq}.pdf`, null); t.untitled=true;
+    for(let i=0;i<r.length;i++){
+      const it=r[i];
+      if(it.file){ toast(`กำลังอ่าน ${i+1}/${r.length}: ${it.file.name}`); t.pages.push(...await parsePdf(it.file,t.docs)); }
+      else{
+        const src=it.tab, take=src.selected.size?src.pages.filter(p=>src.selected.has(p)):src.pages;
+        for(const p of take){ const d=src.docs[p.doc]; let di=t.docs.indexOf(d); if(di<0){ t.docs.push(d); di=t.docs.length-1; }
+          t.pages.push({doc:di, srcIndex:p.srcIndex, intrinsic:p.intrinsic, rot:p.rot, baseW:p.baseW, baseH:p.baseH, annots:JSON.parse(JSON.stringify(p.annots)), undo:[]}); }
+      }
+    }
+    if(!t.pages.length){ toast('ไม่มีหน้าให้รวม'); t.thumbEl.remove(); t.stageEl.remove(); return; }
+    tabs.push(t); t.dirty=true;
+    await activateTab(t,true);
+    toast(`รวมแล้ว ${t.pages.length} หน้า จาก ${r.length} ไฟล์ — กด Ctrl+S เพื่อบันทึก`);
+  }catch(err){
+    if(t&&!tabs.includes(t)){ t.thumbEl.remove(); t.stageEl.remove(); }
+    if(err?.cancelled){ toast('ยกเลิกการรวมไฟล์'); return; }
+    console.error(err); toast('รวมไฟล์ไม่สำเร็จ — มีไฟล์ที่เปิดไม่ได้');
+  }
+}
+
 /* ---------------- right-click menus ---------------- */
 thumbsAside().addEventListener('contextmenu',e=>{
   const el=e.target.closest('.thumb'); if(!el||!pages.length) return;
@@ -3684,6 +5598,7 @@ thumbsAside().addEventListener('contextmenu',e=>{
     {label:'หมุนซ้าย 90°', action:()=>rotate(list,false)},
     {label:`บันทึก${n>1?` ${n} หน้า`:'หน้านี้'}เป็นไฟล์ใหม่…`, action:()=>saveSelectedPages(list)},
     {label:'คัดลอกรูปหน้านี้', action:async()=>{ await goToPage(i); snapshot('page'); }},
+    {label:`ส่งออก${n>1?` ${n} หน้า`:'หน้านี้'}เป็นรูปภาพ…`, action:async()=>{ await goToPage(i); exportImagesDialog(n>1?'sel':'cur'); }},
     {sep:true},
     {label:'วางรูปเป็นหน้าใหม่หลังหน้านี้…', action:async()=>{ const fs=await clipboardImages(); if(!fs.length) return; await goToPage(i); imagesFlow(fs,'insert','after'); }},
     {label:'แทรกหน้าเปล่าก่อนหน้านี้…', action:async()=>{ await goToPage(i); insertBlank('before'); }},
@@ -3703,9 +5618,15 @@ viewerEl.addEventListener('contextmenu',e=>{
   const selTxt = k===current && textSel && textSel.a!==textSel.b ? selectedText() : '';
   const hitI=k>=0&&!hit?[...pages[k].annots].reverse().find(a=>a.type==='img'&&inImgBox(a,pos())):null;
   const items=[];
+  const hitS=k>=0&&!hit&&!hitI?[...pages[k].annots].reverse().find(a=>a.type==='shape'&&hitShape(a,pos())):null;
+  const hitM=k>=0&&!hit&&!hitI&&!hitS?hitMarkAt(pages[k],pos()):null;
+  const changed=()=>{ if(k===current) redrawOverlay(); refreshThumbCanvas(k); };
   if(selTxt) items.push(
     {head:'ข้อความที่เลือก'},
     {label:'คัดลอกข้อความ', key:'Ctrl+C', action:copySelectedText},
+    {label:'ไฮไลต์', color:markColors.hl, action:()=>markSelection('hl')},
+    {label:'ขีดเส้นใต้', color:markColors.ul, action:()=>markSelection('ul')},
+    {label:'ขีดฆ่า', color:markColors.so, action:()=>markSelection('so')},
     {label:`ค้นหา "${selTxt.replace(/\s+/g,' ').slice(0,24)}${selTxt.length>24?'…':''}"`, action:()=>{ openFind(selTxt.replace(/\s+/g,' ').trim().slice(0,80)); }},
     {sep:true});
   if(hitI) items.push(
@@ -3714,6 +5635,21 @@ viewerEl.addEventListener('contextmenu',e=>{
     {label:'หมุนรูปขวา 90°', action:async()=>{ await go(); setTool('select'); selImg=hitI; turnImg(90); }},
     {label:'ลบรูป', key:'Del', action:async()=>{ await go(); setTool('select'); selImg=hitI; deleteSelImg(); }},
     {sep:true});
+  if(hitS) items.push(
+    {head:'รูปทรง'},
+    {label:'เลือกเพื่อแก้ไข', sub:'ย้าย ย่อขยาย เปลี่ยนสีและความหนา', action:async()=>{ await go(); setTool('select'); selShape=hitS; redrawOverlay(); updateTextUI(); }},
+    ...(isBoxShape(hitS)?[{label:hitS.fill?'เอาสีพื้นออก':'เติมสีโปร่ง', action:()=>{ pushUndo(pages[k]); if(hitS.fill) delete hitS.fill; else hitS.fill=true; changed(); }}]:[]),
+    {label:'ลบรูปทรง', key:'Del', action:()=>{ pushUndo(pages[k]); pages[k].annots=pages[k].annots.filter(x=>x!==hitS); if(selShape===hitS) selShape=null; changed(); }},
+    {sep:true});
+  if(hitM){
+    const sw=hitM.kind==='hl'?[['เหลือง','#FDE047'],['เขียว','#86EFAC'],['ฟ้า','#93C5FD'],['ชมพู','#F9A8D4'],['ส้ม','#FDBA74']]
+                             :[['แดง','#DC2626'],['น้ำเงิน','#1D4ED8'],['เขียว','#15803D'],['ดำ','#1B1F24']];
+    items.push({head:MARK_NAMES[hitM.kind]+(hitM.text?` · "${hitM.text.replace(/\s+/g,' ').slice(0,22)}${hitM.text.length>22?'…':''}"`:'')},
+      ...sw.map(([n,c])=>({label:n, color:c, checked:hitM.color.toLowerCase()===c.toLowerCase(), action:()=>{ pushUndo(pages[k]); hitM.color=c; markColors[hitM.kind]=c; saveSettings(); changed(); }})),
+      ...(hitM.text?[{label:'คัดลอกข้อความ', action:()=>{ copyText(hitM.text); toast('คัดลอกข้อความแล้ว'); }}]:[]),
+      {label:`ลบ${MARK_NAMES[hitM.kind]}`, action:()=>{ pushUndo(pages[k]); pages[k].annots=pages[k].annots.filter(x=>x!==hitM); changed(); }},
+      {sep:true});
+  }
   if(hit) items.push(
     {head:'ข้อความ'},
     {label:'แก้ไขข้อความ', action:async()=>{ await go(); setTool('text'); selText=hit; openTextInput({x:hit.x,y:hit.y},hit); }},
