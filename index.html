@@ -653,7 +653,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn})); }catch(e){}
 }
 
-const APP_VERSION = '2.9.0-beta.1';
+const APP_VERSION = '2.9.1-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),

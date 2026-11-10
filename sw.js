@@ -1,5 +1,5 @@
 /* WY Pdf Box — service worker: แคชตัวแอปและไลบรารีเพื่อใช้งานออฟไลน์ */
-const CACHE = 'wy-pdf-box-v22';
+const CACHE = 'wy-pdf-box-v23';
 const SHARE_CACHE = 'wy-pdf-box-share';
 const ASSETS = [
   './',

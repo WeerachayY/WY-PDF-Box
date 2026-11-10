@@ -35,15 +35,61 @@
           ".pdf"
         ]
       },
-      "launch_type": "single-client"
+      "launch_type": "single-client",
+      "icons": [
+        {
+          "src": "file-icons/pdf-256.png",
+          "sizes": "256x256",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-128.png",
+          "sizes": "128x128",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-64.png",
+          "sizes": "64x64",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-48.png",
+          "sizes": "48x48",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-32.png",
+          "sizes": "32x32",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-24.png",
+          "sizes": "24x24",
+          "type": "image/png"
+        },
+        {
+          "src": "file-icons/pdf-16.png",
+          "sizes": "16x16",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "action": "./",
       "accept": {
-        "image/jpeg": [".jpg", ".jpeg"],
-        "image/png": [".png"],
-        "image/bmp": [".bmp"],
-        "image/webp": [".webp"]
+        "image/jpeg": [
+          ".jpg",
+          ".jpeg"
+        ],
+        "image/png": [
+          ".png"
+        ],
+        "image/bmp": [
+          ".bmp"
+        ],
+        "image/webp": [
+          ".webp"
+        ]
       },
       "launch_type": "single-client"
     }
