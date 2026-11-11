@@ -85,7 +85,7 @@ header{
 #pgSize{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 #statusbar.off{visibility:hidden}
 .swatches{display:flex;gap:6px;align-items:center;flex:0 0 auto}
-.sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;padding:0;position:relative}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;padding:0;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .sw.on{border-color:var(--ink)}
 .sw.on::after{content:"";position:absolute;inset:2px;border:2px solid #fff;border-radius:50%}
 .swMore{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--panel)}
@@ -112,7 +112,7 @@ header{
 #snapPop .snapReady .btn{flex:1;justify-content:center}
 #snapPop.busy{opacity:.6;pointer-events:none}
 #palette .pgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
-#palette .pgrid button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.08);padding:0}
+#palette .pgrid button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.22);padding:0}
 #palette .pgrid button.on{outline:2px solid var(--ink);outline-offset:2px}
 #palette .pmore{margin-top:10px;width:100%;height:32px;border:1px solid var(--line);border-radius:var(--r);
   display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink)}
@@ -134,8 +134,9 @@ header{
   #btnAdd,#btnFind{width:34px;padding:0}
   #targetLabel:not(.sel){display:none}
   #shapeOpts .tbtn{width:30px} #textOpts .tbtn{width:30px}
-  #fontSel{max-width:112px}
+  .toolbar #fontSel{max-width:112px}
 }
+@media (max-width:1360px){ .toolbar #fontSel{max-width:82px} }
 #fontSel{height:32px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:0 4px;max-width:132px}
 #sizeVal{font-size:11px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .zoombox{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:2px;flex:0 0 auto}
@@ -367,6 +368,9 @@ aside.outlineMode .outlinePanel{display:block}
 .fieldIn{position:absolute;left:0;top:0;transform-origin:0 0;z-index:5;border:2px solid var(--accent);border-radius:2px;background:#fff;outline:none;padding:0 2px;
   font-family:system-ui,"Noto Sans Thai","Leelawadee UI",sans-serif;color:#000;box-sizing:border-box;resize:none;line-height:1.2;margin:0}
 select.fieldIn{padding:0}
+.bgchip{width:18px;height:18px;border-radius:4px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;line-height:1;
+  background-image:linear-gradient(135deg,transparent 46%,#DC2626 46%,#DC2626 54%,transparent 54%)}
+.bgchip.has{background-image:none}
 .dlg [hidden]{display:none!important}
 .dlg .box.wide{width:min(560px,100%);gap:10px}
 .fRow{display:flex;flex-direction:column;gap:5px}
@@ -391,7 +395,7 @@ select.fieldIn{padding:0}
 .dotc{width:22px;height:22px;border-radius:50%;border:2px solid transparent}
 .dotc.on{border-color:var(--ink);box-shadow:inset 0 0 0 2px #fff}
 .menu .mimg{display:block;max-width:200px;max-height:44px;margin:2px 0;object-fit:contain}
-.menu .mclr{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px}
+.menu .mclr{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
 .stampPv{display:flex;justify-content:center;padding:10px;background:#F1F3F6;border-radius:10px;min-height:96px;align-items:center}
 .stampPv img{max-width:100%;max-height:120px}
 
@@ -526,6 +530,7 @@ select.fieldIn{padding:0}
   <div class="tgroup" id="textOpts" style="display:none">
     <select id="fontSel" title="ฟอนต์" aria-label="ฟอนต์"></select>
     <button class="tbtn" id="btnBold" title="ตัวหนา"><b style="font-size:14px">B</b></button>
+    <button class="tbtn" id="btnTextBg" title="พื้นหลังของข้อความ — ไม่มี / ขาวทึบ / สีอื่น"><span class="bgchip">A</span></button>
     <button class="tbtn" id="btnTxtCCW" title="หมุนข้อความซ้าย 90° (Ctrl+[) · กด [ = 15° · Shift+[ = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 6.2A5.2 5.2 0 1 1 3 9.6"/><path d="M2.6 2.8v3.6h3.6"/></svg></button>
     <button class="tbtn" id="txtAng" title="มุมของข้อความ — คลิกเพื่อตั้งตรง (0°)" style="width:auto;min-width:38px;padding:0 6px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">0°</button>
     <button class="tbtn" id="btnTxtCW" title="หมุนข้อความขวา 90° (Ctrl+]) · กด ] = 15° · Shift+] = 1°"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12.8 6.2A5.2 5.2 0 1 0 13 9.6"/><path d="M13.4 2.8v3.6H9.8"/></svg></button>
@@ -539,7 +544,7 @@ select.fieldIn{padding:0}
     <button class="tbtn" data-kind="arrow" title="ลูกศร — Shift = ล็อกมุมทีละ 15°"></button>
     <button class="tbtn" data-kind="poly" title="เส้นหลายจุด — คลิกทีละจุด · ดับเบิลคลิกหรือ Enter เพื่อจบ · Esc ยกเลิก"></button>
     <span class="sep" style="height:20px;margin:0 2px"></span>
-    <button class="tbtn" id="btnFill" title="เติมสีโปร่งในรูปทรง"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.8 8.6 8.6 2.8M2.8 13 13 2.8M7.2 13.2l6-6" stroke-width="1"/></svg></button>
+    <button class="tbtn" id="btnFill" title="สีพื้นของรูปทรง — ไม่มี / โปร่ง / ทึบ และเลือกสีแยกจากสีเส้น"><span class="bgchip"></span></button>
   </div>
 
   <div class="sep"></div>
@@ -705,7 +710,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 /* ---------------- state ---------------- */
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 let docs = [];              // เอกสารต้นทางทั้งหมด [{pdf, bytes}]
-let addMode = false, pendFile = null;
+let addMode = false;
 let baseName = 'document';
 let pages = [];             // {srcIndex,intrinsic,rot,baseW,baseH,annots[],undo[]}
 let current = 0;
@@ -716,6 +721,7 @@ const ZMIN = .05, ZMAX = 5;
 
 /* tool settings — remembered between sessions */
 const PRESETS = [
+  '#FFFFFF','#000000','#FF0000','#FFE600','#00A651','#00B7EB','#0047FF','#E6007E',
   '#1B1F24','#B91C1C','#C2410C','#A16207','#15803D','#0E7490','#1D4ED8','#7E22CE',
   '#6B7280','#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#A855F7',
   '#D1D5DB','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#D8B4FE'];
@@ -727,7 +733,7 @@ let recent = ['#1B1F24','#D64545','#2563EB','#2E9E5B','#E8A013'];
 let sizes = {pen:3, hl:14, text:16, shape:2};
 /* markup objects (v3): shapes, text markup, stamps, signatures, placing, form fields */
 const SHAPE_KINDS=['rect','ellipse','cloud','line','arrow','poly'], BOX_KINDS=['rect','ellipse','cloud'];
-let shapeKind='cloud', shapeFill=false, userName='';
+let shapeKind='cloud', shapeFill=false, shapeFillColor=null, textBg=null, userName='';   // fill: false | 'shade' | 'solid'; colours: null = none / same as the line
 let markColors={hl:'#FDE047', ul:'#DC2626', so:'#DC2626'};
 let selShape=null, polyDraft=null, placing=null, fieldEd=null, tapCand=null;
 let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll', backupOn = true;
@@ -748,7 +754,9 @@ const FONTS = {
     for(const k of Object.keys(sizes)) if(Number.isFinite(s.sizes?.[k])) sizes[k] = s.sizes[k];
     if(['pan','select','pen','hl','text','shape','eraser'].includes(s.tool)) tool = s.tool;
     if(SHAPE_KINDS.includes(s.shapeKind)) shapeKind=s.shapeKind;
-    shapeFill=!!s.shapeFill;
+    shapeFill=s.shapeFill===true?'shade':['shade','solid'].includes(s.shapeFill)?s.shapeFill:false;
+    const hex=v=>/^#[0-9a-f]{6}$/i.test(v||'')?v:null;
+    shapeFillColor=hex(s.shapeFillColor); textBg=hex(s.textBg);
     if(typeof s.userName==='string') userName=s.userName.slice(0,60);
     for(const k of Object.keys(markColors)) if(/^#[0-9a-f]{6}$/i.test(s.markColors?.[k]||'')) markColors[k]=s.markColors[k];
     if(FONTS[s.textFont]) textFont = s.textFont;
@@ -760,10 +768,10 @@ const FONTS = {
   }catch(e){}
 })();
 function saveSettings(){
-  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn,shapeKind,shapeFill,userName,markColors})); }catch(e){}
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn,shapeKind,shapeFill,shapeFillColor,textBg,userName,markColors})); }catch(e){}
 }
 
-const APP_VERSION = '3.0.0-beta.1';
+const APP_VERSION = '3.1.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -986,7 +994,6 @@ async function openDocument(file, handle=null, name=null){
     return null;
   }
 }
-const loadFile=f=>openDocument(f);              // (kept for older call sites)
 async function openFiles(){
   if(canFS){
     let hs;
@@ -2108,9 +2115,9 @@ function redrawOverlay(){
   octx.clearRect(0,0,ovCv.width,ovCv.height); octx.restore();
   octx.setTransform(rs,0,0,rs,0,0);
   drawFieldTint(octx,p);
-  drawAnnots(octx,p.annots);
+  drawAnnots(octx,p.annots,'m');
   ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,imgCv.width,imgCv.height);
-  ictx.setTransform(rs,0,0,rs,0,0); drawFormVals(ictx,p); drawImgs(ictx,p.annots);
+  ictx.setTransform(rs,0,0,rs,0,0); drawFormVals(ictx,p); drawAnnots(ictx,p.annots,'n');
   drawFindHits(octx,p); drawTextSel(octx,p);
   drawSelection(octx); drawPlacing(octx);
   placeSelBar();
@@ -2173,11 +2180,11 @@ async function renderSlot(i){
     await annEntry(p)?.promise;
     if(slots[i]!==sl||sl.el.contains(wrap)||!nearSlots.has(i)){ return; }
     sl.cp.width=off.width; sl.cp.height=off.height; sl.cp.getContext('2d').drawImage(off,0,0);
-    { const c=sl.cp.getContext('2d'); c.save(); c.setTransform(scale,0,0,scale,0,0); drawFormVals(c,p); drawImgs(c,p.annots); c.restore(); }
-    if(p.annots.length){
-      await fontsFor([p]);
+    await fontsFor([p]);
+    { const c=sl.cp.getContext('2d'); c.save(); c.setTransform(scale,0,0,scale,0,0); drawFormVals(c,p); drawAnnots(c,p.annots,'n'); c.restore(); }
+    if(p.annots.some(isMarker)){
       sl.co.width=off.width; sl.co.height=off.height;
-      const c=sl.co.getContext('2d'); c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots);
+      const c=sl.co.getContext('2d'); c.setTransform(scale,0,0,scale,0,0); drawAnnots(c,p.annots,'m');
     }else sl.co.width=sl.co.height=0;
     sl.z=z0; sl.v=v0; sl.rs=scale;
   }catch(err){ console.error(err); sl.z=z0; sl.v=v0; }   // don't retry a broken page in a loop
@@ -2272,31 +2279,36 @@ function drawTextSelection(ctx){
   ctx.strokeStyle=blue; ctx.lineWidth=1.5*k; ctx.setLineDash([5*k,4*k]);
   ctx.strokeRect(b.x,b.y,b.w,b.h);
   ctx.restore();
-  ctx.setLineDash([]);
-  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k;          // rotation handle on its stem
+  drawRotHandle(ctx,h,a.rot||0,live,snapped,blue);
+  drawDelX(ctx,d);
+  ctx.restore();
+}
+/* the round ↻ handle on its stem, with the angle beside it while turning */
+function drawRotHandle(ctx,h,deg,live,snapped,blue){
+  const k=1/zoom, q=h.r*.5;
+  ctx.save(); ctx.setLineDash([]);
+  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k;
   ctx.beginPath(); ctx.moveTo(h.stem[0].x,h.stem[0].y); ctx.lineTo(h.x,h.y); ctx.stroke();
   ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,7); ctx.fill(); ctx.stroke();
-  const q2=h.r*.5;                                   // ↻ glyph
-  ctx.lineWidth=1.4*k; ctx.beginPath(); ctx.arc(h.x,h.y,q2,-.4*Math.PI,1.3*Math.PI); ctx.stroke();
-  ctx.fillStyle=blue; ctx.beginPath();
-  const ex=h.x+q2*Math.cos(-.4*Math.PI), ey=h.y+q2*Math.sin(-.4*Math.PI);
-  ctx.moveTo(ex+2.6*k,ey-.2*k); ctx.lineTo(ex-1.6*k,ey-2.4*k); ctx.lineTo(ex-1*k,ey+2.2*k); ctx.fill();
-  if(live){                                          // angle badge beside the handle
-    const txt=fmtDeg(a.rot||0); ctx.font=`600 ${12*k}px system-ui,sans-serif`;
+  ctx.lineWidth=1.4*k; ctx.beginPath(); ctx.arc(h.x,h.y,q,-.4*Math.PI,1.3*Math.PI); ctx.stroke();
+  const ex=h.x+q*Math.cos(-.4*Math.PI), ey=h.y+q*Math.sin(-.4*Math.PI);
+  ctx.fillStyle=blue; ctx.beginPath(); ctx.moveTo(ex+2.6*k,ey-.2*k); ctx.lineTo(ex-1.6*k,ey-2.4*k); ctx.lineTo(ex-1*k,ey+2.2*k); ctx.fill();
+  if(live){
+    const txt=fmtDeg(deg); ctx.font=`600 ${12*k}px system-ui,sans-serif`;
     const w=ctx.measureText(txt).width+12*k, bx=h.x+h.r+6*k, by=h.y-10*k;
     ctx.fillStyle=snapped?'#059669':'#1E293B'; ctx.beginPath();
     ctx.roundRect?ctx.roundRect(bx,by,w,20*k,10*k):ctx.rect(bx,by,w,20*k); ctx.fill();
     ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+6*k,by+10*k);
   }
-  ctx.fillStyle='#DC2626';
-  ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
-  ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
-  ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
   ctx.restore();
 }
-function drawAnnots(ctx,annots,withImgs=false){
-  if(withImgs) drawImgs(ctx,annots);
+/* Two layers. Pen, text, shapes and pictures are opaque and sit in stacking order on the normal layer;
+   highlighter strokes and text highlights are blended like a marker on top (layer: 'n' | 'm' | both). */
+const isMarker=a=>a.type==='hl'||(a.type==='mark'&&a.kind==='hl');
+function drawAnnots(ctx,annots,layer){
+  if(!layer){ drawAnnots(ctx,annots,'n'); drawAnnots(ctx,annots,'m'); return; }
   for(const a of annots){
+    if(isMarker(a)!==(layer==='m')) continue;
     if(a.type==='pen'||a.type==='hl'){
       ctx.save();
       ctx.strokeStyle=a.color; ctx.fillStyle=a.color;
@@ -2313,23 +2325,26 @@ function drawAnnots(ctx,annots,withImgs=false){
     }else if(a.type==='text'){
       if(hiddenText.has(a)) continue;               // being edited: the input box shows it
       ctx.save();
-      ctx.fillStyle=a.color;
       ctx.font=fontCss(a,a.size);
       if(a.rot){ const P=textPivot(a); ctx.translate(P.x,P.y); ctx.rotate(a.rot*Math.PI/180); ctx.translate(-P.x,-P.y); }
+      if(a.bg){ const b=textBox(a); ctx.fillStyle=a.bg; ctx.fillRect(b.x,b.y,b.w,b.h); ctx.font=fontCss(a,a.size); }
+      ctx.fillStyle=a.color;
       ctx.fillText(a.text,a.x,a.y);
       ctx.restore();
     }else if(a.type==='shape') drawShape(ctx,a);
     else if(a.type==='mark') drawMark(ctx,a);
+    else if(a.type==='img') drawImg(ctx,a);
   }
 }
 /* everything placed on a page, for pictures of the page (thumbnails, copy as picture, print, export…) */
-function drawPageMarks(ctx,p){ drawFormVals(ctx,p); drawImgs(ctx,p.annots); drawAnnots(ctx,p.annots); }
+function drawPageMarks(ctx,p){ drawFormVals(ctx,p); drawAnnots(ctx,p.annots); }
 
 /* ---------------- shapes: one path for the screen and the saved PDF ----------------
    {type:'shape', kind, color, width, fill}  + x,y,w,h (rect · ellipse · cloud)  or  pts[] (line · arrow · poly)
    A path is a list of commands in page units: ['M',x,y] ['L',x,y] ['C',x1,y1,x2,y2,x,y] ['Z']            */
 const KAPPA=.5523, FILL_A=.22;
 const isBoxShape=a=>BOX_KINDS.includes(a.kind);
+const fillOf=a=>a.fill?{c:a.fillColor||a.color, al:a.fill==='solid'?1:FILL_A}:null;   // a.fill: 'shade' | 'solid' (true = shade, older files)
 function ellipseCmds(x,y,w,h){
   const rx=w/2, ry=h/2, cx=x+rx, cy=y+ry, ox=rx*KAPPA, oy=ry*KAPPA;
   return [['M',cx-rx,cy],['C',cx-rx,cy-oy,cx-ox,cy-ry,cx,cy-ry],['C',cx+ox,cy-ry,cx+rx,cy-oy,cx+rx,cy],
@@ -2373,8 +2388,10 @@ function runCmds(ctx,cmds){
 function drawShape(ctx,a){
   const g=shapeGeom(a);
   ctx.save();
-  ctx.strokeStyle=a.color; ctx.fillStyle=a.color; ctx.lineWidth=a.width; ctx.lineJoin='round'; ctx.lineCap='round';
-  if(a.fill&&g.closed){ ctx.globalAlpha=FILL_A; runCmds(ctx,g.path); ctx.fill(); ctx.globalAlpha=1; }
+  ctx.strokeStyle=a.color; ctx.lineWidth=a.width; ctx.lineJoin='round'; ctx.lineCap='round';
+  const f=g.closed&&fillOf(a);
+  if(f){ ctx.fillStyle=f.c; ctx.globalAlpha=f.al; runCmds(ctx,g.path); ctx.fill(); ctx.globalAlpha=1; }
+  ctx.fillStyle=a.color;
   runCmds(ctx,g.path); ctx.stroke();
   if(g.head){ ctx.lineJoin='miter'; runCmds(ctx,g.head); ctx.fill(); }
   ctx.restore();
@@ -2549,16 +2566,13 @@ async function storeImage(file, q='orig'){
   imgStore.set(id,{bytes, png, w:bm.width, h:bm.height, bm});
   return id;
 }
-function drawImgs(ctx,annots){
-  for(const a of annots){
-    if(a.type!=='img') continue;
-    const st=imgStore.get(a.id); if(!st) continue;
-    ctx.save();
-    ctx.translate(a.x+a.w/2,a.y+a.h/2); if(a.rot) ctx.rotate(a.rot*Math.PI/180);
-    ctx.imageSmoothingQuality='high';
-    ctx.drawImage(st.bm,-a.w/2,-a.h/2,a.w,a.h);
-    ctx.restore();
-  }
+function drawImg(ctx,a){
+  const st=imgStore.get(a.id); if(!st) return;
+  ctx.save();
+  ctx.translate(a.x+a.w/2,a.y+a.h/2); if(a.rot) ctx.rotate(a.rot*Math.PI/180);
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(st.bm,-a.w/2,-a.h/2,a.w,a.h);
+  ctx.restore();
 }
 const imgCenter=a=>({x:a.x+a.w/2,y:a.y+a.h/2});
 const imgPt=(a,lx,ly)=>rotPt({x:a.x+lx,y:a.y+ly},imgCenter(a),a.rot||0);   // local corner offsets -> page
@@ -2590,21 +2604,8 @@ function drawImgSelection(ctx){
   ctx.setLineDash([]); ctx.fillStyle='#fff';
   for(const [u,v] of Object.values(CORNERS)){ const x=(u-.5)*a.w, y=(v-.5)*a.h; ctx.fillRect(x-4*k,y-4*k,8*k,8*k); ctx.strokeRect(x-4*k,y-4*k,8*k,8*k); }
   ctx.restore();
-  const h=imgRotHandle(a);
-  ctx.strokeStyle=blue; ctx.lineWidth=1.5*k;
-  ctx.beginPath(); ctx.moveTo(h.stem[0].x,h.stem[0].y); ctx.lineTo(h.x,h.y); ctx.stroke();
-  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,7); ctx.fill(); ctx.stroke();
-  ctx.lineWidth=1.4*k; ctx.beginPath(); ctx.arc(h.x,h.y,h.r*.5,-.4*Math.PI,1.3*Math.PI); ctx.stroke();
-  if(live){
-    const txt=fmtDeg(a.rot||0); ctx.font=`600 ${12*k}px system-ui,sans-serif`;
-    const w=ctx.measureText(txt).width+12*k, bx=h.x+h.r+6*k, by=h.y-10*k;
-    ctx.fillStyle=snapped?'#059669':'#1E293B'; ctx.beginPath(); ctx.roundRect?ctx.roundRect(bx,by,w,20*k,10*k):ctx.rect(bx,by,w,20*k); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+6*k,by+10*k);
-  }
-  const d=imgDelHandle(a); ctx.fillStyle='#DC2626';
-  ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
-  ctx.strokeStyle='#fff'; ctx.lineWidth=2*k; const q=d.r*.42;
-  ctx.beginPath(); ctx.moveTo(d.x-q,d.y-q); ctx.lineTo(d.x+q,d.y+q); ctx.moveTo(d.x+q,d.y-q); ctx.lineTo(d.x-q,d.y+q); ctx.stroke();
+  drawRotHandle(ctx,imgRotHandle(a),a.rot||0,live,snapped,blue);
+  drawDelX(ctx,imgDelHandle(a));
   ctx.restore();
 }
 /* select tool: handles of the selection first, then whatever is under the pointer, else move the view */
@@ -3591,7 +3592,7 @@ function startShape(e,p,pos){
   if(shapeKind==='poly') return polyClick(e,p,pos);
   pushUndo(p);
   const a={type:'shape', kind:shapeKind, color, width:sizes.shape};
-  if(BOX_KINDS.includes(shapeKind)){ Object.assign(a,{x:pos.x,y:pos.y,w:0,h:0}); if(shapeFill) a.fill=true; }
+  if(BOX_KINDS.includes(shapeKind)){ Object.assign(a,{x:pos.x,y:pos.y,w:0,h:0}); if(shapeFill){ a.fill=shapeFill; if(shapeFillColor) a.fillColor=shapeFillColor; } }
   else a.pts=[{x:pos.x,y:pos.y},{x:pos.x,y:pos.y}];
   p.annots.push(a);
   drawing={type:'newshape', a, sx:pos.x, sy:pos.y, moved:false, hadSel};
@@ -3737,20 +3738,20 @@ function hoverPan(e){
 
 /* text tool: new text, or edit placed text (its style travels in inStyle while the box is open) */
 let txtPos=null, editingText=null, inStyle=null;
-function curTextStyle(){ return {size:sizes.text, color, font:textFont, bold:textBold, rot:textRot}; }
+function curTextStyle(){ return {size:sizes.text, color, font:textFont, bold:textBold, rot:textRot, bg:textBg}; }
 function styleInput(){
   if(!inStyle||!txtPos) return;
   txtIn.style.left=(txtPos.x*zoom)+'px';
   txtIn.style.top=((txtPos.y-inStyle.size*1.05)*zoom-4)+'px';
   txtIn.style.font=fontCss(inStyle, inStyle.size*zoom);
-  txtIn.style.color=inStyle.color;
+  txtIn.style.color=inStyle.color; txtIn.style.background=inStyle.bg||'';
   const r=inStyle.rot||0;                          // the box leans like the text it will become
   txtIn.style.transformOrigin=`0 ${inStyle.size*.7*zoom+4}px`;
   txtIn.style.transform=r?`rotate(${r}deg)`:'';
 }
 function openTextInput(pos, a=null){
   txtPos={x:pos.x,y:pos.y}; editingText=a;
-  inStyle=a ? {size:a.size, color:a.color, font:a.font||'sys', bold:!!a.bold, rot:a.rot||0} : curTextStyle();
+  inStyle=a ? {size:a.size, color:a.color, font:a.font||'sys', bold:!!a.bold, rot:a.rot||0, bg:a.bg||null} : curTextStyle();
   if(a){ hiddenText.add(a); selText=a; redrawOverlay(); }
   loadFont(inStyle).then(styleInput);
   txtIn.style.display='block'; styleInput();
@@ -3767,16 +3768,16 @@ function commitText(){
   closeInput(); editingText=null; txtPos=null; inStyle=null;
   const p=pages[current];
   if(a){
-    const same = v===a.text && st.size===a.size && st.color===a.color && st.font===(a.font||'sys') && st.bold===!!a.bold && st.rot===(a.rot||0);
+    const same = v===a.text && st.size===a.size && st.color===a.color && st.font===(a.font||'sys') && st.bold===!!a.bold && st.rot===(a.rot||0) && (st.bg||null)===(a.bg||null);
     if(!same){
       pushUndo(p);
       if(!v){ p.annots=p.annots.filter(x=>x!==a); selText=null; }
-      else Object.assign(a,{text:v, size:st.size, color:st.color, font:st.font, bold:st.bold, rot:st.rot||0});
+      else{ Object.assign(a,{text:v, size:st.size, color:st.color, font:st.font, bold:st.bold, rot:st.rot||0, bg:st.bg}); if(!a.bg) delete a.bg; }
     }
   }else if(v&&pos){
     pushUndo(p);
     const t={type:'text',x:pos.x,y:pos.y,size:st.size,color:st.color,font:st.font,bold:st.bold,text:v};
-    if(st.rot) t.rot=st.rot;
+    if(st.rot) t.rot=st.rot; if(st.bg) t.bg=st.bg;
     p.annots.push(t); selText=t;
   }
   redrawOverlay(); refreshThumbCanvas(current); updateTextUI();
@@ -3935,14 +3936,25 @@ document.addEventListener('pointerdown',e=>{
 });
 /* the browser opens its colour picker at the (hidden) input: park it under the palette button
    first, so the picker drops down from there instead of the window's top-left corner */
-$('btnColorMore').onclick=()=>{
-  colorIn.value=color; closePalette();
-  const r=$('btnPalette').getBoundingClientRect();
+let colorCb=null;                                    // set while the picker chooses a fill / background colour
+function pickColor(start,at,cb){
+  colorCb=cb; colorIn.value=/^#[0-9a-f]{6}$/i.test(start||'')?start:'#ffffff';
+  const r=at.getBoundingClientRect();
   Object.assign(colorIn.style,{left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px'});
   try{ colorIn.showPicker(); }catch(e){ colorIn.click(); }
-};
-colorIn.addEventListener('input',()=>{ color=colorIn.value; renderSwatches(); applyTextStyle({color}); applyShapeStyle({color}); });
-colorIn.addEventListener('change',()=>setColor(colorIn.value,true));
+}
+$('btnColorMore').onclick=()=>{ closePalette(); pickColor(color,$('btnPalette'),null); };
+colorIn.addEventListener('input',()=>{
+  if(colorCb) return colorCb(colorIn.value);
+  color=colorIn.value; renderSwatches(); applyTextStyle({color}); applyShapeStyle({color}); });
+colorIn.addEventListener('change',()=>{ if(colorCb){ const f=colorCb; colorCb=null; return f(colorIn.value); } setColor(colorIn.value,true); });
+/* fill of shapes and background of text: their own colour, apart from the line / letter colour */
+const FILL_COLORS=[['ขาว','#FFFFFF'],['ดำ','#000000'],['แดง','#FF0000'],['เหลือง','#FFE600'],['เขียว','#00A651'],['ฟ้า','#00B7EB'],['น้ำเงิน','#0047FF'],['เทาอ่อน','#D1D5DB']];
+const sameHex=(a,b)=>String(a||'').toLowerCase()===String(b||'').toLowerCase();
+function colorItems(cur,pick,at){
+  return [...FILL_COLORS.map(([n,c])=>({label:n, color:c, checked:sameHex(cur,c), action:()=>pick(c)})),
+          {label:'สีอื่น…', action:()=>pickColor(cur||'#ffffff',at,pick)}];
+}
 
 /* line size: one slider, a separate remembered size per tool */
 const sizeRange=$('sizeRange');
@@ -3953,7 +3965,7 @@ function applyShapeStyle(ch){
   const now=performance.now(), k=Object.keys(ch).join();
   if(styleUndo.a!==a||styleUndo.k!==k||now-styleUndo.t>900) pushUndo(p);
   styleUndo={a,k,t:now,h:styleUndo.h};
-  Object.assign(a,ch); if(ch.fill===false) delete a.fill;
+  Object.assign(a,ch); if(!a.fill) delete a.fill; if(!a.fillColor) delete a.fillColor;
   redrawOverlay();
   clearTimeout(styleUndo.h); styleUndo.h=setTimeout(()=>refreshThumbCanvas(current),300);
   return true;
@@ -4000,11 +4012,30 @@ document.querySelectorAll('#shapeOpts [data-kind]').forEach(b=>{
     updateTextUI(); saveSettings();
   };
 });
-$('btnFill').onclick=()=>{
-  const a=shapeInHand();
-  if(a&&isBoxShape(a)){ applyShapeStyle({fill:!a.fill}); shapeFill=!!a.fill; }
-  else shapeFill=!shapeFill;
-  updateTextUI(); saveSettings();
+$('btnFill').onclick=e=>{
+  e.stopPropagation();
+  const btn=$('btnFill'), a=shapeInHand(), box=a&&isBoxShape(a)?a:null;
+  const mode=box?(box.fill===true?'shade':box.fill||false):shapeFill, fc=box?box.fillColor||null:shapeFillColor;
+  const set=ch=>{ if('fill' in ch) shapeFill=ch.fill; if('fillColor' in ch) shapeFillColor=ch.fillColor;
+    if(box) applyShapeStyle(ch); updateTextUI(); saveSettings(); };
+  const pick=c=>set(shapeFill?{fillColor:c}:{fill:'solid',fillColor:c});      // choosing a colour turns the fill on
+  shapeFill=mode;
+  showMenu(btn,[{head:'พื้นของรูปทรง'},
+    {label:'ไม่มีสีพื้น', checked:!mode, action:()=>set({fill:false})},
+    {label:'โปร่ง', sub:'เห็นสิ่งที่อยู่ข้างหลัง', checked:mode==='shade', action:()=>set({fill:'shade'})},
+    {label:'ทึบ', sub:'บังสิ่งที่อยู่ข้างหลัง', checked:mode==='solid', action:()=>set({fill:'solid'})},
+    {sep:true},{head:'สีพื้น'},
+    {label:'ตามสีเส้น', checked:!fc, action:()=>pick(null)},
+    ...colorItems(fc,pick,btn)]);
+};
+$('btnTextBg').addEventListener('pointerdown',e=>e.preventDefault());     // keep the open text box open
+$('btnTextBg').onclick=e=>{
+  e.stopPropagation();
+  const btn=$('btnTextBg'), t=textInHand(), cur=t?t.bg||null:textBg;
+  const pick=c=>{ textBg=c; applyTextStyle({bg:c}); updateTextUI(); saveSettings(); };
+  showMenu(btn,[{head:'พื้นหลังของข้อความ'},
+    {label:'ไม่มีพื้นหลัง', sub:'เห็นสิ่งที่อยู่ข้างหลังตัวหนังสือ', checked:!cur, action:()=>pick(null)},
+    {sep:true}, ...colorItems(cur,pick,btn)]);
 };
 function updateTextUI(){
   const show=tool==='text';
@@ -4013,8 +4044,12 @@ function updateTextUI(){
   $('btnShapeTool').innerHTML=shapeIcon(shapeKind);
   document.querySelectorAll('#shapeOpts [data-kind]').forEach(b=>b.classList.toggle('on',b.dataset.kind===shapeKind));
   { const a=shapeInHand(), box=a?isBoxShape(a):BOX_KINDS.includes(shapeKind);
-    $('btnFill').classList.toggle('on', a?!!a.fill:shapeFill); $('btnFill').disabled=!box; }
-  const t=textInHand()||{font:textFont,bold:textBold,rot:textRot};
+    const f=a?fillOf(a):shapeFill?fillOf({fill:shapeFill,fillColor:shapeFillColor,color}):null, chip=$('btnFill').firstElementChild;
+    chip.classList.toggle('has',!!f); chip.style.backgroundColor=f?f.c:''; chip.style.opacity=f&&f.al<1?.55:1;
+    $('btnFill').disabled=!box; }
+  const t=textInHand()||{font:textFont,bold:textBold,rot:textRot,bg:textBg};
+  { const chip=$('btnTextBg').firstElementChild; chip.classList.toggle('has',!!t.bg); chip.style.backgroundColor=t.bg||'';
+    chip.style.color=t.bg&&parseInt(t.bg.slice(1,3),16)*.3+parseInt(t.bg.slice(3,5),16)*.59+parseInt(t.bg.slice(5,7),16)*.11<140?'#fff':''; }
   fontSel.value=t.font||'sys';
   $('btnBold').classList.toggle('on',!!t.bold);
   const r=t.rot!=null?t.rot:textRot;
@@ -4289,7 +4324,7 @@ $('btnSaveMenu').onclick=e=>{
     {label:'บันทึกเป็น…', key:'Ctrl+Shift+S', action:()=>saveDoc({as:true})},
     {label:n?`บันทึก ${n} หน้าที่เลือกเป็นไฟล์ใหม่…`:'บันทึกหน้าที่เลือกเป็นไฟล์ใหม่…', disabled:!n, action:saveSelectedPages},
     {sep:true},
-    {label:'บันทึกสำเนาแบบฝังถาวร (Flatten)…', sub:'มาร์กอัปและค่าฟอร์มกลายเป็นเนื้อหน้า แก้ไขไม่ได้อีก', action:saveFlattened},
+    {label:'บันทึกสำเนาแบบฝังถาวร (Flatten)…', sub:'มาร์กอัปและฟอร์มฝังลงหน้า แก้ไม่ได้อีก', action:saveFlattened},
     {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:openCompress},
     {label:'ส่งออกเป็นรูปภาพ (PNG / JPG)…', action:()=>exportImagesDialog()},
     {label:'แยกไฟล์…', sub:'ทุก N หน้า · ตามช่วงหน้า · หน้าละไฟล์', action:splitDialog},
@@ -4496,25 +4531,18 @@ function hasEncrypt(b){                               // "/Encrypt" anywhere (th
   return false;
 }
 function askPassword(name, wrong){
-  return new Promise(res=>{
-    const d=document.createElement('div'); d.className='dlg';
-    d.innerHTML=`<div class="box" role="dialog" aria-label="ใส่รหัสผ่าน"><b>ไฟล์นี้มีรหัสผ่าน</b>
+  return openDialog(`<div class="box" role="dialog" aria-label="ใส่รหัสผ่าน"><b>ไฟล์นี้มีรหัสผ่าน</b>
       <span class="note" style="word-break:break-all"></span>
       <div class="fRow"><label for="pwIn">รหัสผ่านสำหรับเปิดไฟล์</label><input type="password" id="pwIn" autocomplete="off" spellcheck="false"></div>
       <label class="fInline"><input type="checkbox" id="pwShow"> แสดงรหัสผ่าน</label>
       <span class="fErr"${wrong?'':' hidden'}>รหัสผ่านไม่ถูกต้อง — ลองอีกครั้ง</span>
       <span class="fHint">ไฟล์ที่บันทึกจากโปรแกรมนี้จะไม่มีรหัสผ่าน</span>
-      <div class="bkBtns"><button class="btn link" data-v="0">ยกเลิก</button><button class="btn primary" data-v="1">เปิดไฟล์</button></div></div>`;
-    d.querySelector('.note').textContent=name;
-    const inp=d.querySelector('#pwIn');
-    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
-    const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(null); } else if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); done(inp.value); } };
-    d.querySelector('#pwShow').onchange=e=>{ inp.type=e.target.checked?'text':'password'; inp.focus(); };
-    d.querySelector('[data-v="0"]').onclick=()=>done(null);
-    d.querySelector('[data-v="1"]').onclick=()=>done(inp.value);
-    document.addEventListener('keydown',key,true);
-    document.body.appendChild(d); inp.focus();
-  });
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">เปิดไฟล์</button></div></div>`,
+    (d,done)=>{
+      const inp=d.querySelector('#pwIn'); d.querySelector('.note').textContent=name;
+      d.querySelector('#pwShow').onchange=e=>{ inp.type=e.target.checked?'text':'password'; inp.focus(); };
+      d.querySelector('[data-act=ok]').onclick=()=>done(inp.value); inp.focus();
+    });
 }
 
 /* ---------------- saving ----------------
@@ -4602,7 +4630,8 @@ async function writeMark(W,pg,A,a){
   if(a.type==='shape'){
     const g=shapeGeom(a), res={}, path=pathOps(g.path,A,bb);
     let ops=`q ${fmtN(a.width)} w 1 J 1 j ${rgbOp(a.color,'RG')} ${rgbOp(a.color,'rg')}\n`;
-    if(a.fill&&g.closed){ res.ExtGState={F0:{Type:'ExtGState',ca:FILL_A}}; ops+=`q /F0 gs\n${path}f\nQ\n`; }
+    const fl=g.closed&&fillOf(a);
+    if(fl){ res.ExtGState={F0:{Type:'ExtGState',ca:fl.al}}; ops+=`q /F0 gs ${rgbOp(fl.c,'rg')}\n${path}f\nQ\n`; }
     ops+=path+'S\n';
     if(g.head) ops+='0 j\n'+pathOps(g.head,A,bb)+'f\n';
     ops+='Q';
@@ -4612,6 +4641,7 @@ async function writeMark(W,pg,A,a){
     if(isBoxShape(a)){
       sub=a.kind==='ellipse'?'Circle':'Square';
       if(a.kind==='cloud') extra.BE={S:'C',I:1};
+      if(fl&&fl.al===1) extra.IC=rgbOf(fl.c);
       const ib=bbNew(); unitBox(affMul(A,[a.w,0,0,a.h,a.x,a.y]),ib); const inner=bbPad(ib,a.width/2);
       extra.RD=[inner[0]-rect[0],rect[3]-inner[3],rect[2]-inner[2],inner[1]-rect[1]].map(v=>r3(Math.max(0,v)));
     }else if(a.kind==='line'||a.kind==='arrow'){
@@ -4645,10 +4675,12 @@ async function writeMark(W,pg,A,a){
     const fs=a.size; mctx.font=fontCss(a,fs);
     const m=mctx.measureText(a.text);
     const asc=Math.max(m.actualBoundingBoxAscent||0,fs*1.05), desc=Math.max(m.actualBoundingBoxDescent||0,fs*.35);
-    const lx=a.x-2, ly=a.y-asc-2, lw=Math.max(1,m.width)+4, lh=asc+desc+4;
+    const tb=textBox(a), lx=tb.x, ly=Math.min(tb.y,a.y-asc-2), lw=tb.w, lh=Math.max(tb.y+tb.h,a.y+desc+2)-ly;
     const Q=Math.min(5,8000/Math.max(lw,lh));
     const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.ceil(lw*Q)); cv.height=Math.max(1,Math.ceil(lh*Q));
-    const c=cv.getContext('2d'); c.scale(Q,Q); c.translate(-lx,-ly); c.fillStyle=a.color; c.font=fontCss(a,fs); c.fillText(a.text,a.x,a.y);
+    const c=cv.getContext('2d'); c.scale(Q,Q); c.translate(-lx,-ly);
+    if(a.bg){ c.fillStyle=a.bg; c.fillRect(tb.x,tb.y,tb.w,tb.h); }
+    c.fillStyle=a.color; c.font=fontCss(a,fs); c.fillText(a.text,a.x,a.y);
     const img=await W.out.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
     const M=affMul(A,affMul(rotAbout(textPivot(a),a.rot),[lw,0,0,-lh,lx,ly+lh]));
     unitBox(M,bb);
@@ -4664,23 +4696,29 @@ async function writeMark(W,pg,A,a){
       {Contents:txt(label),Subj:txt(a.stamp?'Stamp':a.sig?'Signature':'Image'),Name:a.stamp?'WYStamp':a.sig?'WYSignature':'WYImage'});
   }
 }
-/* "flatten": pictures go into the page content, everything else as one picture blended like a marker */
+/* "flatten": everything becomes page content, in the same stacking as on screen — pictures at full quality,
+   runs of other opaque things as one picture each, markers last as one picture blended like a marker */
 async function flattenMarks(W,pg,p,A){
-  const imgs=p.annots.filter(a=>a.type==='img'), rest=p.annots.filter(a=>a.type!=='img');
-  for(const a of imgs){
-    const img=await embedStoreImg(W,a.id); if(!img) continue;
-    const name=pg.node.newXObject('Img',img.ref), M=affMul(A,imgMatrix(a));
-    pg.pushOperators(PDFLib.pushGraphicsState(),PDFLib.concatTransformationMatrix(...M),PDFLib.drawObject(name),PDFLib.popGraphicsState());
+  const d=dispSize(p), full=affMul(A,[d.w,0,0,-d.h,0,d.h]);
+  const put=(ref,M,gs)=>{ const name=pg.node.newXObject('Wy',ref);
+    pg.pushOperators(PDFLib.pushGraphicsState(),...(gs?[PDFLib.setGraphicsState(gs)]:[]),PDFLib.concatTransformationMatrix(...M),PDFLib.drawObject(name),PDFLib.popGraphicsState()); };
+  const paint=async(list,layer)=>{
+    if(!list.length) return;
+    const Q=Math.max(1,Math.min(list.some(a=>a.type==='text')?5:3,Math.sqrt(40e6/(d.w*d.h))));
+    const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
+    const c=cv.getContext('2d'); c.scale(Q,Q); drawAnnots(c,list,layer);
+    const img=await W.out.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
+    put(img.ref,full,layer==='m'?pg.node.newExtGState('GS',W.ctx.obj({Type:'ExtGState',BM:'Multiply'})):null);
+  };
+  let run=[];
+  for(const a of p.annots){
+    if(isMarker(a)) continue;
+    if(a.type!=='img'){ run.push(a); continue; }
+    await paint(run,'n'); run=[];
+    const img=await embedStoreImg(W,a.id); if(img) put(img.ref,affMul(A,imgMatrix(a)));
   }
-  if(!rest.length) return;
-  const d=dispSize(p), hasText=rest.some(a=>a.type==='text');
-  const Q=Math.max(1,Math.min(hasText?5:3,Math.sqrt(40e6/(d.w*d.h))));
-  const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(d.w*Q)); cv.height=Math.max(1,Math.round(d.h*Q));
-  const c=cv.getContext('2d'); c.scale(Q,Q); drawAnnots(c,rest);
-  const img=await W.out.embedPng(await canvasPng(cv)); cv.width=cv.height=0;
-  const gs=pg.node.newExtGState('GS',W.ctx.obj({Type:'ExtGState',BM:'Multiply'})), name=pg.node.newXObject('Ov',img.ref);
-  pg.pushOperators(PDFLib.pushGraphicsState(),PDFLib.setGraphicsState(gs),PDFLib.concatTransformationMatrix(...affMul(A,[d.w,0,0,-d.h,0,d.h])),
-                   PDFLib.drawObject(name),PDFLib.popGraphicsState());
+  await paint(run,'n');
+  await paint(p.annots.filter(isMarker),'m');
 }
 /* form values go into the fields of the source copy; text and list fields get a picture appearance
    (Thai shapes correctly, which pdf-lib's own appearance code cannot do) */
@@ -4795,7 +4833,8 @@ async function assemble(list,srcs,opt={}){
     }
     outPages.push(pg); W.R=R;
     if(opt.flatten) await flattenMarks(W,pg,p,A);
-    else for(const a of p.annots){ try{ await writeMark(W,pg,A,a); }catch(err){ console.error('markup',a.type,err); } }
+    else for(const a of [...p.annots.filter(a=>!isMarker(a)),...p.annots.filter(isMarker)]){     // markers on top, as on screen
+      try{ await writeMark(W,pg,A,a); }catch(err){ console.error('markup',a.type,err); } }
   }
   finishDoc(W,srcs,outPages);
   return out.save({updateFieldAppearances:false});
@@ -5160,21 +5199,14 @@ async function useStamp(st){
   armPlacing(id, w, {stamp:{th:st.th, en:st.en||'', c:st.c}}, `วางตรา "${st.th}" แล้ว — ลากย้าย, ลากมุมเพื่อย่อขยาย, จุดกลมด้านบนเพื่อหมุน`);
 }
 function promptText(title, note, value='', ph=''){
-  return new Promise(res=>{
-    const d=document.createElement('div'); d.className='dlg';
-    d.innerHTML=`<div class="box" role="dialog"><b></b><span class="note"></span>
+  return openDialog(`<div class="box" role="dialog"><b></b><span class="note"></span>
       <div class="fRow"><input type="text" maxlength="60" spellcheck="false"></div>
-      <div class="bkBtns"><button class="btn link" data-v="0">ยกเลิก</button><button class="btn primary" data-v="1">ตกลง</button></div></div>`;
-    d.querySelector('b').textContent=title; d.querySelector('.note').textContent=note;
-    const inp=d.querySelector('input'); inp.value=value; inp.placeholder=ph;
-    const done=v=>{ d.remove(); document.removeEventListener('keydown',key,true); res(v); };
-    const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(null); } else if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); done(inp.value.trim()); } };
-    d.querySelector('[data-v="0"]').onclick=()=>done(null);
-    d.querySelector('[data-v="1"]').onclick=()=>done(inp.value.trim());
-    d.addEventListener('pointerdown',e=>{ if(e.target===d) done(null); });
-    document.addEventListener('keydown',key,true);
-    document.body.appendChild(d); inp.focus(); inp.select();
-  });
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">ตกลง</button></div></div>`,
+    (d,done)=>{
+      d.querySelector('b').textContent=title; d.querySelector('.note').textContent=note;
+      const inp=d.querySelector('input'); inp.value=value; inp.placeholder=ph;
+      d.querySelector('[data-act=ok]').onclick=()=>done(inp.value.trim()); inp.focus(); inp.select();
+    });
 }
 async function askUserName(){
   const v=await promptText('ชื่อผู้ตรวจ / ผู้แก้ไข','แสดงบนตราประทับต่อท้ายวันที่ และบันทึกเป็นชื่อผู้แก้ไขในไฟล์ (เห็นใน Acrobat / PDF-XChange)',userName,'เช่น วีระชัย ย.');
@@ -5638,7 +5670,8 @@ viewerEl.addEventListener('contextmenu',e=>{
   if(hitS) items.push(
     {head:'รูปทรง'},
     {label:'เลือกเพื่อแก้ไข', sub:'ย้าย ย่อขยาย เปลี่ยนสีและความหนา', action:async()=>{ await go(); setTool('select'); selShape=hitS; redrawOverlay(); updateTextUI(); }},
-    ...(isBoxShape(hitS)?[{label:hitS.fill?'เอาสีพื้นออก':'เติมสีโปร่ง', action:()=>{ pushUndo(pages[k]); if(hitS.fill) delete hitS.fill; else hitS.fill=true; changed(); }}]:[]),
+    ...(isBoxShape(hitS)?[['ไม่มีสีพื้น',false],['สีพื้นโปร่ง','shade'],['สีพื้นทึบ','solid']].map(([label,m])=>({label, checked:(hitS.fill===true?'shade':hitS.fill||false)===m,
+        action:()=>{ pushUndo(pages[k]); if(m) hitS.fill=m; else delete hitS.fill; changed(); }})):[]),
     {label:'ลบรูปทรง', key:'Del', action:()=>{ pushUndo(pages[k]); pages[k].annots=pages[k].annots.filter(x=>x!==hitS); if(selShape===hitS) selShape=null; changed(); }},
     {sep:true});
   if(hitM){
@@ -5656,6 +5689,7 @@ viewerEl.addEventListener('contextmenu',e=>{
     {label:'หมุนข้อความซ้าย 90°', key:'Ctrl+[', action:async()=>{ await go(); setTool('text'); selText=hit; turnText(-90); }},
     {label:'หมุนข้อความขวา 90°', key:'Ctrl+]', action:async()=>{ await go(); setTool('text'); selText=hit; turnText(90); }},
     ...(hit.rot?[{label:'ตั้งข้อความตรง (0°)', sub:'ตอนนี้ '+fmtDeg(hit.rot), action:async()=>{ await go(); setTool('text'); selText=hit; turnText(0,0); }}]:[]),
+    {label:hit.bg?'เอาพื้นหลังออก':'ใส่พื้นหลังขาวทึบ', action:()=>{ pushUndo(pages[k]); if(hit.bg) delete hit.bg; else hit.bg='#FFFFFF'; changed(); }},
     {label:'ลบข้อความ', key:'Del', action:async()=>{ await go(); setTool('text'); selText=hit; deleteSelText(); }},
     {sep:true});
   items.push(
