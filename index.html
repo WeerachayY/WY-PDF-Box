@@ -29,7 +29,7 @@
   --toolH:50px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;touch-action:pan-x pan-y}      /* touch screens: scroll, but no pinch-zoom of the app */
 body{
   font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Leelawadee UI",Roboto,sans-serif;
   background:var(--bg);color:var(--ink);font-size:14px;
@@ -771,7 +771,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn,shapeKind,shapeFill,shapeFillColor,textBg,userName,markColors})); }catch(e){}
 }
 
-const APP_VERSION = '3.1.0-beta.1';
+const APP_VERSION = '3.1.1-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -3550,11 +3550,15 @@ viewerEl.addEventListener('pointerup',pointerEnd);
 viewerEl.addEventListener('pointercancel',pointerEnd);
 
 /* Ctrl + wheel (and a laptop trackpad pinch) zooms at the cursor */
-viewerEl.addEventListener('wheel',e=>{
-  if(!e.ctrlKey||!pages.length) return;
+/* Pinch on a touchpad and Ctrl+wheel arrive as wheel events with ctrlKey. Anywhere in the window they zoom
+   the document — never the app itself (left alone, the browser would blow up the whole interface). */
+window.addEventListener('wheel',e=>{
+  if(!e.ctrlKey&&!e.metaKey) return;
   e.preventDefault();
+  if(!pages.length||document.querySelector('.dlg')) return;
+  const r=viewerEl.getBoundingClientRect(), inside=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
   const k=e.deltaMode===1?.05:.0015;
-  applyZoom(zoom*Math.exp(-e.deltaY*k), e.clientX, e.clientY);
+  applyZoom(zoom*Math.exp(-e.deltaY*k), inside?e.clientX:r.left+r.width/2, inside?e.clientY:r.top+r.height/2);
 },{passive:false});
 
 function distSeg(px,py,ax,ay,bx,by){
