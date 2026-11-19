@@ -372,6 +372,7 @@ select.fieldIn{padding:0}
   background-image:linear-gradient(135deg,transparent 46%,#DC2626 46%,#DC2626 54%,transparent 54%)}
 .bgchip.has{background-image:none}
 .dlg [hidden]{display:none!important}
+.crossPv{width:100%;height:auto;aspect-ratio:12/5;border-radius:10px;display:block}
 .dlg .box.wide{width:min(560px,100%);gap:10px}
 .fRow{display:flex;flex-direction:column;gap:5px}
 .fRow>label{font-size:12px;font-weight:600;color:var(--muted)}
@@ -735,7 +736,7 @@ let sizes = {pen:3, hl:14, text:16, shape:2};
 const SHAPE_KINDS=['rect','ellipse','cloud','line','arrow','poly'], BOX_KINDS=['rect','ellipse','cloud'];
 let shapeKind='cloud', shapeFill=false, shapeFillColor=null, textBg=null, userName='';   // fill: false | 'shade' | 'solid'; colours: null = none / same as the line
 let markColors={hl:'#FDE047', ul:'#DC2626', so:'#DC2626'};
-let selShape=null, polyDraft=null, placing=null, fieldEd=null, tapCand=null;
+let selShape=null, polyDraft=null, placing=null, crossArm=null, fieldEd=null, tapCand=null;
 let textFont = 'sys', textBold = false, snapQ = 'normal', viewMode = 'scroll', backupOn = true;
 /* text is drawn as part of the overlay image, so any web font works in the saved PDF too;
    Thai Google Fonts load on first use and the service worker keeps them for offline use */
@@ -771,7 +772,7 @@ function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({tool,lastDrawTool,color,recent,sizes,textFont,textBold,snapQ,viewMode,backupOn,shapeKind,shapeFill,shapeFillColor,textBg,userName,markColors})); }catch(e){}
 }
 
-const APP_VERSION = '3.1.1-beta.1';
+const APP_VERSION = '3.2.0-beta.1';
 const $ = id => document.getElementById(id);
 const viewerEl=$('viewer'), wrap=$('pageWrap'),
       pdfCv=$('pdfCanvas'), ovCv=$('ovCanvas'), octx=ovCv.getContext('2d'), txtIn=$('txtIn'),
@@ -830,7 +831,7 @@ function leaveTab(){
   if(txtIn.style.display==='block') commitText();
   if(fieldEd) commitField();
   if(polyDraft) finishPoly();
-  placing=null;
+  placing=null; crossArm=null;
   if(selText||selImg||selShape){ selText=null; selImg=null; selShape=null; redrawOverlay(); }
   stashTab();
   slotIO.disconnect(); nearSlots.clear();
@@ -1805,6 +1806,7 @@ async function saveDoc({as=false}={}){
   const t=activeTab; if(!t||!pages.length) return false;
   if(txtIn.style.display==='block') commitText();
   if(fieldEd) commitField();
+  if(!await crossGuard(t)) return false;
   const btn=$('btnSave'), old=btn.innerHTML;
   btn.disabled=true; btn.querySelector('.lbl')&&(btn.querySelector('.lbl').textContent='กำลังบันทึก…');
   try{
@@ -3374,6 +3376,7 @@ function cancelStroke(){               // a second finger landed: the stroke was
   else if(drawing.type==='rot'){ const a=drawing.a; a.rot=drawing.r0; a.x=drawing.ox; a.y=drawing.oy; rotLive=null; if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='resize'){ Object.assign(drawing.a,drawing.o0); if(drawing.moved){ p.undo.pop(); undoLog.pop(); } }
   else if(drawing.type==='textsel'){ textSel=null; }
+  else if(drawing.type==='place'||drawing.type==='crossbox'){}
   else { const i=p.annots.indexOf(drawing); if(i>=0) p.annots.splice(i,1); p.undo.pop(); undoLog.pop(); }
   drawing=null; drawPid=null; redrawOverlay();
 }
@@ -3390,6 +3393,7 @@ function endStroke(){
   if(drawing.type==='newshape'){ const m=drawing; drawing=null; drawPid=null; endNewShape(m); return; }
   if(drawing.type==='textsel'){ drawing=null; drawPid=null; if(textSel&&textSel.a===textSel.b) textSel=null; redrawOverlay(); return; }
   if(drawing.type==='place'){ drawing=null; drawPid=null; return; }
+  if(drawing.type==='crossbox'){ const m=drawing; drawing=null; drawPid=null; finishCrossBox(m); return; }
   if(drawing.type==='move'){
     const m=drawing; drawing=null; drawPid=null;
     if(m.moved) refreshThumbCanvas(current);
@@ -3452,6 +3456,13 @@ viewerEl.addEventListener('pointerdown',e=>{
     if(touchPts.size===2){ cancelStroke(); startPinch(); return; }
     if(touchPts.size>2) return;
   }
+  if(crossArm && (e.pointerType!=='mouse'||e.button===0)){
+    const sl=e.target.closest?.('.slot'), k=sl?slots.findIndex(x=>x.el===sl):-1;
+    e.preventDefault();
+    if(k>=0){ if(k!==current){ trackHold=performance.now()+300; showPage(k); thumbIntoView(k); }
+      const q=evPos(e); drawing={type:'crossbox', sx:q.x, sy:q.y, x:q.x, y:q.y, w:0, h:0}; drawPid=e.pointerId; capture(e.pointerId); }
+    return;
+  }
   if(placing && (e.pointerType!=='mouse'||e.button===0)){
     const sl=e.target.closest?.('.slot'), k=sl?slots.findIndex(x=>x.el===sl):-1;
     e.preventDefault();
@@ -3506,6 +3517,8 @@ viewerEl.addEventListener('pointermove',e=>{
     if(drawing.type==='vertex'){ vertexMove(drawing,pos,e.shiftKey); return; }
     if(drawing.type==='newshape'){ newShapeMove(drawing,pos,e.shiftKey); return; }
     if(drawing.type==='place') return;
+    if(drawing.type==='crossbox'){ const m=drawing, d=dispSize(pages[current]), q={x:Math.max(0,Math.min(d.w,pos.x)), y:Math.max(0,Math.min(d.h,pos.y))};
+      Object.assign(m,{x:Math.min(m.sx,q.x), y:Math.min(m.sy,q.y), w:Math.abs(q.x-m.sx), h:Math.abs(q.y-m.sy)}); redrawOverlay(); return; }
     if(drawing.type==='textsel'){ textSelMove(drawing,pos); return; }
     if(drawing.type==='move'){
       const m=drawing, dx=pos.x-m.sx, dy=pos.y-m.sy;
@@ -3695,12 +3708,13 @@ function armPlacing(id, w, meta, done){
   ovCv.style.cursor='copy';
   toast('คลิกบนหน้าตรงที่ต้องการวาง · Esc = ยกเลิก');
 }
-function cancelPlacing(){ if(!placing) return; placing=null; setTool(tool); redrawOverlay(); }
+function cancelPlacing(){ if(!placing&&!crossArm) return; placing=null; crossArm=null; setTool(tool); redrawOverlay(); }
 function placingSize(pl){
   const st=imgStore.get(pl.id), d=dispSize(pages[current]); if(!st) return {w:0,h:0};
   const w=Math.min(pl.w, d.w*.45, d.h*.45*st.w/st.h); return {w, h:w*st.h/st.w};
 }
 function drawPlacing(ctx){
+  if(drawing&&drawing.type==='crossbox'&&crossArm){ drawCrossPreview(ctx,drawing); return; }
   if(!placing||!placing.pos) return;
   const st=imgStore.get(placing.id); if(!st) return;
   const {w,h}=placingSize(placing), q=placing.pos;
@@ -3887,7 +3901,7 @@ const toolBtns=[...document.querySelectorAll('#toolGroup .tbtn')];
 function setTool(t){
   if(txtIn.style.display==='block') txtIn.blur();
   if(polyDraft&&t!=='shape') finishPoly();
-  if(placing){ placing=null; redrawOverlay(); }
+  if(placing||crossArm){ placing=null; crossArm=null; redrawOverlay(); }
   tool=t;
   if(t!=='pan'&&t!=='select') lastDrawTool=t;
   if(t!=='text'&&t!=='select'&&selText){ selText=null; redrawOverlay(); }
@@ -4116,7 +4130,7 @@ document.addEventListener('keydown',e=>{
   const map={KeyV:'pan',KeyS:'select',KeyP:'pen',KeyH:'hl',KeyT:'text',KeyR:'shape',KeyE:'eraser'};
   if(map[e.code]){ e.preventDefault(); setTool(map[e.code]); }
   else if((e.code==='Enter'||e.code==='NumpadEnter')&&polyDraft){ e.preventDefault(); finishPoly(); }
-  else if(e.code==='Escape'&&(placing||polyDraft)){ e.preventDefault(); if(placing){ cancelPlacing(); toast('ยกเลิกการวาง'); } else finishPoly(true); }
+  else if(e.code==='Escape'&&(placing||polyDraft||crossArm)){ e.preventDefault(); if(placing||crossArm){ cancelPlacing(); toast('ยกเลิกการวาง'); } else finishPoly(true); }
   else if((e.code==='Delete'||e.code==='Backspace')&&shapeInHand()){ e.preventDefault(); deleteSelShape(); }
   else if(e.code==='Backspace'&&polyDraft&&polyDraft.a.pts.length>2){ e.preventDefault(); polyDraft.a.pts.splice(-2,1); redrawOverlay(); }
   else if(pages.length&&e.code==='Home'){ e.preventDefault(); goToPage(0); }
@@ -4328,7 +4342,8 @@ $('btnSaveMenu').onclick=e=>{
     {label:'บันทึกเป็น…', key:'Ctrl+Shift+S', action:()=>saveDoc({as:true})},
     {label:n?`บันทึก ${n} หน้าที่เลือกเป็นไฟล์ใหม่…`:'บันทึกหน้าที่เลือกเป็นไฟล์ใหม่…', disabled:!n, action:saveSelectedPages},
     {sep:true},
-    {label:'บันทึกสำเนาแบบฝังถาวร (Flatten)…', sub:'มาร์กอัปและฟอร์มฝังลงหน้า แก้ไม่ได้อีก', action:saveFlattened},
+    {label:'บันทึกแบบปลอดภัย (ทำเป็นภาพ)…', sub:'สำเนาบัตร / เอกสารส่วนตัว — ลบขีดคร่อมออกไม่ได้', action:()=>safeSaveDialog()},
+    {label:'บันทึกสำเนาแบบฝังถาวร (Flatten)…', sub:'มาร์กอัปฝังลงหน้า แต่รูปเดิมยังดึงแยกได้', action:saveFlattened},
     {label:'บีบอัดแล้วบันทึกเป็นไฟล์ใหม่…', action:openCompress},
     {label:'ส่งออกเป็นรูปภาพ (PNG / JPG)…', action:()=>exportImagesDialog()},
     {label:'แยกไฟล์…', sub:'ทุก N หน้า · ตามช่วงหน้า · หน้าละไฟล์', action:splitDialog},
@@ -4340,6 +4355,7 @@ $('btnSaveSel').onclick=saveSelectedPages;
 async function saveFlattened(){
   if(!pages.length) return;
   if(txtIn.style.display==='block') commitText(); if(fieldEd) commitField();
+  if(!await crossGuard(activeTab,true)) return;
   try{
     toast('กำลังสร้างไฟล์…');
     const bytes=await buildPdf(pages,{flatten:true});
@@ -5004,31 +5020,22 @@ document.querySelectorAll('#cmpModal [data-dpi]').forEach(b=>{
 async function fontsFor(list){
   await Promise.all(list.flatMap(p=>p.annots.filter(a=>a.type==='text').map(loadFont)));
 }
+/* every page as one picture (page + everything on it): nothing that was under the markup survives, and the
+   new file carries no text, metadata, bookmarks, links, fields or hidden layers */
+async function rasterPdf(list,dpi,q,label){
+  await marksReady(list);
+  const out=await PDFLib.PDFDocument.create({updateMetadata:false});
+  for(let i=0;i<list.length;i++){
+    toast(`${label}… หน้า ${i+1}/${list.length}`);
+    await new Promise(r=>setTimeout(r,0));               // ให้ UI ขยับ
+    const p=list[i], d=dispSize(p), pic=await renderPagePicture(p,dpi,'jpg',q);
+    out.addPage([d.w,d.h]).drawImage(await out.embedJpg(pic.data),{x:0, y:0, width:d.w, height:d.h});
+  }
+  return out.save();
+}
 async function compressSave(dpi, q){
   try{
-    await marksReady(pages);
-    const out=await PDFLib.PDFDocument.create();
-    for(let i=0;i<pages.length;i++){
-      toast(`กำลังบีบอัด… หน้า ${i+1}/${pages.length}`);
-      await new Promise(r=>setTimeout(r,0));           // ให้ UI ขยับ
-      const p=pages[i];
-      const page=await docs[p.doc].pdf.getPage(p.srcIndex+1);
-      const scale=dpi/72;
-      const vp=page.getViewport({scale, rotation: totalRot(p)});
-      const cv=document.createElement('canvas');
-      cv.width=Math.round(vp.width); cv.height=Math.round(vp.height);
-      const c=cv.getContext('2d');
-      c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
-      await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
-      c.setTransform(scale,0,0,scale,0,0);
-      drawPageMarks(c,p);
-      const img=await out.embedJpg(cv.toDataURL('image/jpeg', q));
-      const d=dispSize(p);
-      const pg=out.addPage([d.w, d.h]);
-      pg.drawImage(img,{x:0, y:0, width:d.w, height:d.h});
-      cv.width=cv.height=0;                            // คืนหน่วยความจำ
-    }
-    const bytes=await out.save();
+    const bytes=await rasterPdf(pages,dpi,q,'กำลังบีบอัด');
     const orig=docs.reduce((s,d)=>s+d.bytes.length,0);
     const mb=x=>(x/1048576).toFixed(2);
     if(await saveBytesAs(bytes, `${baseName}-compressed.pdf`)) toast(`เสร็จแล้ว ✓ ${mb(orig)} MB → ${mb(bytes.length)} MB`);
@@ -5244,7 +5251,9 @@ function customStampDialog(){
 $('btnStamp').onclick=e=>{
   e.stopPropagation();
   if(!pages.length){ toast('เปิดไฟล์ก่อน แล้วค่อยวางตราประทับ'); return; }
-  const custom=customStamps(), items=[{head:'เลือกตรา แล้วคลิกบนหน้าตรงที่จะวาง'}];
+  const custom=customStamps(), items=[{head:'สำเนาเอกสารส่วนตัว'},
+    {label:'ขีดคร่อมสำเนา…', sub:'บัตรประชาชน ทะเบียนบ้าน — "ใช้สำหรับ … เท่านั้น"', action:crossDialog},
+    {sep:true},{head:'เลือกตรา แล้วคลิกบนหน้าตรงที่จะวาง'}];
   for(const st of [...STAMPS,...custom]) items.push({label:st.th, sub:st.en, color:st.c, action:()=>useStamp(st)});
   items.push({sep:true},
     {label:'สร้างตราประทับเอง…', action:customStampDialog},
@@ -5450,7 +5459,7 @@ function pagesFrom(d){
   if(w==='range'){ const r=parseRanges(d.querySelector('[data-k=range]').value,pages.length); return r?r.flatMap(([a,b])=>pages.slice(a,b+1)):null; }
   return [...pages];
 }
-async function renderPagePicture(p,dpi,fmt){
+async function renderPagePicture(p,dpi,fmt,q=.92){
   const d=dispSize(p), want=dpi/72;
   const scale=Math.min(want,16000/Math.max(d.w,d.h),Math.sqrt(60e6/(d.w*d.h)));
   const page=await docs[p.doc].pdf.getPage(p.srcIndex+1), vp=page.getViewport({scale, rotation:totalRot(p)});
@@ -5458,7 +5467,7 @@ async function renderPagePicture(p,dpi,fmt){
   const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
   await page.render({canvasContext:c, viewport:vp, ...occOf(p)}).promise;
   c.setTransform(scale,0,0,scale,0,0); drawPageMarks(c,p);
-  const blob=await new Promise(r=>cv.toBlob(r,fmt==='png'?'image/png':'image/jpeg',.92)); cv.width=cv.height=0;
+  const blob=await new Promise(r=>cv.toBlob(r,fmt==='png'?'image/png':'image/jpeg',q)); cv.width=cv.height=0;
   return {data:new Uint8Array(await blob.arrayBuffer()), reduced:scale<want-1e-6};
 }
 let exportPref={fmt:'png', dpi:'150'};
@@ -5616,6 +5625,177 @@ async function mergeDialog(){
     if(err?.cancelled){ toast('ยกเลิกการรวมไฟล์'); return; }
     console.error(err); toast('รวมไฟล์ไม่สำเร็จ — มีไฟล์ที่เปิดไม่ได้');
   }
+}
+
+/* ---------------- copies of personal documents: cross-out + safe save ----------------
+   ขีดคร่อมสำเนา: two parallel lines across the card with "ใช้สำหรับ … เท่านั้น" and the date between them,
+   optionally "สำเนาถูกต้อง" + signature + name. The parts are ordinary objects (adjustable afterwards),
+   marked cross:true so saving reminds that only the safe save keeps them from being removed.          */
+let crossOpts={purpose:'', date:true, certify:true, name:'', sig:'', color:'#1D4ED8'};
+try{ Object.assign(crossOpts, JSON.parse(localStorage.getItem('wy-cross')||'{}')); }catch(e){}
+const CROSS_COLORS=[['น้ำเงิน','#1D4ED8'],['ดำ','#111827'],['แดง','#DC2626']];
+const thaiDateLong=()=>new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+function crossPurpose(s){
+  s=String(s||'').trim(); if(!s) return '';
+  if(!/^ใช้/.test(s)) s='ใช้สำหรับ '+s;
+  if(!/เท่านั้น$/.test(s)) s+=' เท่านั้น';
+  return s;
+}
+/* the objects for a box R on a page of size d (page units) */
+function crossMarks(R,o,d,sigImg){
+  const out=[], col=o.color, F={font:'sys', bold:true};
+  const L=Math.hypot(R.w,R.h)||1, th=Math.atan2(-R.h,R.w), u={x:Math.cos(th),y:Math.sin(th)}, n={x:-u.y,y:u.x};
+  const C={x:R.x+R.w/2, y:R.y+R.h/2};
+  const lines=[crossPurpose(o.purpose), o.date?`วันที่ ${thaiDateLong()}`:''].filter(Boolean);
+  mctx.font=fontCss(F,100); const w1=Math.max(1,...lines.map(t=>mctx.measureText(t).width/100));
+  const N=Math.max(1,lines.length), band=R.w*R.h/L;                       // room from the diagonal to the corners
+  const fs=Math.max(6,Math.min(36, L*.8/w1, band*.42/(N*1.3+.7)));
+  const gap=lines.length?fs*(N*1.3+.7):Math.max(8,Math.min(24,band*.2)), lw=Math.max(1,Math.min(3,fs*.09));
+  for(const sgn of [-1,1]){
+    const off=sgn*gap/2, a={x:C.x-u.x*L*.47+n.x*off, y:C.y-u.y*L*.47+n.y*off}, b={x:C.x+u.x*L*.47+n.x*off, y:C.y+u.y*L*.47+n.y*off};
+    out.push({type:'shape', kind:'line', color:col, width:lw, pts:[a,b], cross:true});
+  }
+  lines.forEach((t,i)=>{
+    mctx.font=fontCss(F,fs); const tw=mctx.measureText(t).width, off=(i-(lines.length-1)/2)*fs*1.3;
+    const Q={x:C.x+n.x*off, y:C.y+n.y*off}, P={x:Q.x-u.x*tw/2, y:Q.y-u.y*tw/2};       // P = pivot (left end of the middle line)
+    out.push({type:'text', text:t, x:P.x, y:P.y+fs*.35, size:fs, color:col, font:'sys', bold:true, rot:Math.round(th*1800/Math.PI)/10, cross:true});
+  });
+  if(o.certify){                                     // "สำเนาถูกต้อง", signature, (name) — below the box, or inside its corner
+    const fb=Math.max(8,Math.min(16,Math.min(R.w,R.h)*.085)), st=sigImg?imgStore.get(sigImg):null;
+    const sw=st?Math.min(fb*7,R.w*.45):0, sh=st?sw*st.h/st.w:0, nm=(o.name||'').trim();
+    const rows=[['สำเนาถูกต้อง',fb]].concat(nm?[[`(${nm})`,fb*.85]]:[]);
+    const bw=Math.max(sw,...rows.map(([t,s])=>{ mctx.font=fontCss({font:'sys'},s); return mctx.measureText(t).width; }));
+    const bh=fb*1.3+(sh?sh+fb*.2:0)+(nm?fb*1.2:0);
+    const below=R.y+R.h+6+bh<=d.h, x1=Math.min(d.w-4,R.x+R.w)-(below?0:6), y0=below?R.y+R.h+6:R.y+R.h-bh-6, cx=x1-bw/2;
+    mctx.font=fontCss({font:'sys'},fb);
+    out.push({type:'text', text:'สำเนาถูกต้อง', x:cx-mctx.measureText('สำเนาถูกต้อง').width/2, y:y0+fb, size:fb, color:col, font:'sys', bold:false, cross:true});
+    let y=y0+fb*1.3;
+    if(st){ out.push({type:'img', id:sigImg, x:cx-sw/2, y, w:sw, h:sh, rot:0, sig:true, cross:true}); y+=sh+fb*.2; }
+    if(nm){ const s=fb*.85; mctx.font=fontCss({font:'sys'},s); out.push({type:'text', text:`(${nm})`, x:cx-mctx.measureText(`(${nm})`).width/2, y:y+fb*.95, size:s, color:col, font:'sys', bold:false, cross:true}); }
+  }
+  return out;
+}
+const sigImgCache=new Map();                         // saved signature id -> picture id in imgStore
+async function sigImgFor(id){
+  if(!id) return null;
+  if(sigImgCache.has(id)&&imgStore.get(sigImgCache.get(id))) return sigImgCache.get(id);
+  const s=(await getSigs()).find(x=>x.id===id); if(!s) return null;
+  const im=await storeImage(new File([s.bytes],'signature.png',{type:'image/png'})); sigImgCache.set(id,im); return im;
+}
+function drawCrossPreview(ctx,m){
+  const k=1/zoom; ctx.save(); ctx.strokeStyle='#2563EB'; ctx.lineWidth=1.5*k; ctx.setLineDash([6*k,4*k]); ctx.strokeRect(m.x,m.y,m.w,m.h); ctx.restore();
+  if(m.w*zoom>12&&m.h*zoom>12){ ctx.save(); ctx.globalAlpha=.75; drawAnnots(ctx,crossMarks(m,crossArm.o,dispSize(pages[current]),crossArm.sig)); ctx.restore(); }
+}
+function applyCross(p,R,o,sig){
+  pushUndo(p);
+  p.annots.push(...crossMarks(R,o,dispSize(p),sig));
+  selText=selImg=selShape=null;
+  const k=pages.indexOf(p); if(k===current) redrawOverlay(); refreshThumbCanvas(k);
+}
+function finishCrossBox(m){
+  const arm=crossArm; crossArm=null; setTool(tool);
+  if(!arm) return;
+  const p=pages[current], d=dispSize(p);
+  const R=m.w*zoom>12&&m.h*zoom>12?{x:m.x,y:m.y,w:m.w,h:m.h}:{x:d.w*.06,y:d.h*.06,w:d.w*.88,h:d.h*.88};
+  applyCross(p,R,arm.o,arm.sig);
+  toast('ขีดคร่อมแล้ว — ลากปรับได้ · ก่อนส่งให้ใคร ใช้ "บันทึกแบบปลอดภัย"');
+}
+async function crossDialog(){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText();
+  const sigs=await getSigs(), n=selected.size;
+  const r=await openDialog(`<div class="box wide" role="dialog" aria-label="ขีดคร่อมสำเนา"><b>ขีดคร่อมสำเนา</b>
+      <span class="note">สำหรับสำเนาบัตรประชาชน ทะเบียนบ้าน ฯลฯ — เส้นและข้อความพาดผ่านตัวบัตร ให้เอาไปใช้เรื่องอื่นไม่ได้</span>
+      <canvas class="crossPv" width="720" height="300"></canvas>
+      <div class="fRow"><label>ใช้สำหรับ</label><input type="text" data-k="purpose" maxlength="80" spellcheck="false" placeholder="เช่น สมัครฝึกงาน บริษัท เอบีซี จำกัด"></div>
+      <label class="fInline"><input type="checkbox" data-k="date"> ใส่วันที่ (${thaiDateLong()})</label>
+      <label class="fInline"><input type="checkbox" data-k="certify"> เขียน "สำเนาถูกต้อง" และลงชื่อ</label>
+      <div class="fInline" data-k="certRow">
+        <select data-k="sig" style="height:32px;border:1px solid var(--line);border-radius:8px;padding:0 6px;font:inherit">
+          <option value="">ไม่ใส่ลายเซ็น</option>${sigs.map((s,i)=>`<option value="${s.id}">ลายเซ็น ${i+1}</option>`).join('')}</select>
+        <input type="text" data-k="name" maxlength="60" placeholder="ชื่อ-นามสกุล (ไม่ใส่ก็ได้)" spellcheck="false" style="flex:1;min-width:160px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font:inherit">
+      </div>
+      <div class="fInline">สี <span class="sigTools" data-k="clr"></span></div>
+      <span class="fHint">วางแล้วลากปรับตำแหน่ง/ขนาดได้ · ก่อนส่งไฟล์ให้ใคร บันทึกด้วย "บันทึกแบบปลอดภัย" เพื่อไม่ให้ลบขีดออกได้</span>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button>
+        <button class="btn" data-act="page">ทั้งหน้า (${n>1?`${n} หน้าที่เลือก`:'หน้านี้'})</button>
+        <button class="btn primary" data-act="ok">ลากกรอบครอบบัตร</button></div></div>`,
+    (d,done)=>{
+      const $q=k=>d.querySelector(`[data-k=${k}]`), o={...crossOpts};
+      if(!o.name&&userName) o.name=userName;
+      if(o.sig&&!sigs.some(s=>s.id===o.sig)) o.sig='';
+      $q('purpose').value=o.purpose; $q('date').checked=o.date; $q('certify').checked=o.certify; $q('name').value=o.name; $q('sig').value=o.sig;
+      const row=$q('clr');
+      for(const [nm,c] of CROSS_COLORS){ const b=document.createElement('button'); b.className='dotc'+(c===o.color?' on':''); b.style.background=c; b.title=nm;
+        b.onclick=()=>{ o.color=c; row.querySelectorAll('.dotc').forEach(x=>x.classList.toggle('on',x===b)); pv(); }; row.appendChild(b); }
+      const cv=d.querySelector('.crossPv'), c=cv.getContext('2d');
+      let sig=null;
+      const pv=async()=>{
+        o.purpose=$q('purpose').value; o.date=$q('date').checked; o.certify=$q('certify').checked; o.name=$q('name').value; o.sig=$q('sig').value;
+        $q('certRow').hidden=!o.certify;
+        sig=o.certify?await sigImgFor(o.sig):null;
+        c.setTransform(2,0,0,2,0,0); c.fillStyle='#F1F3F6'; c.fillRect(0,0,360,150);
+        const R={x:70,y:10,w:206,h:128};                // a card, roughly to scale
+        c.fillStyle='#fff'; c.strokeStyle='#C9CFD8'; c.lineWidth=1; c.beginPath(); c.roundRect?c.roundRect(R.x,R.y,R.w,R.h,8):c.rect(R.x,R.y,R.w,R.h); c.fill(); c.stroke();
+        c.fillStyle='#E5E7EB'; c.fillRect(R.x+12,R.y+30,46,58); [0,1,2,3].forEach(i=>c.fillRect(R.x+70,R.y+34+i*14,110-i*18,6));
+        drawAnnots(c,crossMarks(R,o,{w:360,h:150},sig));
+      };
+      d.addEventListener('input',pv); d.addEventListener('change',pv); pv();
+      const go=mode=>{ pv().then(()=>{ crossOpts={...o}; try{ localStorage.setItem('wy-cross',JSON.stringify(crossOpts)); }catch(e){} done({mode,o:{...o},sig}); }); };
+      d.querySelector('[data-act=ok]').onclick=()=>go('box');
+      d.querySelector('[data-act=page]').onclick=()=>go('page');
+      $q('purpose').focus();
+    });
+  if(!r) return;
+  if(r.mode==='page'){
+    const list=n>1?pages.filter(p=>selected.has(p)):[pages[current]];
+    for(const p of list){ const d=dispSize(p); applyCross(p,{x:d.w*.06,y:d.h*.06,w:d.w*.88,h:d.h*.88},r.o,r.sig); }
+    toast(`ขีดคร่อม ${list.length} หน้าแล้ว — ก่อนส่งให้ใคร ใช้ "บันทึกแบบปลอดภัย"`);
+    return;
+  }
+  if(placing) placing=null;
+  crossArm={o:r.o, sig:r.sig}; ovCv.style.cursor='crosshair';
+  toast('ลากกรอบครอบตัวบัตรบนหน้า (คลิกเฉย ๆ = ทั้งหน้า) · Esc = ยกเลิก');
+}
+/* normal saves keep markup removable: say so when the file has a cross-out */
+async function crossGuard(t,flatten){
+  if(!t||t.crossOk||!pages.some(p=>p.annots.some(a=>a.cross))) return true;
+  const v=await ask('ไฟล์นี้มีขีดคร่อมสำเนา', flatten
+      ?'Flatten ฝังขีดลงหน้าก็จริง แต่รูปบัตรต้นฉบับยังอยู่ในไฟล์ ดึงแยกออกมาได้ — ถ้าจะส่งให้คนอื่น ให้บันทึกแบบปลอดภัย'
+      :'บันทึกแบบปกติ ผู้รับลบขีดคร่อมออกได้ด้วยโปรแกรม PDF ทั่วไป — ถ้าจะส่งให้คนอื่น ให้บันทึกแบบปลอดภัย',
+    [{label:'บันทึกแบบปลอดภัยแทน', sub:'ทำเป็นภาพ ลบขีดออกไม่ได้ — สำหรับส่ง', value:'safe', primary:true},
+     {label:flatten?'บันทึก Flatten ต่อ':'บันทึกปกติ', sub:'เก็บไว้แก้ไขเอง ไม่ได้จะส่งให้ใคร', value:'go'},
+     {label:'ยกเลิก', value:null, link:true}]);
+  if(v==='safe'){ safeSaveDialog(); return false; }
+  if(v==='go'){ t.crossOk=true; return true; }
+  return false;
+}
+async function safeSaveDialog(){
+  if(!pages.length) return;
+  if(txtIn.style.display==='block') commitText(); if(fieldEd) commitField();
+  const r=await openDialog(`<div class="box wide" role="dialog" aria-label="บันทึกแบบปลอดภัย"><b>บันทึกแบบปลอดภัย (ทำเป็นภาพ)</b>
+      <span class="note">ทุกหน้า รวมขีดคร่อม ข้อความ และลายเซ็น กลายเป็นภาพชั้นเดียว — รูปเดิมที่อยู่ใต้ขีดไม่เหลือในไฟล์ ลบหรือแยกขีดออกไม่ได้
+        ข้อมูลแฝงในไฟล์ (ชื่อผู้สร้าง สารบัญ ลิงก์ ฟอร์ม เลเยอร์ที่ซ่อน) ถูกตัดออกทั้งหมด</span>
+      ${pagesPartHtml()}
+      <div class="fRow"><label>ความคมชัด</label><div class="seg" data-k="dpi"><button data-v="200">200 dpi — แนะนำ</button><button data-v="300">300 dpi — คมมาก ไฟล์ใหญ่ขึ้น</button></div></div>
+      <span class="fErr" data-k="warn" hidden></span><span class="fErr" data-k="err" hidden>ช่วงหน้าไม่ถูกต้อง — ใช้รูปแบบ 1-3, 5</span>
+      <span class="fHint">ตัวหนังสือในไฟล์ใหม่จะค้นหา/คัดลอกไม่ได้ · ไฟล์ที่เปิดอยู่ยังแก้ไขได้ตามเดิม</span>
+      <div class="bkBtns"><button class="btn link" data-act="cancel">ยกเลิก</button><button class="btn primary" data-act="ok">บันทึก</button></div></div>`,
+    (d,done)=>{
+      segPick(d,'which',selected.size?'sel':'all'); segPick(d,'dpi','200');
+      const rng=d.querySelector('[data-k=range]'), warn=d.querySelector('[data-k=warn]'), err=d.querySelector('[data-k=err]');
+      const upd=()=>{ rng.hidden=segVal(d,'which')!=='range'; const l=pagesFrom(d); err.hidden=!!l||rng.hidden;
+        const bare=(l||[]).filter(p=>!p.annots.length).map(p=>pages.indexOf(p)+1);
+        warn.hidden=!bare.length;
+        warn.textContent=bare.length?`หน้า ${bare.length>6?bare.slice(0,6).join(', ')+' …':bare.join(', ')} ยังไม่มีขีดคร่อม ข้อความ หรือลายเซ็นเลย`:''; };
+      d.addEventListener('change',()=>{ upd(); if(segVal(d,'which')==='range') rng.focus(); }); rng.addEventListener('input',upd); upd();
+      d.querySelector('[data-act=ok]').onclick=()=>{ const l=pagesFrom(d); if(!l||!l.length){ err.hidden=false; rng.focus(); return; } done({list:l, dpi:+segVal(d,'dpi')}); };
+    });
+  if(!r) return;
+  try{
+    const bytes=await rasterPdf(r.list,r.dpi,.9,'กำลังทำเป็นภาพ');
+    if(await saveBytesAs(bytes,`${baseName}-ปลอดภัย.pdf`)) toast('บันทึกแบบปลอดภัยแล้ว ✓ — ทุกหน้าเป็นภาพชั้นเดียว ลบขีดคร่อมออกไม่ได้');
+  }catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ'); }
 }
 
 /* ---------------- right-click menus ---------------- */
